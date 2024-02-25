@@ -1,4 +1,5 @@
-﻿using SymbolicImplicationVerification.Type;
+﻿using SymbolicImplicationVerification.Term.Constant;
+using SymbolicImplicationVerification.Type;
 
 namespace SymbolicImplicationVerification.Term
 {
@@ -17,7 +18,7 @@ namespace SymbolicImplicationVerification.Term
         {
             const int firstElementIndex = 1;
 
-            IntegerConstant firstIndex = new IntegerConstant(firstElementIndex, Integer.Instance());
+            IntegerConstant firstIndex = new IntegerConstant(firstElementIndex);
 
             BoundedInteger arrayIndexBounds = new BoundedInteger(firstIndex, length);
         }

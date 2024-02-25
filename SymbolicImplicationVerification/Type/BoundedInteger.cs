@@ -1,21 +1,23 @@
-﻿using System;
-using SymbolicImplicationVerification.Term;
+﻿using SymbolicImplicationVerification.Term;
 
 namespace SymbolicImplicationVerification.Type
 {
-    public class BoundedInteger : IntegerType
+    public abstract class BoundedInteger<LTerm, LType, RTerm, RType> : IntegerType
+        where LTerm : Term<LType>
+        where LType : IntegerType
+        where RTerm : Term<RType>
+        where RType : IntegerType
     {
         #region Fields
 
-        private Term<Integer> lowerBound;
-        private Term<Integer> upperBound;
+        protected LTerm lowerBound;
+        protected RTerm upperBound;
 
         #endregion
 
         #region Constructors
 
-        // TODO : copy constructor
-        public BoundedInteger(Term<Integer> lowerBound, Term<Integer> upperBound)
+        protected BoundedInteger(LTerm lowerBound, RTerm upperBound)
         {
             this.lowerBound = lowerBound;
             this.upperBound = upperBound;
@@ -25,13 +27,13 @@ namespace SymbolicImplicationVerification.Type
 
         #region Public properties
 
-        public Term<Integer> LowerBound
+        public virtual LTerm LowerBound
         {
             get { return lowerBound; }
             set { lowerBound = value; }
         }
 
-        public Term<Integer> UpperBound
+        public virtual RTerm UpperBound
         {
             get { return upperBound; }
             set { upperBound = value; }

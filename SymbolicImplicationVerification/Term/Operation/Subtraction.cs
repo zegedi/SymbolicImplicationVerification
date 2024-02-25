@@ -1,8 +1,8 @@
 ﻿using SymbolicImplicationVerification.Type;
 
-namespace SymbolicImplicationVerification.Term
+namespace SymbolicImplicationVerification.Term.Operation
 {
-    public class Subtraction<T> : Term<T> where T : IntegerType
+    public class Subtraction<T> : BinaryOperationTerm<T> where T : IntegerType
     {
         #region Constructors
 

@@ -1,7 +1,7 @@
 ﻿using SymbolicImplicationVerification.Type;
 using System;
 
-namespace SymbolicImplicationVerification.Term
+namespace SymbolicImplicationVerification.Term.FunctionValue
 {
     public class ChiFunction : FunctionValue<Logical, ZeroOrOne>
     {

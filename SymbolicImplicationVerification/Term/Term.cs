@@ -1,4 +1,4 @@
-﻿using System;
+﻿global using IntegerTpyeTerm = SymbolicImplicationVerification.Term.Term<SymbolicImplicationVerification.Type.IntegerType>;
 
 namespace SymbolicImplicationVerification.Term
 {

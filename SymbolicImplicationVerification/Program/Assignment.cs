@@ -8,7 +8,7 @@ using SymbolicImplicationVerification.Term;
 
 namespace SymbolicImplicationVerification.Program
 {
-    public class Assignment<V> : Program
+    public class Assignment : Program
     {
         #region Fields
 

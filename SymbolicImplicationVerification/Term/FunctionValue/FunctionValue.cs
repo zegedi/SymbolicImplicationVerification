@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace SymbolicImplicationVerification.Term
+namespace SymbolicImplicationVerification.Term.FunctionValue
 {
-    public abstract class FunctionValue<D,T> : Term<T> 
+    public abstract class FunctionValue<D, T> : BaseTerm<T>
         where D : Type.Type
         where T : Type.Type
     {

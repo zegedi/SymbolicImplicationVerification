@@ -2,7 +2,7 @@
 
 namespace SymbolicImplicationVerification.Term
 {
-    public class Variable<T> : Term<T> where T : Type.Type
+    public class Variable<T> : BaseTerm<T> where T : Type.Type
     {
         #region Fields
 
@@ -11,6 +11,8 @@ namespace SymbolicImplicationVerification.Term
         #endregion
 
         #region Constructors
+
+        public Variable(Variable<T> variable) : this(variable.Identifier, variable.TermType) { }
 
         public Variable(string identifier, T termType) : base(termType)
         {
