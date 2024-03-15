@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="Terms\Patterns\AnythingPattern.cs~RF3f1bb1e9.TMP" />
+  </ItemGroup>
+
 </Project>

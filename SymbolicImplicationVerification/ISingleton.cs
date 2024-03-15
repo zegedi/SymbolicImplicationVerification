@@ -1,4 +1,4 @@
-﻿using SymbolicImplicationVerification.Type;
+﻿using SymbolicImplicationVerification.Types;
 using System;
 
 namespace SymbolicImplicationVerification
