@@ -1,9 +1,11 @@
-﻿
+﻿global using TypeConstant = SymbolicImplicationVerification.Terms.Constants.Constant<
+    object, SymbolicImplicationVerification.Types.Type>;
+
 using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Constants
 {
-    public abstract class Constant<V, T> : Term<T>, IMatch 
+    public abstract class Constant<V, T> : Term<T> //, IMatch 
         where V : notnull
         where T : Type
     {
@@ -29,6 +31,15 @@ namespace SymbolicImplicationVerification.Terms.Constants
 
         #endregion
 
+        #region Implicit conversions
+
+        public static implicit operator TypeConstant(Constant<V, T> constant)
+        {
+            return constant;
+        }
+
+        #endregion
+
         #region Public properties
 
         public V Value
@@ -42,16 +53,10 @@ namespace SymbolicImplicationVerification.Terms.Constants
         #region Public abstract methods
 
         /// <summary>
-        /// Determines wheter the given <see cref="object"/> matches the pattern.
+        /// Create a deep copy of the current constant.
         /// </summary>
-        /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
-        /// <returns>
-        ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the <see cref="object"/> matches the pattern.</item>
-        ///     <item><see langword="false"/> - otherwise.</item>
-        ///   </list>
-        /// </returns>
-        public abstract bool Matches(object? obj);
+        /// <returns>The created deep copy of the constant.</returns>
+        public override abstract Constant<V, T> DeepCopy();
 
         #endregion
 

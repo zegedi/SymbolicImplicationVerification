@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Variables
 {
-    internal class IntegerTypeArrayVariable
+    public class IntegerTypeArrayVariable //: ArrayVariable<IntegerType>
     {
+
+        #region Public methods
+
+        #endregion
     }
 }

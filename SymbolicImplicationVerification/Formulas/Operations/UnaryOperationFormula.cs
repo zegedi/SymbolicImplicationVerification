@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SymbolicImplicationVerification.Formulas.Operations;
+using System;
 
 namespace SymbolicImplicationVerification.Formulas
 {
@@ -28,6 +29,16 @@ namespace SymbolicImplicationVerification.Formulas
             get { return operand; }
             set { operand = value; }
         }
+
+        #endregion
+
+        #region Public abstract methods
+
+        /// <summary>
+        /// Creates a deep copy of the current unary operation formula.
+        /// </summary>
+        /// <returns>The created deep copy of the unary operation formula.</returns>
+        public override abstract UnaryOperationFormula DeepCopy();
 
         #endregion
     }

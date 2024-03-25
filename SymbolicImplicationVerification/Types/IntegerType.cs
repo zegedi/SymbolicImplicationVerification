@@ -1,11 +1,74 @@
-﻿using SymbolicImplicationVerification.Terms;
+﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Terms;
 using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public abstract class IntegerType : Type
+    public abstract class IntegerType : Type, IValueValidator<int>
     {
         #region Public methods
+
+        /// <summary>
+        /// Determines whether the assigned type is compatible with the given type.
+        /// </summary>
+        /// <param name="assignType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assign type is an <see cref="IntegerType"/>.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeCompatible(Type assignType)
+        {
+            return assignType is IntegerType;
+        }
+
+        /// <summary>
+        /// Determines whether the given <see cref="object"/>? value is out of range for the given type.
+        /// </summary>
+        /// <param name="value">The <see cref="object"/>? value to validate.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the value is out of range.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool IsValueOutOfRange(object? value)
+        {
+            return value is null ||
+                   value is not int intValue ||
+                   IsValueOutOfRange(intValue);
+        }
+
+        /// <summary>
+        /// Determines whether the given <see cref="object"/>? value is valid for the given type.
+        /// </summary>
+        /// <param name="value">The <see cref="object"/>? value to validate.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the value is valid.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool IsValueValid(object? value)
+        {
+            return value is not null &&
+                   value is int intValue &&
+                   IsValueValid(intValue);
+        }
+
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public override Formula TypeConstraintOn(TypeTerm term)
+        {
+            object objectTerm = term;
+
+            return objectTerm is IntegerTypeTerm integerTypeTerm ?
+                   TypeConstraintOn(integerTypeTerm) : FALSE.Instance();
+        }
 
         /// <summary>
         /// Determines the result type of an addition, with an <see cref="IntegerType"/> right operand.
@@ -89,6 +152,43 @@ namespace SymbolicImplicationVerification.Types
         #endregion
 
         #region Public abstract methods
+
+        /// <summary>
+        /// Creates a deep copy of the current integer type.
+        /// </summary>
+        /// <returns>The created deep copy of the integer type.</returns>
+        public abstract override IntegerType DeepCopy();
+
+        /// <summary>
+        /// Determines wheter the given <see cref="int"/> value is out of range for the given type.
+        /// </summary>
+        /// <param name="value">The <see cref="int"/> value to validate.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the value is out of range.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public abstract bool IsValueOutOfRange(int value);
+
+        /// <summary>
+        /// Determines wheter the given <see cref="int"/> value is valid for the given type.
+        /// </summary>
+        /// <param name="value">The <see cref="int"/> value to validate.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the value is valid.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public abstract bool IsValueValid(int value);
+
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate the constraint on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public abstract Formula TypeConstraintOn(IntegerTypeTerm term);
 
         /*========================= Addition result type selection ==========================*/
 

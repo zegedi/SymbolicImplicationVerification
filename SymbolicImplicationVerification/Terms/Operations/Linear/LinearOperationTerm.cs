@@ -12,7 +12,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 {
     public abstract class LinearOperationTerm<OTerm, OType> : Term<OType>
         where OTerm : Term<OType>
-        where OType : IntegerType
+        where OType : Type
     {
         #region Fields
 
@@ -52,6 +52,32 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
         {
             return linearOperation;
         }
+
+        #endregion
+
+        #region Protected static methods
+
+        protected static LinkedList<OTerm> OperandListDeepCopy(LinkedList<OTerm> operandList)
+        {
+            LinkedList<OTerm> copyOperandList = new LinkedList<OTerm>();
+
+            foreach (OTerm operand in operandList)
+            {
+                copyOperandList.AddLast((OTerm) operand.DeepCopy());
+            }
+
+            return copyOperandList;
+        }
+
+        #endregion
+
+        #region Public abstract methods
+
+        /// <summary>
+        /// Create a deep copy of the current linear operation term.
+        /// </summary>
+        /// <returns>The created deep copy of the linear operation term.</returns>
+        public override abstract LinearOperationTerm<OTerm, OType> DeepCopy();
 
         #endregion
 

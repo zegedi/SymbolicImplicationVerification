@@ -39,6 +39,11 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public methods
 
+        public override Term<T> DeepCopy()
+        {
+            throw new NotImplementedException();
+        }
+
         public override string Hash(HashLevel level)
         {
             return ToString();

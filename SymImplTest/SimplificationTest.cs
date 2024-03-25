@@ -1,6 +1,9 @@
+using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Types;
+using Type = SymbolicImplicationVerification.Types.Type;
 
 namespace SymImplTest
 {
@@ -71,6 +74,16 @@ namespace SymImplTest
             Assert.AreEqual(expectedResult, expression1.Evaluated());
             Assert.AreEqual(expectedResult, expression2.Evaluated());
         }
+
+        //[TestMethod]
+        //public void ASdTEst()
+        //{
+        //    var A = new IntegerConstant(312);
+        //    var B = new IntegerTypeVariable("x", Integer.Instance());
+
+        //    Assert.IsTrue(A is Term<Type>);
+        //}
+
 
         [DataTestMethod]
         [DataRow(   3,   4,   7)]
@@ -349,9 +362,50 @@ namespace SymImplTest
             var expectedResult = (IntegerConstant)(B - D) * x * y +
                                  (IntegerConstant)(A - E + G) * x +
                                  (IntegerConstant)(E - C) * y + 
-                                 H - E * F;
+                                 (H - E * F);
 
             Assert.AreEqual(expectedResult.Evaluated(), expression.Simplified());
+        }
+
+        [DataTestMethod]
+        [DataRow( 3,   4,   7,  23)]
+        [DataRow(23,   2,  65,   0)]
+        [DataRow(12,   3,   5,  61)]
+        [DataRow( 0,  -8,  65,  28)]
+        [DataRow(67, -12, -17, -85)]
+        public void SubstituteConstants(int A, int B, int C, int D)
+        {
+            var x = new IntegerTypeVariable("x", Integer.Instance());
+            var y = new IntegerTypeVariable("y", Integer.Instance());
+            var z = new IntegerTypeVariable("z", Integer.Instance());
+
+            var constA = new IntegerConstant(A);
+            var constB = new IntegerConstant(B);
+            var constC = new IntegerConstant(C);
+            var constD = new IntegerConstant(D);
+
+            var expression = (x * y) + (z + constD);
+
+            // Substitute x with constant experssion A.
+
+            var substituted = PatternReplacer<IntegerType>.VariableReplaced(expression, x, constA);
+            var expected    = (constA * y) + (z + constD);
+
+            Assert.AreEqual(expected, substituted);
+
+            // Than substitute y with constant experssion B.
+
+            substituted = PatternReplacer<IntegerType>.VariableReplaced(substituted, y, constB);
+            expected = (constA * constB) + (z + constD);
+
+            Assert.AreEqual(expected, substituted);
+
+            // Finally substitute z with constant experssion C.
+
+            substituted = PatternReplacer<IntegerType>.VariableReplaced(substituted, z, constC);
+            expected = (constA * constB) + (constC + constD);
+
+            Assert.AreEqual(expected, substituted);
         }
     }
 }

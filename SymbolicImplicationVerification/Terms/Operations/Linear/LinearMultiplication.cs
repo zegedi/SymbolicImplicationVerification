@@ -1,6 +1,7 @@
 ﻿using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.FunctionValues;
 using SymbolicImplicationVerification.Terms.Operations.Binary;
+using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Operations.Linear
@@ -11,6 +12,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         public LinearMultiplication(LinkedList<IntegerTypeTerm> operandList, IntegerType termType)
             : base(operandList,termType) { }
+
+        public LinearMultiplication(LinearMultiplication linear)
+            : base(OperandListDeepCopy(linear.operandList), linear.termType.DeepCopy()) { }
 
         #region Public properties
 
@@ -37,6 +41,19 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #endregion
 
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current linear multiplication term.
+        /// </summary>
+        /// <returns>The created deep copy of the linear multiplication term.</returns>
+        public override LinearMultiplication DeepCopy()
+        {
+            return new LinearMultiplication(this);
+        }
+
+        #endregion
+
         #region Protected methods
 
         protected override void OrderOperands()
@@ -48,7 +65,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                     IntegerConstant                    => int.MaxValue,
                     ChiFunction                        => int.MaxValue - 1,
                     Summation<IntegerType>             => int.MaxValue - 2,
-                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count + 1,
+                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerConstant),
                     Variable<IntegerType>              => 1,
                     _                                  => 0,
                 };

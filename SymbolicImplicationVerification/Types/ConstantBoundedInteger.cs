@@ -1,4 +1,6 @@
 ﻿using System;
+using SymbolicImplicationVerification.Formulas.Relations;
+using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
 
@@ -62,6 +64,15 @@ namespace SymbolicImplicationVerification.Types
         #region Public methods
 
         /// <summary>
+        /// Creates a deep copy of the current type.
+        /// </summary>
+        /// <returns>The created deep copy of the type.</returns>
+        public override ConstantBoundedInteger DeepCopy()
+        {
+            return new ConstantBoundedInteger(this);
+        }
+
+        /// <summary>
         /// Determines wheter the given <see cref="int"/> value is out of range for the <see cref="ConstantBoundedInteger"/> type.
         /// </summary>
         /// <param name="value">The <see cref="int"/> value to validate.</param>
@@ -71,7 +82,7 @@ namespace SymbolicImplicationVerification.Types
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public bool IsValueOutOfRange(int value)
+        public override bool IsValueOutOfRange(int value)
         {
             return value < LowerBoundValue || UpperBoundValue < value;
         }
@@ -86,11 +97,47 @@ namespace SymbolicImplicationVerification.Types
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public bool IsValueValid(int value)
+        public override bool IsValueValid(int value)
         {
             return LowerBoundValue <= value && value <= UpperBoundValue;
         }
 
+        /// <summary>
+        /// Determines whether the assigned type is directly assignable to the given type.
+        /// </summary>
+        /// <param name="assignedType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assigned type is directly assignable.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeAssignable(Type assignedType) => assignedType switch
+        {
+            ConstantBoundedInteger bounded => bounded.LowerBoundValue >= LowerBoundValue &&
+                                              bounded.UpperBoundValue <= UpperBoundValue,
+
+            _ => assignedType is ZeroOrOne && 0 <= LowerBoundValue && UpperBoundValue <= 1
+        };
+
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate the constraint on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public override Formula TypeConstraintOn(IntegerTypeTerm term)
+        {
+            IntegerConstant lower = new IntegerConstant(lowerBound);
+            IntegerConstant upper = new IntegerConstant(upperBound);
+
+            IntegerTypeTerm firstCopy  = term.DeepCopy();
+            IntegerTypeTerm secondCopy = term.DeepCopy();
+
+            LessThanOrEqualTo lowerBoundConstraint = new LessThanOrEqualTo(lower, firstCopy);
+            LessThanOrEqualTo upperBoundConstraint = new LessThanOrEqualTo(secondCopy, upper);
+
+            return new ConjunctionFormula(lowerBoundConstraint, upperBoundConstraint);
+        }
 
         /*========================= Addition result type selection ==========================*/
 

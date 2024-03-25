@@ -14,9 +14,12 @@ namespace SymbolicImplicationVerification.Terms.Patterns
     {
         #region Constructors
 
-        public IntegerTypeConstantPattern(int identifier) : this(identifier,Integer.Instance()) { }
+        public IntegerTypeConstantPattern(int identifier) : base(identifier,Integer.Instance()) { }
 
-        public IntegerTypeConstantPattern(int identifier, IntegerType termType) : base(identifier,termType) { }
+        public IntegerTypeConstantPattern(int identifier, IntegerType termType) : base(identifier, termType) { }
+
+        public IntegerTypeConstantPattern(IntegerTypeConstantPattern constantPattern)
+            : base(constantPattern.identifier, constantPattern.termType.DeepCopy()) { }
 
         #endregion
 
@@ -35,6 +38,19 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         public static Multiplication operator *(IntegerTypeConstantPattern pattern, IntegerTypeTerm term)
         {
             return new Multiplication(pattern, term);
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current constant pattern.
+        /// </summary>
+        /// <returns>The created deep copy of the constant pattern.</returns>
+        public override IntegerTypeConstantPattern DeepCopy()
+        {
+            return new IntegerTypeConstantPattern(this);
         }
 
         #endregion

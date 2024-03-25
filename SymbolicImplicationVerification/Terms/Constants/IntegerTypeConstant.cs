@@ -24,6 +24,11 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return new IntegerConstant(value);
         }
 
+        public static implicit operator Constant<int, Type>(IntegerTypeConstant constant)
+        {
+            return constant;
+        }
+
         #endregion
 
         #region Public static operators
@@ -96,6 +101,16 @@ namespace SymbolicImplicationVerification.Terms.Constants
 
         #endregion
 
+        #region Public abstract methods
+
+        /// <summary>
+        /// Create a deep copy of the current constant.
+        /// </summary>
+        /// <returns>The created deep copy of the constant.</returns>
+        public override abstract IntegerTypeConstant DeepCopy();
+
+        #endregion
+
         #region Public methods
 
         /// <summary>
@@ -122,6 +137,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return base.GetHashCode();
         }
 
+        /*
         /// <summary>
         /// Determines wheter the given <see cref="object"/> matches the pattern.
         /// </summary>
@@ -138,6 +154,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
                    obj is IntegerTypeConstant constant &&
                    value == constant.value;
         }
+        */
 
         #endregion
     }

@@ -1,7 +1,14 @@
-﻿global using IntegerTypeBinaryOperationTerm =
+﻿global using TypeBinaryOperationTerm =
+    SymbolicImplicationVerification.Terms.Operations.Binary.BinaryOperationTerm<
+        SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.Type>,
+        SymbolicImplicationVerification.Types.Type>;
+
+global using IntegerTypeBinaryOperationTerm =
     SymbolicImplicationVerification.Terms.Operations.Binary.BinaryOperationTerm<
         SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
         SymbolicImplicationVerification.Types.IntegerType>;
+
+
 using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Terms.Constants;
@@ -10,9 +17,9 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Operations.Binary
 {
-    public abstract class BinaryOperationTerm<OTerm, OType> : Term<OType>, IMatch
+    public abstract class BinaryOperationTerm<OTerm, OType> : Term<OType> //, IMatch
         where OTerm : Term<OType>
-        where OType : IntegerType
+        where OType : Type
     {
         #region Fields
 
@@ -31,24 +38,34 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #endregion
 
+        #region Implicit conversions
+
+        public static implicit operator BinaryOperationTerm<TypeTerm, Type>(BinaryOperationTerm<OTerm, OType> operation)
+        {
+            return operation;
+        }
+
+        #endregion
+
         #region Public properties
 
         public OTerm LeftOperand
         {
             get { return leftOperand; }
-            private set { leftOperand = value; }
+            set { leftOperand = value; }
         }
 
         public OTerm RightOperand
         {
             get { return rightOperand; }
-            private set { rightOperand = value; }
+            set { rightOperand = value; }
         }
 
         #endregion
 
         #region Public abstract methods
 
+        /*
         /// <summary>
         /// Determines wheter the given <see cref="object"/> matches the pattern.
         /// </summary>
@@ -60,6 +77,13 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         ///   </list>
         /// </returns>
         public abstract bool Matches(object? obj);
+        */
+
+        /// <summary>
+        /// Create a deep copy of the current binary operation term.
+        /// </summary>
+        /// <returns>The created deep copy of the binary operation term.</returns>
+        public override abstract BinaryOperationTerm<OTerm, OType> DeepCopy();
 
         /// <summary>
         /// Creates an evaluated version of the binary operation.
@@ -70,6 +94,8 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         public abstract OTerm Simplified();
 
         public abstract LinearOperationTerm<OTerm, OType> Linearized();
+
+        public abstract BinaryOperationTerm<OTerm, OType> CreateInstance(OTerm leftOperand, OTerm rightOperand);
 
         #endregion
 
@@ -85,8 +111,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is BinaryOperationTerm<OTerm, OType> other &&
+            return obj is BinaryOperationTerm<OTerm, OType> other &&
                    leftOperand .Equals(other.LeftOperand) &&
                    rightOperand.Equals(other.RightOperand);
         }
@@ -139,13 +164,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         {
             OTerm left =
                 leftOperand is BinaryOperationTerm<OTerm, OType> leftOperation ?
-                leftOperation.Evaluated() :
-                Term<OType>.DeepCopy((dynamic) leftOperand);
+                leftOperation.Evaluated() : (OTerm) leftOperand.DeepCopy();
 
             OTerm right =
                 rightOperand is BinaryOperationTerm<OTerm, OType> rightOperation ?
-                rightOperation.Evaluated() : 
-                Term<OType>.DeepCopy((dynamic) rightOperand);
+                rightOperation.Evaluated() : (OTerm) rightOperand.DeepCopy();
 
             return Evaluated(left, right);
         }

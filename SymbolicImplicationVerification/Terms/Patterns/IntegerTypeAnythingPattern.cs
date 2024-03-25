@@ -12,6 +12,9 @@ namespace SymbolicImplicationVerification.Terms.Patterns
 
         public IntegerTypeAnythingPattern(int identifier, IntegerType termType) : base(identifier, termType) { }
 
+        public IntegerTypeAnythingPattern(IntegerTypeAnythingPattern anythingPattern)
+            : base(anythingPattern.identifier, anythingPattern.termType.DeepCopy()) { }
+
         #endregion
 
         #region Public static operators
@@ -29,6 +32,19 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         public static Multiplication operator *(IntegerTypeAnythingPattern pattern, IntegerTypeTerm term)
         {
             return new Multiplication(pattern, term);
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current anything pattern.
+        /// </summary>
+        /// <returns>The created deep copy of the anything pattern.</returns>
+        public override IntegerTypeAnythingPattern DeepCopy()
+        {
+            return new IntegerTypeAnythingPattern(this);
         }
 
         #endregion

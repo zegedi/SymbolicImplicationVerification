@@ -17,6 +17,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
         public LinearAddition(LinkedList<IntegerTypeTerm> operandList, IntegerType termType)
             : base(operandList, termType) { }
 
+        public LinearAddition(LinearAddition linearAddition)
+            : base(OperandListDeepCopy(linearAddition.operandList), linearAddition.termType.DeepCopy()) { }
+
         #endregion
 
         #region Public properties
@@ -44,6 +47,19 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #endregion
 
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current linear addition term.
+        /// </summary>
+        /// <returns>The created deep copy of the linear addition term.</returns>
+        public override LinearAddition DeepCopy()
+        {
+            return new LinearAddition(this);
+        }
+
+        #endregion
+
         #region Protected methods
 
         protected override void OrderOperands()
@@ -54,7 +70,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                 {
                     ChiFunction                        => int.MaxValue,
                     Summation<IntegerType>             => int.MaxValue - 1,
-                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count + 1,
+                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerConstant),
                     Variable<IntegerType>              => 1,
                     _                                  => 0,
                 };

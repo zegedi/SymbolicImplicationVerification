@@ -1,22 +1,34 @@
 ﻿using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Types;
+using SymbolicImplicationVerification.Terms.Variables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SymbolicImplicationVerification.Terms.Operations.Linear;
 
 namespace SymbolicImplicationVerification.Terms.Patterns
 {
-    public class VariablePattern<T> : Pattern<T> where T : Type
+    public abstract class VariablePattern<T> : Pattern<T> where T : Type
     {
         #region Constructors
 
-        protected VariablePattern(int identifier, T termType) : base(identifier,termType) { }
+        public VariablePattern(int identifier, T termType) : base(identifier, termType) { }
 
         #endregion
 
         #region Public abstract methods
+
+        /// <summary>
+        /// Create a deep copy of the current variable pattern.
+        /// </summary>
+        /// <returns>The created deep copy of the variable pattern.</returns>
+        public override abstract VariablePattern<T> DeepCopy();
+
+        #endregion
+
+        #region Public methods
 
         public override string ToString()
         {

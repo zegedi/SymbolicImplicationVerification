@@ -3,11 +3,21 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Patterns
 {
-    public class ConstantPattern<V, T> : Pattern<T> where T : Type
+    public abstract class ConstantPattern<V, T> : Pattern<T> where T : Type
     {
         #region Constructors
 
         public ConstantPattern(int identifier, T termType) : base(identifier, termType) { }
+
+        #endregion
+
+        #region Public abstract methods
+
+        /// <summary>
+        /// Create a deep copy of the current constant pattern.
+        /// </summary>
+        /// <returns>The created deep copy of the constant pattern.</returns>
+        public override abstract ConstantPattern<V, T> DeepCopy();
 
         #endregion
 

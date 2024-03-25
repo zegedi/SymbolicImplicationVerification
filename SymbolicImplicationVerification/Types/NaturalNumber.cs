@@ -1,8 +1,10 @@
-﻿using System;
+﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Terms.Constants;
+using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class NaturalNumber : IntegerType, IValueValidator<int>, ISingleton<NaturalNumber>
+    public class NaturalNumber : IntegerType, ISingleton<NaturalNumber>
     {
         #region Fields
 
@@ -49,6 +51,19 @@ namespace SymbolicImplicationVerification.Types
             }
         }
 
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Creates a deep copy of the current type.
+        /// </summary>
+        /// <returns>The created deep copy of the type.</returns>
+        public override NaturalNumber DeepCopy()
+        {
+            return NaturalNumber.Instance();
+        }
+
         /// <summary>
         /// Determines wheter the given <see cref="int"/> value is out of range for the <see cref="NaturalNumber"/> type.
         /// </summary>
@@ -59,7 +74,7 @@ namespace SymbolicImplicationVerification.Types
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public static bool IsValueOutOfRange(int value)
+        public override bool IsValueOutOfRange(int value)
         {
             return value < 0;
         }
@@ -74,14 +89,47 @@ namespace SymbolicImplicationVerification.Types
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public static bool IsValueValid(int value)
+        public override bool IsValueValid(int value)
         {
             return value >= 0;
         }
 
-        #endregion
+        /// <summary>
+        /// Determines whether the assigned type is directly assignable to the given type.
+        /// </summary>
+        /// <param name="assignedType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assigned type is directly assignable.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeAssignable(Type assignedType) => assignedType switch
+        {
+            ConstantBoundedInteger bounded => bounded.LowerBoundValue >= 0,
 
-        #region Public methods
+            TermBoundedInteger bounded => bounded.LowerBound switch
+            {
+                IntegerTypeConstant lowerBound => lowerBound.Value >= 0,
+                IntegerTypeTerm     lowerBound => lowerBound.TermType is 
+                                                  NaturalNumber or PositiveInteger or ZeroOrOne
+            },
+
+            _ => assignedType is NaturalNumber or PositiveInteger or ZeroOrOne
+        };
+
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate the constraint on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public override Formula TypeConstraintOn(IntegerTypeTerm term)
+        {
+            IntegerConstant naturalNumberLowerBound = new IntegerConstant(0);
+            IntegerTypeTerm copyTerm = term.DeepCopy();
+
+            return new GreaterThanOrEqualTo(copyTerm, naturalNumberLowerBound);
+        }
 
         /*========================= Addition result type selection ==========================*/
 

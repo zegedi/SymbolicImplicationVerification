@@ -1,6 +1,6 @@
 ﻿using SymbolicImplicationVerification.Terms.Patterns;
 
-namespace SymbolicImplicationVerification.Terms
+namespace SymbolicImplicationVerification.Terms.Variables
 {
     public class Variable<T> : Term<T> where T : Type
     {
@@ -12,7 +12,7 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Constructors
 
-        public Variable(Variable<T> variable) : this(variable.Identifier, variable.TermType) { }
+        public Variable(Variable<T> variable) : this(variable.identifier, (T) variable.termType.DeepCopy()) { }
 
         public Variable(string identifier, T termType) : base(termType)
         {
@@ -26,12 +26,21 @@ namespace SymbolicImplicationVerification.Terms
         public string Identifier
         {
             get { return identifier; }
-            private set { identifier = value; }
+            set { identifier = value; }
         }
 
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current variable.
+        /// </summary>
+        /// <returns>The created deep copy of the variable.</returns>
+        public override Variable<T> DeepCopy()
+        {
+            return new Variable<T>(this);
+        }
 
         public override string Hash(HashLevel level)
         {
@@ -66,6 +75,15 @@ namespace SymbolicImplicationVerification.Terms
         public override string ToString()
         {
             return identifier;
+        }
+
+        #endregion
+
+        #region Implicit conversions
+
+        public static implicit operator Variable<Type>(Variable<T> variable)
+        {
+            return variable;
         }
 
         #endregion

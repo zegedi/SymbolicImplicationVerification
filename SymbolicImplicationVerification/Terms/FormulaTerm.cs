@@ -1,9 +1,10 @@
 ﻿using SymbolicImplicationVerification.Types;
 using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Terms.Constants;
 
 namespace SymbolicImplicationVerification.Terms
 {
-    public class FormulaTerm : Term<Logical>
+    public class FormulaTerm : LogicalTerm
     {
         #region Fields
 
@@ -12,6 +13,8 @@ namespace SymbolicImplicationVerification.Terms
         #endregion
 
         #region Constructors
+
+        public FormulaTerm(FormulaTerm formulaTerm) : this(formulaTerm.formula.DeepCopy()) { }
 
         public FormulaTerm(Formula formula) : base(Logical.Instance())
         {
@@ -35,6 +38,27 @@ namespace SymbolicImplicationVerification.Terms
         public override string Hash(HashLevel level)
         {
             return String.Empty;
+        }
+
+        /// <summary>
+        /// Creates a deep copy of the current formula term.
+        /// </summary>
+        /// <returns>The created deep copy of the formula term.</returns>
+        public override FormulaTerm DeepCopy()
+        {
+            return new FormulaTerm(this);
+        }
+
+        public LogicalTerm Evaluated()
+        {
+            Formula formulaEvaluated = formula.Evaluated();
+
+            return formulaEvaluated switch
+            {
+                TRUE  => new LogicalConstant(true),
+                FALSE => new LogicalConstant(false),
+                _     => new FormulaTerm(formulaEvaluated)
+            };
         }
 
         #endregion

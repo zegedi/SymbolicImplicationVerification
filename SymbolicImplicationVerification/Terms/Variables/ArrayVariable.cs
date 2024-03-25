@@ -2,13 +2,13 @@
 using SymbolicImplicationVerification.Terms.Patterns;
 using SymbolicImplicationVerification.Types;
 
-namespace SymbolicImplicationVerification.Terms
+namespace SymbolicImplicationVerification.Terms.Variables
 {
     public class ArrayVariable<T> : Variable<T> where T : Type
     {
         #region Fields
 
-        // protected IntegerTypeTermIndexre index;
+        protected TermIndexer index;
 
         #endregion
 
@@ -18,7 +18,12 @@ namespace SymbolicImplicationVerification.Terms
         {
             const int firstElementIndex = 1;
 
-            IntegerConstant firstIndex = new IntegerConstant(firstElementIndex);
+            BoundedIntegerType indexBounds = 
+                length is IntegerTypeConstant constantLength ?
+                new ConstantBoundedInteger(firstElementIndex, constantLength.Value) :
+                new TermBoundedInteger(firstElementIndex, length);
+
+            // index = new TermIndexer(indexBounds);
 
             //IntegerTypeTermIndexre arrayIndexBounds = new IntegerTypeTermIndexre(firstIndex, length);
         }

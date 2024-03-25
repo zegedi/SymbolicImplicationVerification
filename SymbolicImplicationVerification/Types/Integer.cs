@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SymbolicImplicationVerification.Formulas;
+using System;
 
 namespace SymbolicImplicationVerification.Types
 {
@@ -49,12 +50,26 @@ namespace SymbolicImplicationVerification.Types
             }
         }
 
+        #endregion
+
+        #region Public methods
+
         /// <summary>
-        /// Determines wheter the given <see cref="int"/> value is out of range for the <see cref="Integer"/> type.
+        /// Creates a deep copy of the current type.
+        /// </summary>
+        /// <returns>The created deep copy of the type.</returns>
+        public override Integer DeepCopy()
+        {
+            return Integer.Instance();
+        }
+
+        /// <summary>
+        /// Determines wheter the given <see cref="int"/> value is out of range 
+        /// for the <see cref="Integer"/> type.
         /// </summary>
         /// <param name="value">The <see cref="int"/> value to validate.</param>
         /// <returns><see langword="false"/> - since all <see cref="int"/> values are in range.</returns>
-        public static bool IsValueOutOfRange(int value)
+        public override bool IsValueOutOfRange(int value)
         {
             return false;
         }
@@ -64,14 +79,35 @@ namespace SymbolicImplicationVerification.Types
         /// </summary>
         /// <param name="value">The <see cref="int"/> value to validate.</param>
         /// <returns><see langword="true"/> - since all <see cref="int"/> values are valid.</returns>
-        public static bool IsValueValid(int value)
+        public override bool IsValueValid(int value)
         {
             return true;
         }
 
-        #endregion
+        /// <summary>
+        /// Determines whether the assigned type is directly assignable to the given type.
+        /// </summary>
+        /// <param name="assignedType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assigned type is directly assignable.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeAssignable(Type assignedType)
+        {
+            return TypeCompatible(assignedType);
+        }
 
-        #region Public methods
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate the constraint on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public override Formula TypeConstraintOn(IntegerTypeTerm term)
+        {
+            return TRUE.Instance();
+        }
 
         /*========================= Addition result type selection ==========================*/
 

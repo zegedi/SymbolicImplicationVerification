@@ -1,4 +1,12 @@
-﻿using SymbolicImplicationVerification.Terms;
+﻿global using BoundedIntegerType =
+    SymbolicImplicationVerification.Types.BoundedInteger<
+        SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
+        SymbolicImplicationVerification.Types.IntegerType,
+        SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
+        SymbolicImplicationVerification.Types.IntegerType>;
+
+using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Constants;
 
 namespace SymbolicImplicationVerification.Types
 {
@@ -38,7 +46,27 @@ namespace SymbolicImplicationVerification.Types
             get { return upperBound; }
             set { upperBound = value; }
         }
- 
+
+        #endregion
+
+        #region Implicit conversions
+
+        public static implicit operator
+            BoundedIntegerType(BoundedInteger<LTerm, LType, RTerm, RType> bounded)
+        {
+            return bounded;
+        }
+
+        #endregion
+
+        #region Public abstract methods
+
+        /// <summary>
+        /// Creates a deep copy of the current bounded integer.
+        /// </summary>
+        /// <returns>The created deep copy of the bounded integer.</returns>
+        public override abstract BoundedInteger<LTerm, LType, RTerm, RType> DeepCopy();
+
         #endregion
     }
 }

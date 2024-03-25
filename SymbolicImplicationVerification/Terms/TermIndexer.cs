@@ -1,33 +1,20 @@
-﻿/*
-global using IntegerTypeTermIndexre = SymbolicImplicationVerification.Terms.TermIndexer<
-    SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
-    SymbolicImplicationVerification.Types.IntegerType,
-    SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
-    SymbolicImplicationVerification.Types.IntegerType>;*/
+﻿using SymbolicImplicationVerification.Types;
 
-using SymbolicImplicationVerification.Types;
+using SymbolicImplicationVerification.Terms.Variables;
 
 namespace SymbolicImplicationVerification.Terms
 {
-    /*
-    public class TermIndexer<LTerm, LType, RTerm, RType>
-        where LTerm : Term<LType>
-        where LType : IntegerType
-        where RTerm : Term<RType>
-        where RType : IntegerType
+    public class TermIndexer
     {
         #region Fields
 
-        private Term<BoundedInteger<LTerm, LType, RTerm, RType>> index;
+        private Term<BoundedIntegerType> index;
 
         #endregion
 
         #region Constructors
 
-        public TermIndexer(LTerm lowerBound, RTerm upperBound) 
-            : this(new BoundedInteger<LTerm, LType, RTerm, RType>(lowerBound, upperBound)) { }
-
-        public TermIndexer(Term<BoundedInteger<LTerm, LType, RTerm, RType>> index)
+        public TermIndexer(Term<BoundedIntegerType> index)
         {
             this.index = index;
         }
@@ -36,7 +23,7 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public properties
 
-        public Term<BoundedInteger<LTerm, LType, RTerm, RType>> Index
+        public Term<BoundedIntegerType> Index
         {
             get { return index; }
             set { index = value; }
@@ -44,5 +31,4 @@ namespace SymbolicImplicationVerification.Terms
 
         #endregion
     }
-    */
 }

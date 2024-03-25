@@ -1,8 +1,11 @@
-﻿using System;
+﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Relations;
+using SymbolicImplicationVerification.Terms.Constants;
+using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class ZeroOrOne : IntegerType, IValueValidator<int>, ISingleton<ZeroOrOne>
+    public class ZeroOrOne : IntegerType, ISingleton<ZeroOrOne>
     {
         #region Fields
 
@@ -49,6 +52,19 @@ namespace SymbolicImplicationVerification.Types
             }
         }
 
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Creates a deep copy of the current type.
+        /// </summary>
+        /// <returns>The created deep copy of the type.</returns>
+        public override ZeroOrOne DeepCopy()
+        {
+            return ZeroOrOne.Instance();
+        }
+
         /// <summary>
         /// Determines wheter the given <see cref="int"/> value is out of range of the <see cref="ZeroOrOne"/> type.
         /// </summary>
@@ -59,7 +75,7 @@ namespace SymbolicImplicationVerification.Types
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public static bool IsValueOutOfRange(int value)
+        public override bool IsValueOutOfRange(int value)
         {
             return value != 0 && value != 1;
         }
@@ -74,14 +90,47 @@ namespace SymbolicImplicationVerification.Types
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public static bool IsValueValid(int value)
+        public override bool IsValueValid(int value)
         {
             return value == 0 || value == 1;
         }
 
-        #endregion
+        /// <summary>
+        /// Determines whether the assigned type is directly assignable to the given type.
+        /// </summary>
+        /// <param name="assignedType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assigned type is directly assignable.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeAssignable(Type assignedType) => assignedType switch
+        {
+            ConstantBoundedInteger bounded => bounded.LowerBoundValue >= 0 &&
+                                              bounded.UpperBoundValue <= 1,
 
-        #region Public methods
+            _ => assignedType is ZeroOrOne
+        };
+
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate the constraint on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public override Formula TypeConstraintOn(IntegerTypeTerm term)
+        {
+            IntegerConstant zero = new IntegerConstant(0);
+            IntegerConstant one  = new IntegerConstant(1);
+            
+            IntegerTypeTerm firstCopy  = term.DeepCopy();
+            IntegerTypeTerm secondCopy = term.DeepCopy();
+
+            IntegerTypeEqual equalsZero = new IntegerTypeEqual(firstCopy, zero);
+            IntegerTypeEqual equalsOne  = new IntegerTypeEqual(secondCopy, one);
+
+            return new DisjunctionFormula(equalsZero, equalsOne);
+        }
 
         /*========================= Addition result type selection ==========================*/
 

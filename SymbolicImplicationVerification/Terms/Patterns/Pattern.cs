@@ -1,4 +1,5 @@
-﻿using SymbolicImplicationVerification.Terms.Operations.Binary;
+﻿using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations.Binary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace SymbolicImplicationVerification.Terms.Patterns
 {
-    public abstract class Pattern<T> : Term<T>, IMatch where T : Type
+    public abstract class Pattern<T> : Term<T> where T : Type
     {
         #region Fields
 
-        private readonly int identifier;
+        protected readonly int identifier;
 
         #endregion
 
@@ -37,16 +38,10 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         #region Public abstract methods
 
         /// <summary>
-        /// Determines wheter the given <see cref="object"/> matches the pattern.
+        /// Create a deep copy of the current pattern.
         /// </summary>
-        /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
-        /// <returns>
-        ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the <see cref="object"/> matches the pattern.</item>
-        ///     <item><see langword="false"/> - otherwise.</item>
-        ///   </list>
-        /// </returns>
-        public abstract bool Matches(object? obj);
+        /// <returns>The created deep copy of the pattern.</returns>
+        public override abstract Pattern<T> DeepCopy();
 
         #endregion
 

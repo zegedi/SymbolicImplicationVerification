@@ -8,8 +8,21 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
 
         public BetaFunction(Term<Integer> argument) : base(argument, Logical.Instance()) { }
 
-        //public BetaFunction(BetaFunction betaFunctionValue) 
-        //    : base(DeepCopy((dynamic) betaFunctionValue.argument), Logical.Instance()) { }
+        public BetaFunction(BetaFunction betaFunctionValue)
+            : base(betaFunctionValue.argument.DeepCopy(), Logical.Instance()) { }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current beta function.
+        /// </summary>
+        /// <returns>The created deep copy of the beta function.</returns>
+        public override BetaFunction DeepCopy()
+        {
+            return new BetaFunction(this);
+        }
 
         #endregion
     }

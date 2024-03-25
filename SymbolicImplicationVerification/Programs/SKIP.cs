@@ -2,7 +2,7 @@
 
 namespace SymbolicImplicationVerification.Programs
 {
-    public class SKIP : Program
+    public class SKIP : Program, ISingleton<SKIP>
     {
         #region Fields
 
@@ -22,7 +22,7 @@ namespace SymbolicImplicationVerification.Programs
 
         #endregion
 
-        #region Public methods
+        #region Public static methods
 
         /// <summary>
         /// Factory method for the singular instance.
@@ -47,6 +47,41 @@ namespace SymbolicImplicationVerification.Programs
             {
                 instance = null;
             }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Creates a deep copy of the current program.
+        /// </summary>
+        /// <returns>The created deep copy of the program.</returns>
+        public override SKIP DeepCopy()
+        {
+            return SKIP.Instance();
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is SKIP;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         #endregion

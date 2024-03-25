@@ -1,5 +1,4 @@
-﻿global using IntegerTypePattern = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>;
-global using PatternMatches = System.Collections.Generic.Dictionary<
+﻿global using PatternMatches = System.Collections.Generic.Dictionary<
     SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
     SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>>;
 

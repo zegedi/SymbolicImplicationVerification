@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SymbolicImplicationVerification.Formulas;
+using System;
 
 namespace SymbolicImplicationVerification.Types
 {
@@ -49,12 +50,90 @@ namespace SymbolicImplicationVerification.Types
             }
         }
 
+        #endregion
+
+        #region Public methods
+
         /// <summary>
-        /// Determines wheter the given <see cref="bool"/> value is out of range for the <see cref="Logical"/> type.
+        /// Creates a deep copy of the current type.
+        /// </summary>
+        /// <returns>The created deep copy of the type.</returns>
+        public override Logical DeepCopy()
+        {
+            return Logical.Instance();
+        }
+
+        /// <summary>
+        /// Determines whether the assigned type is compatible with the given type.
+        /// </summary>
+        /// <param name="assignType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assign type is an <see cref="Logical"/>.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeCompatible(Type assignType)
+        {
+            return assignType is Logical;
+        }
+
+        /// <summary>
+        /// Determines whether the assigned type is directly assignable to the given type.
+        /// </summary>
+        /// <param name="assignType">The type to assign.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the assigned type is directly assignable.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool TypeAssignable(Type assignType)
+        {
+            return TypeCompatible(assignType);
+        }
+
+        /// <summary>
+        /// Determines whether the given <see cref="object"/>? value is out of range for the given type.
+        /// </summary>
+        /// <param name="value">The <see cref="object"/>? value to validate.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the value is out of range.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool IsValueOutOfRange(object? value)
+        {
+            return value is null ||
+                   value is not bool logicalValue ||
+                   IsValueOutOfRange(logicalValue);
+        }
+
+        /// <summary>
+        /// Determines whether the given <see cref="object"/>? value is valid for the given type.
+        /// </summary>
+        /// <param name="value">The <see cref="object"/>? value to validate.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the value is valid.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool IsValueValid(object? value)
+        {
+            return value is not null &&
+                   value is bool logicalValue &&
+                   IsValueValid(logicalValue);
+        }
+
+        /// <summary>
+        /// Determines wheter the given <see cref="bool"/> value is out of range
+        /// for the <see cref="Logical"/> type.
         /// </summary>
         /// <param name="value">The <see cref="bool"/> value to validate.</param>
         /// <returns><see langword="false"/> - since all <see cref="bool"/> values are in range.</returns>
-        public static bool IsValueOutOfRange(bool value)
+        public bool IsValueOutOfRange(bool value)
         {
             return false;
         }
@@ -64,9 +143,21 @@ namespace SymbolicImplicationVerification.Types
         /// </summary>
         /// <param name="value">The <see cref="bool"/> value to validate.</param>
         /// <returns><see langword="true"/> - since all <see cref="bool"/> values are valid.</returns>
-        public static bool IsValueValid(bool value)
+        public bool IsValueValid(bool value)
         {
             return true;
+        }
+
+        /// <summary>
+        /// Creates a formula, that represents the type constraint on the given term.
+        /// </summary>
+        /// <param name="term">The term to formulate on.</param>
+        /// <returns>The formulated constraint on the term.</returns>
+        public override Formula TypeConstraintOn(TypeTerm term)
+        {
+            bool isLogicalTerm = term.TermType is Logical;
+
+            return isLogicalTerm ? TRUE.Instance() : FALSE.Instance();
         }
 
         #endregion

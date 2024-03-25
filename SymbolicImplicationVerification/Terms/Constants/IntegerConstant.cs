@@ -20,5 +20,18 @@ namespace SymbolicImplicationVerification.Terms.Constants
         public static implicit operator IntegerConstant(int value) => new IntegerConstant(value);
 
         #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current integer constant.
+        /// </summary>
+        /// <returns>The created deep copy of the integer constant.</returns>
+        public override IntegerConstant DeepCopy()
+        {
+            return new IntegerConstant(this);
+        }
+
+        #endregion
     }
 }

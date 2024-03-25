@@ -41,6 +41,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             : this(leftOperand, rightOperand, 
                    leftOperand.TermType.MultiplicationWithType(rightOperand.TermType)) { }
 
+        public Multiplication(Multiplication multiplication)
+            : this(multiplication.leftOperand .DeepCopy(),
+                   multiplication.rightOperand.DeepCopy(), multiplication.termType.DeepCopy()) { }
+
         public Multiplication(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand, IntegerType termType)
             : base(leftOperand, rightOperand, termType) { }
 
@@ -212,6 +216,21 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #region Public methods
 
+        /// <summary>
+        /// Create a deep copy of the current multiplication term.
+        /// </summary>
+        /// <returns>The created deep copy of the multiplication term.</returns>
+        public override Multiplication DeepCopy()
+        {
+            return new Multiplication(this);
+        }
+
+        public override IntegerTypeBinaryOperationTerm
+            CreateInstance(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
+        {
+            return new Multiplication(leftOperand, rightOperand);
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -240,6 +259,30 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         }
 
         /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is Multiplication other &&
+                   leftOperand .Equals(other.LeftOperand) &&
+                   rightOperand.Equals(other.RightOperand);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
         /// Determines wheter the given <see cref="object"/> matches the pattern.
         /// </summary>
         /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
@@ -253,10 +296,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         {
             return obj is not null &&
                    obj is Multiplication multiplication &&
-                   leftOperand  is IMatch leftPattern   &&
-                   rightOperand is IMatch rightPattern  &&
-                   leftPattern .Matches(multiplication.leftOperand) &&
-                   rightPattern.Matches(multiplication.rightOperand);
+                   // leftOperand  is IMatch leftPattern   &&
+                   // rightOperand is IMatch rightPattern  &&
+                   leftOperand .Matches(multiplication.leftOperand) &&
+                   rightOperand.Matches(multiplication.rightOperand);
         }
 
         public override IntegerTypeTerm Evaluated(IntegerTypeTerm left, IntegerTypeTerm right)
@@ -291,11 +334,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         {
             // Expand all parenthesis.
             IntegerTypeTerm expanded
-                = PatternReplacer.PatternsApplied(this, Evaluations.Patterns.ExpandRules);
+                = PatternReplacer<IntegerType>.PatternsApplied(this, Evaluations.Patterns.ExpandRules);
 
             // Convert all subtractions into multiplications and additions.
             IntegerTypeTerm subtractionsConverted
-                = PatternReplacer.PatternsApplied(expanded, Evaluations.Patterns.ConvertSubtractions);
+                = PatternReplacer<IntegerType>.PatternsApplied(expanded, Evaluations.Patterns.ConvertSubtractions);
 
             // Create the "queue" of unprocessed terms and list of operands.
             LinkedList<IntegerTypeTerm> unprocessed = new LinkedList<IntegerTypeTerm>();
@@ -323,7 +366,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
                 }
             }
 
-            return new LinearMultiplication(operandList, Type.DeepCopy(subtractionsConverted.TermType));
+            return new LinearMultiplication(operandList, subtractionsConverted.TermType.DeepCopy());
         }
 
         public override IntegerTypeTerm Simplified()
@@ -336,13 +379,13 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
                 result = linearized.Process();
 
-                result = PatternReplacer.PatternsApplied(result, Evaluations.Patterns.CollapseGroups);
+                result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.CollapseGroups);
 
                 if (result is IntegerTypeBinaryOperationTerm operationTerm)
                 {
                     result = operationTerm.Evaluated();
 
-                    result = PatternReplacer.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
+                    result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
                 }
             }
 

@@ -10,9 +10,10 @@ namespace SymbolicImplicationVerification.Terms.Variables
         #region Constructors
 
         public IntegerTypeVariable(IntegerTypeVariable variable) 
-            : this(variable.identifier, variable.termType) { }
-
-        public IntegerTypeVariable(string identifier, IntegerType termType) : base(identifier, termType) { }
+            : base(variable.identifier, variable.termType.DeepCopy()) { }
+            
+        public IntegerTypeVariable(string identifier, IntegerType termType)
+            : base(identifier, termType) { }
 
         #endregion
 
@@ -82,6 +83,19 @@ namespace SymbolicImplicationVerification.Terms.Variables
         public static Multiplication operator *(IntegerTypeVariable leftOperand, IntegerTypeTerm rightOperand)
         {
             return new Multiplication(leftOperand, rightOperand);
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Create a deep copy of the current variable.
+        /// </summary>
+        /// <returns>The created deep copy of the variable.</returns>
+        public override IntegerTypeVariable DeepCopy()
+        {
+            return new IntegerTypeVariable(this);
         }
 
         #endregion

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SymbolicImplicationVerification.Terms.Constants;
+using System;
 using System.Security.AccessControl;
 
 namespace SymbolicImplicationVerification.Terms.FunctionValues
@@ -29,6 +30,16 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
             get { return argument; }
             set { argument = value; }
         }
+
+        #endregion
+
+        #region Public abstract methods
+
+        /// <summary>
+        /// Create a deep copy of the current function value.
+        /// </summary>
+        /// <returns>The created deep copy of the function value.</returns>
+        public override abstract FunctionValue<D, T> DeepCopy();
 
         #endregion
 

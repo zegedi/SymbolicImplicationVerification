@@ -15,6 +15,15 @@ namespace SymbolicImplicationVerification.Terms.Constants
         #region Public methods
 
         /// <summary>
+        /// Create a deep copy of the current logical constant.
+        /// </summary>
+        /// <returns>The created deep copy of the logical constant.</returns>
+        public override LogicalConstant DeepCopy()
+        {
+            return new LogicalConstant(this);
+        }
+
+        /// <summary>
         /// Determines whether the specified object is equal to the current object.
         /// </summary>
         /// <param name="obj">The object to compare with the current object.</param>
@@ -38,6 +47,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return base.GetHashCode();
         }
 
+        /*
         /// <summary>
         /// Determines wheter the given <see cref="object"/> matches the pattern.
         /// </summary>
@@ -54,6 +64,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
                    obj is LogicalConstant constant &&
                    value == constant.value;
         }
+        */
 
         #endregion
     }

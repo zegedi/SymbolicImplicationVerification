@@ -1,8 +1,9 @@
 ﻿using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Variables;
 
-namespace SymbolicImplicationVerification.Formulas
+namespace SymbolicImplicationVerification.Formulas.Quantified
 {
-    public abstract class QuantifiedFormula<T> : Formula where T : Types.Type
+    public abstract class QuantifiedFormula<T> : Formula where T : Type
     {
         #region Fields
 
@@ -37,6 +38,16 @@ namespace SymbolicImplicationVerification.Formulas
             get { return statement; }
             set { statement = value; }
         }
+
+        #endregion
+
+        #region Public abstract methods
+
+        /// <summary>
+        /// Creates a deep copy of the current quantified formula.
+        /// </summary>
+        /// <returns>The created deep copy of the quantified formula.</returns>
+        public override abstract QuantifiedFormula<T> DeepCopy();
 
         #endregion
     }

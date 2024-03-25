@@ -39,6 +39,10 @@ namespace SymbolicImplicationVerification.Terms.Operations
         public Subtraction(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
             : this(leftOperand, rightOperand, leftOperand.TermType.SubtractionWithType(rightOperand.TermType)) { }
 
+        public Subtraction(Subtraction subtraction)
+            : this(subtraction.leftOperand .DeepCopy(),
+                   subtraction.rightOperand.DeepCopy(), subtraction.termType.DeepCopy()) { }
+
         public Subtraction(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand, IntegerType termType)
             : base(leftOperand, rightOperand, termType) { }
 
@@ -91,22 +95,22 @@ namespace SymbolicImplicationVerification.Terms.Operations
         }
 
         /// <summary>
-        /// Creates a new multiplication between a subtraction left and a constant right operand.
+        /// Creates a new subtraction between a subtraction left and a constant right operand.
         /// </summary>
-        /// <param name="leftOperand">The left operand of the multiplication.</param>
-        /// <param name="rightOperand">The right operand of the multiplication.</param>
-        /// <returns>The created multiplication instance.</returns>
+        /// <param name="leftOperand">The left operand of the subtraction.</param>
+        /// <param name="rightOperand">The right operand of the subtraction.</param>
+        /// <returns>The created subtraction instance.</returns>
         public static Multiplication operator *(Subtraction leftOperand, IntegerTypeConstant rightOperand)
         {
             return new Multiplication(leftOperand, rightOperand);
         }
 
         /// <summary>
-        /// Creates a new multiplication between a subtraction left and an IntegerTypeTerm right operand.
+        /// Creates a new subtraction between a subtraction left and an IntegerTypeTerm right operand.
         /// </summary>
-        /// <param name="leftOperand">The left operand of the multiplication.</param>
-        /// <param name="rightOperand">The right operand of the multiplication.</param>
-        /// <returns>The created multiplication instance.</returns>
+        /// <param name="leftOperand">The left operand of the subtraction.</param>
+        /// <param name="rightOperand">The right operand of the subtraction.</param>
+        /// <returns>The created subtraction instance.</returns>
         public static Multiplication operator *(Subtraction leftOperand, IntegerTypeTerm rightOperand)
         {
             return new Multiplication(leftOperand, rightOperand);
@@ -143,6 +147,21 @@ namespace SymbolicImplicationVerification.Terms.Operations
 
         #region Public methods
 
+        /// <summary>
+        /// Create a deep copy of the current subtraction term.
+        /// </summary>
+        /// <returns>The created deep copy of the subtraction term.</returns>
+        public override Subtraction DeepCopy()
+        {
+            return new Subtraction(this);
+        }
+
+        public override IntegerTypeBinaryOperationTerm
+            CreateInstance(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
+        {
+            return new Subtraction(leftOperand, rightOperand);
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -162,6 +181,30 @@ namespace SymbolicImplicationVerification.Terms.Operations
         }
 
         /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is Subtraction other &&
+                   leftOperand .Equals(other.LeftOperand) &&
+                   rightOperand.Equals(other.RightOperand);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
         /// Determines wheter the given <see cref="object"/> matches the pattern.
         /// </summary>
         /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
@@ -175,10 +218,10 @@ namespace SymbolicImplicationVerification.Terms.Operations
         {
             return obj is not null &&
                    obj is Subtraction subtraction &&
-                   leftOperand  is IMatch leftPattern  &&
-                   rightOperand is IMatch rightPattern &&
-                   leftPattern .Matches(subtraction.leftOperand) &&
-                   rightPattern.Matches(subtraction.rightOperand);
+                   // leftOperand  is IMatch leftPattern  &&
+                   // rightOperand is IMatch rightPattern &&
+                   leftOperand .Matches(subtraction.leftOperand) &&
+                   rightOperand.Matches(subtraction.rightOperand);
         }
 
         public override IntegerTypeTerm Evaluated(IntegerTypeTerm left, IntegerTypeTerm right)
@@ -226,11 +269,11 @@ namespace SymbolicImplicationVerification.Terms.Operations
         {
             // Expand all parenthesis.
             IntegerTypeTerm expanded
-                = PatternReplacer.PatternsApplied(this, Evaluations.Patterns.ExpandRules);
+                = PatternReplacer<IntegerType>.PatternsApplied(this, Evaluations.Patterns.ExpandRules);
 
             // Convert all subtractions into multiplications and additions.
             IntegerTypeTerm subtractionsConverted
-                = PatternReplacer.PatternsApplied(expanded, Evaluations.Patterns.ConvertSubtractions);
+                = PatternReplacer<IntegerType>.PatternsApplied(expanded, Evaluations.Patterns.ConvertSubtractions);
 
             // Create the "queue" of unprocessed terms and list of operands.
             LinkedList<IntegerTypeTerm> unprocessed = new LinkedList<IntegerTypeTerm>();
@@ -258,7 +301,7 @@ namespace SymbolicImplicationVerification.Terms.Operations
                 }
             }
 
-            return new LinearAddition(operandList, Type.DeepCopy(subtractionsConverted.TermType));
+            return new LinearAddition(operandList, subtractionsConverted.TermType.DeepCopy());
         }
 
         public override IntegerTypeTerm Simplified()
@@ -271,13 +314,13 @@ namespace SymbolicImplicationVerification.Terms.Operations
 
                 result = linearized.Process();
 
-                result = PatternReplacer.PatternsApplied(result, Evaluations.Patterns.CollapseGroups);
+                result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.CollapseGroups);
 
                 if (result is IntegerTypeBinaryOperationTerm operationTerm)
                 {
                     result = operationTerm.Evaluated();
 
-                    result = PatternReplacer.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
+                    result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
                 }
             }
 
