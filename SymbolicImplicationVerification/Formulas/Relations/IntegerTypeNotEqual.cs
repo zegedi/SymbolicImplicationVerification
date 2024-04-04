@@ -1,4 +1,5 @@
 ﻿using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
@@ -55,6 +56,61 @@ namespace SymbolicImplicationVerification.Formulas.Relations
             (Formula thisEval, Formula otherEval) => thisEval.Equals(otherEval)
         };
 
+        public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
+                                         or LessThan         or LessThanOrEqualTo
+                                         or GreaterThan      or GreaterThanOrEqualTo;
+
+            if (otherIsOrdering && AnyRearrangementEquals(this, other))
+            {
+                switch (other)
+                {
+                    case IntegerTypeEqual:
+                        return FALSE.Instance();
+
+                    case IntegerTypeNotEqual or LessThan or GreaterThan:
+                        return other.DeepCopy();
+
+                    case LessThanOrEqualTo lessThanOrEqual:
+                        return new LessThan(lessThanOrEqual.LeftComponent .DeepCopy(), 
+                                            lessThanOrEqual.RightComponent.DeepCopy());
+
+                    case GreaterThanOrEqualTo greaterThanOrEqual:
+                        return new GreaterThan(greaterThanOrEqual.LeftComponent .DeepCopy(), 
+                                               greaterThanOrEqual.RightComponent.DeepCopy());
+                }
+            }
+
+            if (other is NotDivisor notDivisor && IdenticalOrOppositeComponentsEquivalent(this, other))
+            {
+                return notDivisor.DeepCopy();
+            }
+
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        public override Formula DisjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
+                                         or LessThan         or LessThanOrEqualTo
+                                         or GreaterThan      or GreaterThanOrEqualTo;
+
+            if (otherIsOrdering && AnyRearrangementEquals(this, other))
+            {
+                bool allowesEquality = other is IntegerTypeEqual or LessThanOrEqualTo or GreaterThanOrEqualTo;
+
+                return allowesEquality ? TRUE.Instance() : DeepCopy();
+            }
+
+            if (other is Divisor && IdenticalOrOppositeComponentsEquivalent(this, other))
+            {
+                return TRUE.Instance();
+            }
+
+            return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
         /// <summary>
         /// Serves as the default hash function.
         /// </summary>
@@ -78,12 +134,12 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                 rightComponent is IntegerTypeBinaryOperationTerm rightOperation ?
                 rightOperation.Simplified() : rightComponent.DeepCopy();
 
-            return (left, right) switch
-            {
-                (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant) =>
-                leftConstant.Value != rightConstant.Value ? TRUE.Instance() : FALSE.Instance(),
+            Subtraction leftMinusRight = new Subtraction(left, right);
 
-                (_, _) => left.Equals(right) ? FALSE.Instance() : new IntegerTypeNotEqual(left, right)
+            return leftMinusRight.Simplified() switch
+            {
+                IntegerTypeConstant constant => constant.Value != 0 ? TRUE.Instance() : FALSE.Instance(),
+                                           _ => new IntegerTypeNotEqual(left, right)
             };
         }
 

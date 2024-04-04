@@ -288,6 +288,17 @@ namespace SymbolicImplicationVerification.Evaluations
             }
         }
 
+        public static Formula VariableReplaced(Formula source, Variable<T> variable, Term<T> replaceTerm)
+        {
+            Formula result = source.DeepCopy();
+
+            LinkedList<EntryPoint<T>> entryPoints = FindEntryPoints(result, variable);
+
+            VariableReplaced(entryPoints, replaceTerm);
+
+            return result;
+        }
+
         public static Term<T> VariableReplaced(Term<T> source, Variable<T> variable, Term<T> replaceTerm)
         {
             Term<T> result = source.DeepCopy();

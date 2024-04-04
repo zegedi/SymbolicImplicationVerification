@@ -41,5 +41,24 @@ namespace SymbolicImplicationVerification.Formulas
         public override abstract UnaryOperationFormula DeepCopy();
 
         #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Determines whether the specified formula is equivalent to the current formula.
+        /// </summary>
+        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool Equivalent(Formula other)
+        {
+            return Evaluated().Equals(other.Evaluated());
+        }
+
+        #endregion
     }
 }

@@ -2,6 +2,7 @@
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Types;
+using System.Collections.Generic;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
 {
@@ -53,6 +54,16 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         /// <returns>The created deep copy of the binary relation formula.</returns>
         public override abstract BinaryRelationFormula<T> DeepCopy();
 
+        public virtual Formula ConjunctionWith(BinaryRelationFormula<T> other)
+        {
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        public virtual Formula DisjunctionWith(BinaryRelationFormula<T> other)
+        {
+            return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
         #endregion
 
         #region Protected methods
@@ -72,6 +83,73 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         protected bool IdenticalOrOppositeComponentsEquals(BinaryRelationFormula<T> other)
         {
             return IdenticalComponentsEquals(other) || OppositeComponentsEquals(other);
+        }
+
+        protected bool IdenticalComponentsEquivalent(
+            BinaryRelationFormula<IntegerType> first, BinaryRelationFormula<IntegerType> second)
+        {
+            IntegerTypeTerm firstLeft =
+                first.leftComponent is IntegerTypeBinaryOperationTerm firstLeftOperation ?
+                firstLeftOperation.Simplified() : first.leftComponent;
+
+            IntegerTypeTerm firstRight =
+                first.rightComponent is IntegerTypeBinaryOperationTerm firstRightOperation ?
+                firstRightOperation.Simplified() : first.rightComponent;
+
+            IntegerTypeTerm secondLeft =
+                second.leftComponent is IntegerTypeBinaryOperationTerm secondLeftOperation ?
+                secondLeftOperation.Simplified() : second.leftComponent;
+
+            IntegerTypeTerm secondRight =
+                second.rightComponent is IntegerTypeBinaryOperationTerm secondRightOperation ?
+                secondRightOperation.Simplified() : second.rightComponent;
+
+            return firstLeft.Equals(secondLeft) && firstRight.Equals(secondRight);
+        }
+
+        protected bool OppositeComponentsEquivalent(
+            BinaryRelationFormula<IntegerType> first, BinaryRelationFormula<IntegerType> second)
+        {
+            IntegerTypeTerm firstLeft =
+                first.leftComponent is IntegerTypeBinaryOperationTerm firstLeftOperation ?
+                firstLeftOperation.Simplified() : first.leftComponent;
+
+            IntegerTypeTerm firstRight =
+                first.rightComponent is IntegerTypeBinaryOperationTerm firstRightOperation ?
+                firstRightOperation.Simplified() : first.rightComponent;
+
+            IntegerTypeTerm secondLeft =
+                second.leftComponent is IntegerTypeBinaryOperationTerm secondLeftOperation ?
+                secondLeftOperation.Simplified() : second.leftComponent;
+
+            IntegerTypeTerm secondRight =
+                second.rightComponent is IntegerTypeBinaryOperationTerm secondRightOperation ?
+                secondRightOperation.Simplified() : second.rightComponent;
+
+            return firstLeft.Equals(secondRight) && firstRight.Equals(secondLeft);
+        }
+
+        protected bool IdenticalOrOppositeComponentsEquivalent(
+            BinaryRelationFormula<IntegerType> first, BinaryRelationFormula<IntegerType> second)
+        {
+            IntegerTypeTerm firstLeft =
+                first.leftComponent is IntegerTypeBinaryOperationTerm firstLeftOperation ?
+                firstLeftOperation.Simplified() : first.leftComponent;
+
+            IntegerTypeTerm firstRight =
+                first.rightComponent is IntegerTypeBinaryOperationTerm firstRightOperation ?
+                firstRightOperation.Simplified() : first.rightComponent;
+
+            IntegerTypeTerm secondLeft =
+                second.leftComponent is IntegerTypeBinaryOperationTerm secondLeftOperation ?
+                secondLeftOperation.Simplified() : second.leftComponent;
+
+            IntegerTypeTerm secondRight =
+                second.rightComponent is IntegerTypeBinaryOperationTerm secondRightOperation ?
+                secondRightOperation.Simplified() : second.rightComponent;
+
+            return firstLeft.Equals(secondLeft)  && firstRight.Equals(secondRight) ||
+                   firstLeft.Equals(secondRight) && firstRight.Equals(secondLeft);
         }
 
         protected bool LeftAndLeftRearrangementEquals(

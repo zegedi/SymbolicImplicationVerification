@@ -1,6 +1,7 @@
-﻿using SymbolicImplicationVerification.Terms.Constants;
+﻿using SymbolicImplicationVerification.Evaluations;
+using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Operations;
-using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
@@ -11,7 +12,7 @@ namespace SymbolicImplicationVerification.Formulas.Relations
 
         public IntegerTypeEqual(IntegerTypeEqual equal) : base(
             equal.identifier,
-            equal.leftComponent.DeepCopy(),
+            equal.leftComponent .DeepCopy(),
             equal.rightComponent.DeepCopy()) { }
 
         public IntegerTypeEqual(IntegerTypeTerm leftComponent, IntegerTypeTerm rightComponent)
@@ -57,6 +58,61 @@ namespace SymbolicImplicationVerification.Formulas.Relations
             (Formula thisEval, Formula otherEval) => thisEval.Equals(otherEval)
         };
 
+        public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            bool otherIsDivisor  = other is NotDivisor or Divisor;
+            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual 
+                                         or LessThan         or LessThanOrEqualTo 
+                                         or GreaterThan      or GreaterThanOrEqualTo;
+            
+            bool handleOrdering  = otherIsOrdering && AnyRearrangementEquals(this, other);
+            bool handleDivisor   = otherIsDivisor  && IdenticalOrOppositeComponentsEquivalent(this, other);
+
+            if (handleOrdering || handleDivisor)
+            {
+                bool allowesEquality = other is GreaterThanOrEqualTo or LessThanOrEqualTo 
+                                             or IntegerTypeEqual     or Divisor;
+
+                return allowesEquality ? DeepCopy() : FALSE.Instance();
+            }
+
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        public override Formula DisjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
+                                         or LessThan         or LessThanOrEqualTo
+                                         or GreaterThan      or GreaterThanOrEqualTo;
+
+            if (otherIsOrdering && AnyRearrangementEquals(this, other))
+            {
+                switch (other)
+                {
+                    case IntegerTypeNotEqual:
+                        return TRUE.Instance();
+
+                    case IntegerTypeEqual or LessThanOrEqualTo or GreaterThanOrEqualTo:
+                        return other.DeepCopy();
+
+                    case LessThan lessThan:
+                        return new LessThanOrEqualTo(
+                            lessThan.LeftComponent.DeepCopy(), lessThan.RightComponent.DeepCopy());
+
+                    case GreaterThan greaterThan:
+                        return new GreaterThanOrEqualTo(
+                            greaterThan.LeftComponent.DeepCopy(), greaterThan.RightComponent.DeepCopy());
+                }
+            }
+
+            if (other is Divisor divisor && IdenticalOrOppositeComponentsEquivalent(this, other))
+            {
+                return divisor.DeepCopy();
+            }
+
+            return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
         /// <summary>
         /// Serves as the default hash function.
         /// </summary>
@@ -78,14 +134,14 @@ namespace SymbolicImplicationVerification.Formulas.Relations
 
             IntegerTypeTerm right =
                 rightComponent is IntegerTypeBinaryOperationTerm rightOperation ?
-                rightOperation.Simplified() : rightComponent.DeepCopy(); 
+                rightOperation.Simplified() : rightComponent.DeepCopy();
 
-            return (left, right) switch
+            Subtraction leftMinusRight = new Subtraction(left, right);
+
+            return leftMinusRight.Simplified() switch
             {
-                (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant) =>
-                leftConstant.Value == rightConstant.Value ? TRUE.Instance() : FALSE.Instance(),
-
-                (_, _) => left.Equals(right) ? TRUE.Instance() : new IntegerTypeEqual(left, right)
+                IntegerTypeConstant constant => constant.Value == 0 ? TRUE.Instance() : FALSE.Instance(),
+                                           _ => new IntegerTypeEqual(left, right)
             };
         }
 

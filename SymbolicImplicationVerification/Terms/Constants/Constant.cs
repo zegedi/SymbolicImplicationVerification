@@ -5,7 +5,7 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Constants
 {
-    public abstract class Constant<V, T> : Term<T> //, IMatch 
+    public class Constant<V, T> : Term<T> //, IMatch 
         where V : notnull
         where T : Type
     {
@@ -16,6 +16,9 @@ namespace SymbolicImplicationVerification.Terms.Constants
         #endregion
 
         #region Constructors
+
+        protected Constant(Constant<V, T> constant)
+            : this(constant.value, (T) constant.termType.DeepCopy()) { }
 
         protected Constant(V value, T termType) : this(value, termType, false) { }
 
@@ -35,7 +38,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
 
         public static implicit operator TypeConstant(Constant<V, T> constant)
         {
-            return constant;
+            return new TypeConstant(constant.value, constant.termType.DeepCopy());
         }
 
         #endregion
@@ -56,7 +59,10 @@ namespace SymbolicImplicationVerification.Terms.Constants
         /// Create a deep copy of the current constant.
         /// </summary>
         /// <returns>The created deep copy of the constant.</returns>
-        public override abstract Constant<V, T> DeepCopy();
+        public override Constant<V, T> DeepCopy()
+        {
+            return new Constant<V, T>(value, (T)termType.DeepCopy());
+        }
 
         #endregion
 
@@ -89,9 +95,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is Constant<V, T> other &&
-                   value.Equals(other.Value);
+            return obj is Constant<V, T> other && value.Equals(other.Value);
         }
 
         /// <summary>

@@ -1,10 +1,7 @@
-﻿using SymbolicImplicationVerification.Types;
+﻿using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Terms.Constants;
-using System.ComponentModel.Design;
 using SymbolicImplicationVerification.Terms.Operations.Linear;
-using SymbolicImplicationVerification.Terms.Patterns;
-using SymbolicImplicationVerification.Evaluations;
-using System.Numerics;
+using SymbolicImplicationVerification.Types;
 using System.Text;
 
 namespace SymbolicImplicationVerification.Terms.Operations.Binary
@@ -190,10 +187,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         /// </returns>
         public override bool Matches(object? obj)
         {
-            return obj is not null &&
-                   obj is Addition addition &&
-                   // leftOperand  is IMatch leftPattern  &&
-                   // rightOperand is IMatch rightPattern &&
+            return obj is Addition addition &&
                    leftOperand .Matches(addition.leftOperand) &&
                    rightOperand.Matches(addition.rightOperand);
         }

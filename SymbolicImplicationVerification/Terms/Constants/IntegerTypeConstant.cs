@@ -24,11 +24,6 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return new IntegerConstant(value);
         }
 
-        public static implicit operator Constant<int, Type>(IntegerTypeConstant constant)
-        {
-            return constant;
-        }
-
         #endregion
 
         #region Public static operators
@@ -123,9 +118,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is IntegerTypeConstant other &&
-                   value == other.value;
+            return obj is IntegerTypeConstant other && value == other.value;
         }
 
         /// <summary>

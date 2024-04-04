@@ -57,9 +57,7 @@ namespace SymbolicImplicationVerification.Terms.Variables
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is Variable<T> other &&
-                   identifier == other.identifier;
+            return obj is Variable<T> other && identifier == other.identifier;
         }
 
         /// <summary>
@@ -83,7 +81,7 @@ namespace SymbolicImplicationVerification.Terms.Variables
 
         public static implicit operator Variable<Type>(Variable<T> variable)
         {
-            return variable;
+            return new Variable<Type>(variable.identifier, variable.termType);
         }
 
         #endregion

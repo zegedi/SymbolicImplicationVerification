@@ -1,5 +1,6 @@
 ﻿using System;
 using SymbolicImplicationVerification.Formulas.Operations;
+using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas
 {
@@ -9,7 +10,7 @@ namespace SymbolicImplicationVerification.Formulas
 
         public DisjunctionFormula(DisjunctionFormula disjunction) : base(
             disjunction.identifier, 
-            disjunction.leftOperand.DeepCopy(), 
+            disjunction.leftOperand .DeepCopy(), 
             disjunction.rightOperand.DeepCopy()) { }
 
         public DisjunctionFormula(Formula leftOperand, Formula rightOperand)
@@ -21,6 +22,15 @@ namespace SymbolicImplicationVerification.Formulas
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return string.Format("{0} || {1}", leftOperand, rightOperand);
+        }
 
         /// <summary>
         /// Evaluate the given expression, without modifying the original.
@@ -37,19 +47,66 @@ namespace SymbolicImplicationVerification.Formulas
             (_           , _            ) => new DisjunctionFormula(this)
         };
 
-        /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
-        /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
-        /// <returns>
-        ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
-        ///     <item><see langword="false"/> - otherwise.</item>
-        ///   </list>
-        /// </returns>
-        public override bool Equivalent(Formula other)
+        public Formula Simplified()
         {
-            throw new NotImplementedException();
+            LinkedList<Formula> simplifiedOperands = SimplifiedLinearOperands();
+
+            return simplifiedOperands.Count switch
+            {
+                0 => TRUE.Instance(),
+                1 => simplifiedOperands.First().DeepCopy(),
+                _ => Binarize(simplifiedOperands)
+            };
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is DisjunctionFormula other &&
+                   leftOperand .Equals(other.leftOperand) &&
+                   rightOperand.Equals(other.rightOperand);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override LinkedList<Formula> LinearOperands()
+        {
+            return LinearOperands(binary => binary is DisjunctionFormula);
+        }
+
+        public override LinkedList<Formula> SimplifiedLinearOperands()
+        {
+            return SimplifiedLinearOperands<IntegerType>(
+                (first, second) => first.DisjunctionWith(second),
+                formula => formula is not DisjunctionFormula
+            );
+        }
+
+        public override DisjunctionFormula Binarize(LinkedList<Formula> formulas)
+        {
+            DisjunctionFormula? result = Binarize(
+                formulas, (first, second) => new DisjunctionFormula(first, second));
+
+            if (result is null)
+            {
+                throw new ArgumentException();
+            }
+
+            return result;
         }
 
         /// <summary>

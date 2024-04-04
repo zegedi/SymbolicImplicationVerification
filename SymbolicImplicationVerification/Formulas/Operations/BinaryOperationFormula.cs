@@ -1,4 +1,6 @@
-﻿using SymbolicImplicationVerification.Terms;
+﻿using SymbolicImplicationVerification.Formulas.Relations;
+using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas.Operations
 {
@@ -49,6 +51,126 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         /// </summary>
         /// <returns>The created deep copy of the binary operation formula.</returns>
         public override abstract BinaryOperationFormula DeepCopy();
+
+        public abstract LinkedList<Formula> LinearOperands();
+
+        public abstract LinkedList<Formula> SimplifiedLinearOperands();
+
+        public abstract BinaryOperationFormula Binarize(LinkedList<Formula> formulas);
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Determines whether the specified formula is equivalent to the current formula.
+        /// </summary>
+        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
+        public override bool Equivalent(Formula other)
+        {
+            return Evaluated().Equals(other.Evaluated());
+        }
+
+        #endregion
+
+        #region Protected methods
+
+        protected LinkedList<Formula> LinearOperands(Func<BinaryOperationFormula, bool> predicate)
+        {
+            LinkedList<Formula> unprocessed = new LinkedList<Formula>();
+
+            unprocessed.AddLast(leftOperand);
+            unprocessed.AddLast(rightOperand);
+
+            LinkedList<Formula> operands = new LinkedList<Formula>();
+
+            while (unprocessed.Count > 0)
+            {
+                Formula operand = unprocessed.First();
+                unprocessed.RemoveFirst();
+
+                if (operand is BinaryOperationFormula binary && predicate(binary))
+                {
+                    unprocessed.AddLast(binary.leftOperand);
+                    unprocessed.AddLast(binary.rightOperand);
+                }
+                else
+                {
+                    operands.AddLast(operand.DeepCopy());
+                }
+            }
+
+            return operands;
+        }
+
+        protected LinkedList<Formula> SimplifiedLinearOperands<T>(
+            Func<BinaryRelationFormula<T>, BinaryRelationFormula<T>, Formula> simplify,
+            Func<Formula, bool> resultPredicate) where T : Type
+        {
+            LinkedList<Formula> operands = LinearOperands();
+
+            LinkedListNode<Formula>? currentNode = operands.First;
+            LinkedListNode<Formula>? nextNode = currentNode?.Next;
+
+            while (currentNode is not null)
+            {
+                if (currentNode.Value is BinaryRelationFormula<T> current)
+                {
+                    while (nextNode is not null)
+                    {
+                        if (nextNode.Value is BinaryRelationFormula<T> next)
+                        {
+                            Formula result = simplify(current, next);
+
+                            if (resultPredicate(result))
+                            {
+                                operands.Remove(currentNode!);
+                                operands.Remove(nextNode);
+
+                                operands.AddFirst(result);
+
+                                currentNode = operands.First;
+                                nextNode    = currentNode;
+                            }
+                        }
+
+                        nextNode = nextNode?.Next;
+                    }
+                }
+
+                currentNode = currentNode?.Next;
+                nextNode    = currentNode?.Next;
+            }
+
+            return operands;
+        }
+
+        protected T? Binarize<T>(
+            LinkedList<Formula> formulas, Func<Formula, Formula, T> binarize) where T : BinaryOperationFormula
+        {
+            T? result = null;
+
+            while (formulas.Count >= 2)
+            {
+                Formula first = formulas.First();
+                formulas.RemoveFirst();
+
+                Formula second = formulas.First();
+                formulas.RemoveFirst();
+
+                result = binarize(first, second);
+
+                formulas.AddFirst(result);
+            }
+
+            return result;
+        }
 
         #endregion
     }

@@ -1,6 +1,7 @@
 ﻿using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas
@@ -17,7 +18,17 @@ namespace SymbolicImplicationVerification.Formulas
         public GreaterThanOrEqualTo(LessThanOrEqualTo lessThanOrEqualTo) : base(
             lessThanOrEqualTo.Identifier,
             lessThanOrEqualTo.RightComponent.DeepCopy(),
-            lessThanOrEqualTo.LeftComponent.DeepCopy()) { }
+            lessThanOrEqualTo.LeftComponent .DeepCopy()) { }
+
+        public GreaterThanOrEqualTo(GreaterThan greaterThan) : base(
+            greaterThan.Identifier,
+            greaterThan.LeftComponent.DeepCopy(),
+            (IntegerConstant)1 + greaterThan.RightComponent.DeepCopy()) { }
+
+        public GreaterThanOrEqualTo(LessThan lessThan) : base(
+            lessThan.Identifier,
+            lessThan.RightComponent.DeepCopy(),
+            (IntegerConstant)1 + lessThan.LeftComponent.DeepCopy()) { }
 
         public GreaterThanOrEqualTo(IntegerTypeTerm leftComponent, IntegerTypeTerm rightComponent)
             : base(null, leftComponent, rightComponent) { }
@@ -70,8 +81,103 @@ namespace SymbolicImplicationVerification.Formulas
             (GreaterThanOrEqualTo thisEval, LessThanOrEqualTo otherEval)
                 => OppositeSideRearrangementEquals(thisEval, otherEval),
 
+            (GreaterThanOrEqualTo thisEval, GreaterThan otherEval)
+                => IdenticalSideRearrangementEquals(thisEval, new GreaterThanOrEqualTo(otherEval)),
+
+            (GreaterThanOrEqualTo thisEval, LessThan otherEval)
+                => IdenticalSideRearrangementEquals(thisEval, new GreaterThanOrEqualTo(otherEval)),
+
             (Formula thisEval, Formula otherEval) => thisEval.Equals(otherEval)
         };
+
+        public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
+                                         or LessThan         or LessThanOrEqualTo
+                                         or GreaterThan      or GreaterThanOrEqualTo;
+
+            if (otherIsOrdering && AnyRearrangementEquals(this, other))
+            {
+                switch (other)
+                {
+                    case IntegerTypeEqual:
+                        return other.DeepCopy();
+
+                    case IntegerTypeNotEqual:
+                        return new GreaterThan(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+
+                    case LessThan:
+                        return OppositeSideRearrangementEquals(this, other) ?
+                               other.DeepCopy() : FALSE.Instance();
+
+                    case GreaterThan:
+                        return IdenticalSideRearrangementEquals(this, other) ?
+                               other.DeepCopy() : FALSE.Instance();
+
+                    case LessThanOrEqualTo:
+                        return OppositeSideRearrangementEquals(this, other) ? DeepCopy() :
+                               new IntegerTypeEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+
+                    case GreaterThanOrEqualTo:
+                        return IdenticalSideRearrangementEquals(this, other) ? DeepCopy() :
+                               new IntegerTypeEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+                }
+            }
+
+            //bool otherIsDivisor = other is NotDivisor or Divisor;
+
+            //if (otherIsDivisor && IdenticalComponentsEquivalent(this, other))
+            //{
+            //    bool divisorFormulaTrue = other is NotDivisor;
+
+            //    return divisorFormulaTrue ? TRUE.Instance() : FALSE.Instance();
+            //}
+
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        public override Formula DisjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
+                                         or LessThan         or LessThanOrEqualTo
+                                         or GreaterThan      or GreaterThanOrEqualTo;
+
+            if (otherIsOrdering && AnyRearrangementEquals(this, other))
+            {
+                switch (other)
+                {
+                    case IntegerTypeNotEqual:
+                        return TRUE.Instance();
+
+                    case IntegerTypeEqual:
+                        return DeepCopy();
+
+                    case LessThan:
+                        return OppositeSideRearrangementEquals(this, other) ? DeepCopy() : TRUE.Instance();
+
+                    case GreaterThan:
+                        return IdenticalSideRearrangementEquals(this, other) ? DeepCopy() : TRUE.Instance();
+
+                    case LessThanOrEqualTo:
+                        return OppositeSideRearrangementEquals(this, other) ? DeepCopy() : TRUE.Instance();
+
+                    case GreaterThanOrEqualTo:
+                        return IdenticalSideRearrangementEquals(this, other) ? DeepCopy() : TRUE.Instance();
+                }
+            }
+
+            //if (other is Divisor && OppositeComponentsEquivalent(this, other))
+            //{
+            //    return new GreaterThanOrEqualTo(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+            //}
+
+            //if (other is NotDivisor && OppositeComponentsEquivalent(this, other))
+            //{
+            //    return new IntegerTypeNotEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+            //}
+
+            return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
 
         /// <summary>
         /// Serves as the default hash function.
@@ -96,12 +202,12 @@ namespace SymbolicImplicationVerification.Formulas
                 rightComponent is IntegerTypeBinaryOperationTerm rightOperation ?
                 rightOperation.Simplified() : rightComponent.DeepCopy();
 
-            return (left, right) switch
-            {
-                (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant) =>
-                leftConstant.Value >= rightConstant.Value? TRUE.Instance() : FALSE.Instance(),
+            Subtraction leftMinusRight = new Subtraction(left, right);
 
-                (_, _) => left.Equals(right) ? TRUE.Instance() : new GreaterThanOrEqualTo(left, right)
+            return leftMinusRight.Simplified() switch
+            {
+                IntegerTypeConstant constant => constant.Value >= 0 ? TRUE.Instance() : FALSE.Instance(),
+                                           _ => new GreaterThanOrEqualTo(left, right)
             };
         }
 

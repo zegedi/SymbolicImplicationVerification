@@ -17,6 +17,15 @@ namespace SymbolicImplicationVerification.Terms.Variables
 
         #endregion
 
+        #region Public static conversions
+
+        public static implicit operator Variable<Type>(IntegerTypeVariable variable)
+        {
+            return new Variable<Type>(variable.identifier, variable.termType);
+        }
+
+        #endregion
+
         #region Public static operators
 
         /// <summary>

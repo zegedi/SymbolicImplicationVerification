@@ -1,10 +1,12 @@
-﻿
-// Aliases for the variable and assigned value typeClasses.
-global using AssignedValue = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.Type>;
-global using Variable = SymbolicImplicationVerification.Terms.Variables.Variable<SymbolicImplicationVerification.Types.Type>;
-
-using SymbolicImplicationVerification.Evaluations;
+﻿using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Types;
+using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations.Binary;
+using SymbolicImplicationVerification.Terms.Operations;
+using System.Text;
 
 namespace SymbolicImplicationVerification.Programs
 {
@@ -12,7 +14,8 @@ namespace SymbolicImplicationVerification.Programs
     {
         #region Fields
 
-        private List<(Variable, AssignedValue)> assingments;
+        private List<(Variable<IntegerType>, IntegerTypeTerm)> integerAssignments;
+        private List<(Variable<Logical>    , LogicalTerm)>     logicalAssignments;
 
         #endregion
 
@@ -20,32 +23,93 @@ namespace SymbolicImplicationVerification.Programs
 
         public Assignment(Assignment assingmentProgram)
         {
-            assingments = new List<(Variable, AssignedValue)>(assingmentProgram.assingments.Count);
 
-            foreach ((Variable var, AssignedValue value) assign in assingmentProgram.assingments)
+            integerAssignments =
+                new List<(Variable<IntegerType>, IntegerTypeTerm)>(assingmentProgram.integerAssignments.Count);
+
+            logicalAssignments =
+                new List<(Variable<Logical>, LogicalTerm)>(assingmentProgram.logicalAssignments.Count);
+
+            foreach ((Variable<Logical> var, LogicalTerm value) assign in assingmentProgram.logicalAssignments)
             {
-                assingments.Add((assign.var.DeepCopy(), assign.value.DeepCopy()));
+                logicalAssignments.Add((assign.var.DeepCopy(), assign.value.DeepCopy()));
+            }
+
+            foreach ((Variable<IntegerType> var, IntegerTypeTerm value) assign in assingmentProgram.integerAssignments)
+            {
+                integerAssignments.Add((assign.var.DeepCopy(), assign.value.DeepCopy()));
             }
         }
 
-        public Assignment(List<(Variable, AssignedValue)> assingments)
+        public Assignment(List<(Variable<IntegerType>, IntegerTypeTerm)> integerAssignments)
+            : this(integerAssignments, new List<(Variable<Logical>, LogicalTerm)>()) { }
+
+        public Assignment(List<(Variable<Logical>, LogicalTerm)> logicalAssignments)
+            : this(new List<(Variable<IntegerType>, IntegerTypeTerm)>(), logicalAssignments) { }
+
+        public Assignment(
+            List<(Variable<IntegerType>, IntegerTypeTerm)> integerAssignments,
+            List<(Variable<Logical>, LogicalTerm)> logicalAssignments)
         {
-            this.assingments = assingments;
+            this.integerAssignments = integerAssignments;
+            this.logicalAssignments = logicalAssignments;
         }
 
         #endregion
 
         #region Public properties
 
-        public List<(Variable, AssignedValue)> Assingments
+        public List<(Variable<IntegerType>, IntegerTypeTerm)> IntegerAssingments
         {
-            get { return assingments; }
-            set { assingments = value; }
+            get { return integerAssignments; }
+            set { integerAssignments = value; }
+        }
+
+        public List<(Variable<Logical>, LogicalTerm)> LogicalAssignments
+        {
+            get { return logicalAssignments; }
+            set { logicalAssignments = value; }
         }
 
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            StringBuilder variableStringBuilder = new StringBuilder();
+            StringBuilder valueStringBuilder    = new StringBuilder();
+
+            string delimiter = string.Empty;
+
+            foreach ((Variable<IntegerType> variable, IntegerTypeTerm value) assign in integerAssignments)
+            {
+                variableStringBuilder.Append(delimiter);
+                variableStringBuilder.Append(assign.variable.ToString());
+
+                valueStringBuilder.Append(delimiter);
+                valueStringBuilder.Append(assign.value.ToString());
+
+                delimiter = ", ";
+            }
+
+            foreach ((Variable<Logical> variable, LogicalTerm value) assign in logicalAssignments)
+            {
+                variableStringBuilder.Append(delimiter);
+                variableStringBuilder.Append(assign.variable.ToString());
+
+                valueStringBuilder.Append(delimiter);
+                valueStringBuilder.Append(assign.value.ToString());
+
+                delimiter = ", ";
+            }
+
+            return string.Format("{0} := {1}", variableStringBuilder.ToString(), valueStringBuilder.ToString());
+        }
 
         /// <summary>
         /// Creates a deep copy of the current program.
@@ -70,12 +134,22 @@ namespace SymbolicImplicationVerification.Programs
 
             if (obj is Assignment other)
             {
-                equal = assingments.Count == other.assingments.Count;
+                equal = integerAssignments.Count == other.integerAssignments.Count &&
+                        logicalAssignments.Count == other.logicalAssignments.Count;
 
-                for (int index = 0; equal && index < assingments.Count; ++index)
+                for (int index = 0; equal && index < integerAssignments.Count; ++index)
                 {
-                    (Variable var, AssignedValue val) thisAssignment  = assingments[index];
-                    (Variable var, AssignedValue val) otherAssignment = other.assingments[index];
+                    (Variable<IntegerType> var, IntegerTypeTerm val) thisAssignment  = integerAssignments[index];
+                    (Variable<IntegerType> var, IntegerTypeTerm val) otherAssignment = other.integerAssignments[index];
+
+                    equal &= thisAssignment.var.Equals(otherAssignment.var) &&
+                             thisAssignment.val.Equals(otherAssignment.val);
+                }
+
+                for (int index = 0; equal && index < logicalAssignments.Count; ++index)
+                {
+                    (Variable<Logical> var, LogicalTerm val) thisAssignment  = logicalAssignments[index];
+                    (Variable<Logical> var, LogicalTerm val) otherAssignment = other.logicalAssignments[index];
 
                     equal &= thisAssignment.var.Equals(otherAssignment.var) &&
                              thisAssignment.val.Equals(otherAssignment.val);
@@ -96,55 +170,68 @@ namespace SymbolicImplicationVerification.Programs
 
         public Formula SubstituteAssignments(Formula formula)
         {
-            if (formula is FALSE)
+            if (formula is FALSE or NotEvaluable)
             {
                 return FALSE.Instance();
             }
 
-            List<(AssignedValue value, LinkedList<EntryPoint<Type>> entryPoints)> entries
-                = new List<(AssignedValue, LinkedList<EntryPoint<Type>>)>(assingments.Count);
+            List<(IntegerTypeTerm value, LinkedList<EntryPoint<IntegerType>> entryPoints)> integerEntries
+                = new List<(IntegerTypeTerm, LinkedList<EntryPoint<IntegerType>>)>(integerAssignments.Count);
+
+            List<(LogicalTerm value, LinkedList<EntryPoint<Logical>> entryPoints)> logicalEntries
+                = new List<(LogicalTerm, LinkedList<EntryPoint<Logical>>)>(integerAssignments.Count);
 
             LinkedList<Formula> constraints = new LinkedList<Formula>();
 
-            foreach ((Variable var, AssignedValue value) assign in assingments)
+            foreach ((Variable<IntegerType> var, IntegerTypeTerm value) assign in integerAssignments)
             {
-                Variable variable   = assign.var;
-                AssignedValue value = assign.value;
+                Variable<IntegerType> variable = assign.var;
+                IntegerTypeTerm value = assign.value;
 
-                Type variableType = variable.TermType;
-                Type valueType    = value.TermType;
+                IntegerType variableType = variable.TermType;
+                IntegerType valueType    = value.TermType;
 
-                if (!variableType.TypeCompatible(valueType))
-                {
-                    return new WeakestPrecondition(ABORT.Instance(), formula);
-                }
-
-                if (value is TypeBinaryOperationTerm operation)
+                if (value is IntegerTypeBinaryOperationTerm operation)
                 {
                     value = operation.Simplified();
                     valueType = value.TermType;
                 }
 
-                if (value is TypeConstant constant && variableType.IsValueOutOfRange(constant.Value))
+                bool constantValueOutOfRange = 
+                    value is IntegerTypeConstant constant && variableType.IsValueOutOfRange(constant.Value);
+
+                if (constantValueOutOfRange)
                 {
                     return new WeakestPrecondition(ABORT.Instance(), formula);
                 }
 
                 if (formula is not TRUE)
                 {
-                    entries.Add((assign.value, PatternReplacer<Type>.FindEntryPoints(formula, variable)));
+                    integerEntries.Add((assign.value, PatternReplacer<IntegerType>.FindEntryPoints(formula, variable)));
                 }
 
-                // If the assignment is partial.
                 if (!variableType.TypeAssignable(valueType))
                 {
                     constraints.AddLast(variableType.TypeConstraintOn(assign.value));
                 }
             }
 
-            foreach ((AssignedValue value, LinkedList<EntryPoint<Type>> entryPoints) info in entries)
+            foreach ((Variable<Logical> var, LogicalTerm value) assign in logicalAssignments)
             {
-                PatternReplacer<Type>.VariableReplaced(info.entryPoints, info.value);
+                if (formula is not TRUE)
+                {
+                    logicalEntries.Add((assign.value, PatternReplacer<Logical>.FindEntryPoints(formula, assign.var)));
+                }
+            }
+
+            foreach ((IntegerTypeTerm value, LinkedList<EntryPoint<IntegerType>> entryPoints) info in integerEntries)
+            {
+                PatternReplacer<IntegerType>.VariableReplaced(info.entryPoints, info.value);
+            }
+
+            foreach ((LogicalTerm value, LinkedList<EntryPoint<Logical>> entryPoints) info in logicalEntries)
+            {
+                PatternReplacer<Logical>.VariableReplaced(info.entryPoints, info.value);
             }
 
             foreach (Formula constraint in constraints)

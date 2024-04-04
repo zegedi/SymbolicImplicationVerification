@@ -40,7 +40,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #region Implicit conversions
 
-        public static implicit operator BinaryOperationTerm<TypeTerm, Type>(BinaryOperationTerm<OTerm, OType> operation)
+        public static implicit operator TypeBinaryOperationTerm(BinaryOperationTerm<OTerm, OType> operation)
         {
             return operation;
         }

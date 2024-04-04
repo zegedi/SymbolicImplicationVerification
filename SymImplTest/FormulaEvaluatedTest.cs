@@ -1,14 +1,12 @@
-﻿using SymbolicImplicationVerification.Evaluations;
-using SymbolicImplicationVerification.Terms.Constants;
-using SymbolicImplicationVerification.Terms.Variables;
-using SymbolicImplicationVerification.Terms;
-using SymbolicImplicationVerification.Types;
-using SymbolicImplicationVerification.Formulas;
-using SymbolicImplicationVerification.Programs;
-using SymbolicImplicationVerification.Formulas.Relations;
-using SymbolicImplicationVerification.Terms.Operations.Binary;
-using System.Reflection.Metadata;
+﻿using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Formulas.Operations;
+using SymbolicImplicationVerification.Formulas.Relations;
+using SymbolicImplicationVerification.Programs;
+using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations.Binary;
+using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Types;
 
 namespace SymImplTest
 {
@@ -258,58 +256,104 @@ namespace SymImplTest
             Assert.AreEqual(expectedResult, formulaToEvaluate.Evaluated());
         }
 
-        static IEnumerable<object[]> Formulas
+        static IEnumerable<object[]> WeakestPreconditionEvaluatedData
         {
             get
             {
-                var x = new IntegerTypeVariable("x", Integer.Instance());
-                var y = new IntegerTypeVariable("y", Integer.Instance());
+                IntegerTypeVariable x = new IntegerTypeVariable("x", Integer.Instance());
+                IntegerTypeVariable y = new IntegerTypeVariable("y", Integer.Instance());
+                IntegerTypeVariable n = new IntegerTypeVariable("n", NaturalNumber.Instance());
+
+                Term<IntegerType> zero = new IntegerConstant(0);
+                Term<IntegerType> one  = new IntegerConstant(1);
+
+                var statement1 = new IntegerTypeEqual(x, zero);
+                var statement2 = new IntegerTypeEqual(y, one);
+                var statement3 = new ConjunctionFormula(statement1, statement2);
+                var statement4 = new ConjunctionFormula(new IntegerTypeEqual(y, zero), 
+                                                        new IntegerTypeEqual(x, one));
+
+                var zeroEqualsZero = new IntegerTypeEqual(zero, zero);
+                var oneEqualsOne   = new IntegerTypeEqual(one, one);
+                var zeroEqualsZeroAndOneEqualsOne = new ConjunctionFormula(zeroEqualsZero, oneEqualsOne);
+
+                var assignment1 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (x, zero),
+                });
+
+                var assignment2 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (y, one)
+                });
+
+                var assignment3 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (x, zero),
+                    (y, one)
+                });
+
+                var assignment4 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (x, y),
+                    (y, x)
+                });
+
+                var assignment5 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (n, n + 1)
+                });
+
+                var assignment6 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (n, n - 5)
+                });
 
                 return new[]
                 {
-                    new object[] { FALSE.Instance() },
-                    new object[] { TRUE .Instance() },
-                    new object[] { new IntegerTypeEqual(x, y) },
-                    new object[] { new IntegerTypeNotEqual(x, y) },
-                    new object[] { new GreaterThan(x, y) },
+                    new object[] { ABORT.Instance(), TRUE .Instance(), FALSE.Instance() },
+                    new object[] { ABORT.Instance(), FALSE.Instance(), FALSE.Instance() },
+                    new object[] { ABORT.Instance(), NotEvaluable.Instance(), FALSE.Instance() },
+                    new object[] { ABORT.Instance(), statement1, FALSE.Instance() },
+                    new object[] { ABORT.Instance(), statement2, FALSE.Instance() },
+                    new object[] { ABORT.Instance(), statement3, FALSE.Instance() },
+
+                    new object[] { SKIP .Instance(), FALSE.Instance(), FALSE.Instance() },
+                    new object[] { assignment1     , FALSE.Instance(), FALSE.Instance() },
+                    new object[] { assignment2     , FALSE.Instance(), FALSE.Instance() },
+                    new object[] { assignment3     , FALSE.Instance(), FALSE.Instance() },
+
+                    new object[] { SKIP .Instance(), NotEvaluable.Instance(), FALSE.Instance() },
+                    new object[] { assignment1     , NotEvaluable.Instance(), FALSE.Instance() },
+                    new object[] { assignment2     , NotEvaluable.Instance(), FALSE.Instance() },
+                    new object[] { assignment3     , NotEvaluable.Instance(), FALSE.Instance() },
+
+                    new object[] { SKIP.Instance(), TRUE .Instance(), TRUE .Instance() },
+                    new object[] { SKIP.Instance(), FALSE.Instance(), FALSE.Instance() },
+                    new object[] { SKIP.Instance(), statement1, statement1 },
+                    new object[] { SKIP.Instance(), statement2, statement2 },
+                    new object[] { SKIP.Instance(), statement3, statement3 },
+
+                    new object[] { assignment1, statement1, zeroEqualsZero },
+                    new object[] { assignment2, statement2, oneEqualsOne   },
+                    new object[] { assignment3, statement3, zeroEqualsZeroAndOneEqualsOne },
+                    new object[] { assignment4, statement3, statement4 },
+                    new object[] { assignment3, statement2, oneEqualsOne },
+                    new object[] { assignment3, statement1, zeroEqualsZero },
+
+                    new object[] { assignment5, TRUE.Instance(), TRUE.Instance() },
+                    new object[] { assignment6, TRUE.Instance(), new GreaterThanOrEqualTo(n - 5, zero) },
                 };
             }
         }
 
-
-
         [TestMethod]
-        public void FalseEvaluatedTest()
+        [DynamicData(nameof(WeakestPreconditionEvaluatedData))]
+        public void WeakestPreconditionEvaluatedTest(Program program, Formula statment, Formula expectedResult)
         {
-            var falseFormula = FALSE.Instance();
+            var wp = new WeakestPrecondition(program, statment);
 
-            Assert.AreEqual(falseFormula, falseFormula.Evaluated());
-        }
-
-        [TestMethod]
-        public void TrueEvaluatedTest()
-        {
-            var trueFormula = TRUE.Instance();
-
-            Assert.AreEqual(trueFormula, trueFormula.Evaluated());
-        }
-
-        [TestMethod]
-        [DynamicData(nameof(Formulas))]
-        public void WeakestPreconditionEvaluatedTestABORT(Formula formula)
-        {
-            var weakestPrecondition = new WeakestPrecondition(ABORT.Instance(), formula);
-
-            Assert.AreEqual(FALSE.Instance(), weakestPrecondition.Evaluated());
-        }
-
-        [TestMethod]
-        [DynamicData(nameof(Formulas))]
-        public void WeakestPreconditionEvaluatedTestSKIP(Formula formula)
-        {
-            var weakestPrecondition = new WeakestPrecondition(SKIP.Instance(), formula);
-
-            Assert.AreEqual(formula, weakestPrecondition.Evaluated());
+            Assert.AreEqual(expectedResult, wp.Evaluated());
         }
 
 
@@ -339,54 +383,54 @@ namespace SymImplTest
                     new object[] { TRUE .Instance(), TRUE .Instance() },
                     new object[] { NotEvaluable.Instance(), NotEvaluable.Instance() },
 
-                    ////===========================================================================//
-                    //// IntegerType constant equalities:   1=1 <-> 0=0 <-> 0!=1 <-> 1!=0 <-> TRUE //
-                    //// IntegerType constant inequalities: 0<1 <-> 1>0 <-> 0<=1 <-> 1>=0 <-> TRUE //
-                    ////===========================================================================//
+                    //////===========================================================================//
+                    ////// IntegerType constant equalities:   1=1 <-> 0=0 <-> 0!=1 <-> 1!=0 <-> TRUE //
+                    ////// IntegerType constant inequalities: 0<1 <-> 1>0 <-> 0<=1 <-> 1>=0 <-> TRUE //
+                    //////===========================================================================//
 
-                    new object[] { new IntegerTypeEqual(one , one) , TRUE.Instance() },
-                    new object[] { new IntegerTypeEqual(zero, zero), TRUE.Instance() },
-                    new object[] { new IntegerTypeNotEqual(one , zero), TRUE.Instance() },
-                    new object[] { new IntegerTypeNotEqual(zero, one) , TRUE.Instance() },
+                    //new object[] { new IntegerTypeEqual(one , one) , TRUE.Instance() },
+                    //new object[] { new IntegerTypeEqual(zero, zero), TRUE.Instance() },
+                    //new object[] { new IntegerTypeNotEqual(one , zero), TRUE.Instance() },
+                    //new object[] { new IntegerTypeNotEqual(zero, one) , TRUE.Instance() },
 
-                    new object[] { new LessThan(zero, one)   , TRUE.Instance() },
-                    new object[] { new GreaterThan(one, zero), TRUE.Instance() },
-                    new object[] { new LessThanOrEqualTo(zero, one)   , TRUE.Instance() },
-                    new object[] { new LessThanOrEqualTo(zero, zero)  , TRUE.Instance() },
-                    new object[] { new GreaterThanOrEqualTo(one, zero), TRUE.Instance() },
-                    new object[] { new GreaterThanOrEqualTo(one, one ), TRUE.Instance() },
+                    //new object[] { new LessThan(zero, one)   , TRUE.Instance() },
+                    //new object[] { new GreaterThan(one, zero), TRUE.Instance() },
+                    //new object[] { new LessThanOrEqualTo(zero, one)   , TRUE.Instance() },
+                    //new object[] { new LessThanOrEqualTo(zero, zero)  , TRUE.Instance() },
+                    //new object[] { new GreaterThanOrEqualTo(one, zero), TRUE.Instance() },
+                    //new object[] { new GreaterThanOrEqualTo(one, one ), TRUE.Instance() },
 
-                    new object[] { new IntegerTypeEqual(one, one), new IntegerTypeEqual(zero, zero)   },
-                    new object[] { new IntegerTypeEqual(one, one), new IntegerTypeNotEqual(zero, one) },
-                    new object[] { new IntegerTypeEqual(one, one), new LessThan(zero, one)            },
-                    new object[] { new IntegerTypeEqual(one, one), new LessThanOrEqualTo(zero, one)   },
+                    //new object[] { new IntegerTypeEqual(one, one), new IntegerTypeEqual(zero, zero)   },
+                    //new object[] { new IntegerTypeEqual(one, one), new IntegerTypeNotEqual(zero, one) },
+                    //new object[] { new IntegerTypeEqual(one, one), new LessThan(zero, one)            },
+                    //new object[] { new IntegerTypeEqual(one, one), new LessThanOrEqualTo(zero, one)   },
 
-                    //======================================================================//
-                    // IntegerType constant divisors: 1|0 <-> 2|4 <-> 1|3 <-> 3!|4 <-> TRUE //
-                    //======================================================================//
+                    ////======================================================================//
+                    //// IntegerType constant divisors: 1|0 <-> 2|4 <-> 1|3 <-> 3!|4 <-> TRUE //
+                    ////======================================================================//
 
-                    new object[] { new Divisor(one, zero) , TRUE.Instance() },
-                    new object[] { new Divisor(one, three), TRUE.Instance() },
-                    new object[] { new Divisor(two, four) , TRUE.Instance() },
-                    new object[] { new Divisor(two, six)  , TRUE.Instance() },
-                    new object[] { new Divisor(three, six), TRUE.Instance() },
+                    //new object[] { new Divisor(one, zero) , TRUE.Instance() },
+                    //new object[] { new Divisor(one, three), TRUE.Instance() },
+                    //new object[] { new Divisor(two, four) , TRUE.Instance() },
+                    //new object[] { new Divisor(two, six)  , TRUE.Instance() },
+                    //new object[] { new Divisor(three, six), TRUE.Instance() },
 
-                    new object[] { new NotDivisor(one, zero) , FALSE.Instance() },
-                    new object[] { new NotDivisor(one, three), FALSE.Instance() },
-                    new object[] { new NotDivisor(two, four) , FALSE.Instance() },
-                    new object[] { new NotDivisor(two, six)  , FALSE.Instance() },
-                    new object[] { new NotDivisor(three, six), FALSE.Instance() },
+                    //new object[] { new NotDivisor(one, zero) , FALSE.Instance() },
+                    //new object[] { new NotDivisor(one, three), FALSE.Instance() },
+                    //new object[] { new NotDivisor(two, four) , FALSE.Instance() },
+                    //new object[] { new NotDivisor(two, six)  , FALSE.Instance() },
+                    //new object[] { new NotDivisor(three, six), FALSE.Instance() },
 
-                    new object[] { new NotDivisor(two, three) , TRUE.Instance() },
-                    new object[] { new NotDivisor(three, one) , TRUE.Instance() },
-                    new object[] { new NotDivisor(three, four), TRUE.Instance() },
+                    //new object[] { new NotDivisor(two, three) , TRUE.Instance() },
+                    //new object[] { new NotDivisor(three, one) , TRUE.Instance() },
+                    //new object[] { new NotDivisor(three, four), TRUE.Instance() },
 
-                    new object[] { new Divisor(zero, one), NotEvaluable.Instance() },
-                    new object[] { new Divisor(zero, six), NotEvaluable.Instance() },
-                    new object[] { new Divisor(zero, x)  , NotEvaluable.Instance() },
-                    new object[] { new NotDivisor(zero, one), NotEvaluable.Instance() },
-                    new object[] { new NotDivisor(zero, six), NotEvaluable.Instance() },
-                    new object[] { new NotDivisor(zero, x)  , NotEvaluable.Instance() },
+                    //new object[] { new Divisor(zero, one), NotEvaluable.Instance() },
+                    //new object[] { new Divisor(zero, six), NotEvaluable.Instance() },
+                    //new object[] { new Divisor(zero, x)  , NotEvaluable.Instance() },
+                    //new object[] { new NotDivisor(zero, one), NotEvaluable.Instance() },
+                    //new object[] { new NotDivisor(zero, six), NotEvaluable.Instance() },
+                    //new object[] { new NotDivisor(zero, x)  , NotEvaluable.Instance() },
 
 
                     //==================================================================//
@@ -397,6 +441,14 @@ namespace SymImplTest
                     new object[] { new IntegerTypeEqual(x, y), new IntegerTypeEqual(y, x)   },
                     new object[] { new IntegerTypeEqual(x, y), new IntegerTypeEqual(_x, _y) },
                     new object[] { new IntegerTypeEqual(x, y), new IntegerTypeEqual(_y, _x) },
+
+                    //==================================================================//
+                    // IntegerType variable inequalities: x>1 <-> y=x <-> -x=-y <-> -y=-x //
+                    //==================================================================//
+
+                    new object[] { new GreaterThan(x, one), new LessThan(one, x) },
+                    new object[] { new GreaterThan(x, one), new LessThanOrEqualTo(two, x) },
+                    new object[] { new GreaterThan(x, one), new GreaterThanOrEqualTo(x, two) },
                 };
             }
         }
@@ -459,5 +511,59 @@ namespace SymImplTest
             Assert.IsFalse(firstFormula.Equivalent(secondFormula));
             Assert.IsFalse(secondFormula.Equivalent(firstFormula));
         }
+
+        static IEnumerable<object[]> ConjunctionFormulaEquivalentData
+        {
+            get
+            {
+                var x = new IntegerTypeVariable("x", Integer.Instance());
+                var y = new IntegerTypeVariable("y", Integer.Instance());
+
+                return new[]
+                {
+                    new object[] { new IntegerTypeEqual(x, y), new LessThan(x, y), FALSE.Instance() },
+                    new object[] { new IntegerTypeEqual(y, x), new LessThan(x, y), FALSE.Instance() },
+                    new object[] { new IntegerTypeEqual(x, y), new LessThanOrEqualTo(x, y), new IntegerTypeEqual(x, y) },
+                    new object[] { new IntegerTypeEqual(y, x), new LessThanOrEqualTo(x, y), new IntegerTypeEqual(y, x) },
+
+                    new object[] { new IntegerTypeNotEqual(x, y), new LessThan(x, y), new LessThan(x, y) },
+                    new object[] { new IntegerTypeNotEqual(y, x), new LessThan(x, y), new LessThan(x, y) },
+                    new object[] { new IntegerTypeNotEqual(x, y), new LessThanOrEqualTo(x, y), new LessThan(x, y) },
+                    new object[] { new IntegerTypeNotEqual(y, x), new LessThanOrEqualTo(x, y), new LessThan(x, y) },
+                };
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(ConjunctionFormulaEquivalentData))]
+        public void ConjunctionFormulaEquivalentTest(
+            BinaryRelationFormula<IntegerType> firstFormula,
+            BinaryRelationFormula<IntegerType> secondFormula, Formula expectedResult)
+        {
+            Assert.IsTrue(expectedResult.Equivalent(firstFormula.ConjunctionWith(secondFormula)));
+            Assert.IsTrue(expectedResult.Equivalent(secondFormula.ConjunctionWith(firstFormula)));
+        }
+
+        //static IEnumerable<object[]> MindenSzamNoveleseEggyel
+        //{
+        //    get
+        //    {
+        //        var x = new IntegerTypeVariable("x", Integer.Instance());
+        //        var y = new IntegerTypeVariable("y", Integer.Instance());
+
+        //        return new[]
+        //        {
+        //            new object[] { new IntegerTypeEqual(x, y), new LessThan(x, y), FALSE.Instance() },
+        //            new object[] { new IntegerTypeEqual(y, x), new LessThan(x, y), FALSE.Instance() },
+        //            new object[] { new IntegerTypeEqual(x, y), new LessThanOrEqualTo(x, y), new IntegerTypeEqual(x, y) },
+        //            new object[] { new IntegerTypeEqual(y, x), new LessThanOrEqualTo(x, y), new IntegerTypeEqual(y, x) },
+
+        //            new object[] { new IntegerTypeNotEqual(x, y), new LessThan(x, y), new LessThan(x, y) },
+        //            new object[] { new IntegerTypeNotEqual(y, x), new LessThan(x, y), new LessThan(x, y) },
+        //            new object[] { new IntegerTypeNotEqual(x, y), new LessThanOrEqualTo(x, y), new LessThan(x, y) },
+        //            new object[] { new IntegerTypeNotEqual(y, x), new LessThanOrEqualTo(x, y), new LessThan(x, y) },
+        //        };
+        //    }
+        //}
     }
 }

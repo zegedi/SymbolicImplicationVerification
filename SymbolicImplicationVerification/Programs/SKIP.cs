@@ -54,6 +54,15 @@ namespace SymbolicImplicationVerification.Programs
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return "SKIP";
+        }
+
+        /// <summary>
         /// Creates a deep copy of the current program.
         /// </summary>
         /// <returns>The created deep copy of the program.</returns>

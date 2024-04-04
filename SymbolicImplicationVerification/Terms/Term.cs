@@ -64,7 +64,6 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Implicit conversions 
 
-
         public static implicit operator TypeTerm(Term<T> term)
         {
             return term;

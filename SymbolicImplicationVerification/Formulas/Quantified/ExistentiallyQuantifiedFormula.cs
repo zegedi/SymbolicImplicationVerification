@@ -23,6 +23,17 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return string.Format(
+                "\\exists {0} \\in {1} : {2}", 
+                quantifiedVariable.ToString(), quantifiedVariable.TermType.ToString(), statement.ToString());
+        }
+
+        /// <summary>
         /// Evaluate the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>

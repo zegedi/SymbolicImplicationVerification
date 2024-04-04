@@ -20,6 +20,15 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return string.Format("~({0})", operand);
+        }
+
+        /// <summary>
         /// Evaluate the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
@@ -29,18 +38,25 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         }
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified object is equal to the current object.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="obj">The object to compare with the current object.</param>
         /// <returns>
-        ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
-        ///     <item><see langword="false"/> - otherwise.</item>
-        ///   </list>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
         /// </returns>
-        public override bool Equivalent(Formula other)
+        public override bool Equals(object? obj)
         {
-            throw new NotImplementedException();
+            return obj is NegationFormula other && operand.Equals(other.operand);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         /// <summary>

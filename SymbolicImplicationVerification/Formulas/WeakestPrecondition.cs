@@ -53,6 +53,15 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return string.Format("wp({0}, {1})", program.ToString(), statement.ToString());
+        }
+
+        /// <summary>
         /// Evaluate the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
@@ -62,7 +71,7 @@ namespace SymbolicImplicationVerification.Formulas
             (_    , FALSE or NotEvaluable) => FALSE.Instance(),
             (SKIP , _                    ) => statement.DeepCopy(),
             (Assignment assignment, _    ) => assignment.SubstituteAssignments(statement.DeepCopy()),
-            (_    , _                    ) => NotEvaluable.Instance()
+            (_    , _                    ) => FALSE.Instance()
         };
 
         /// <summary>

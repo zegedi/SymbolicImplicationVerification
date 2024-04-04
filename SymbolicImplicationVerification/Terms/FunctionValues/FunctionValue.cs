@@ -4,7 +4,7 @@ using System.Security.AccessControl;
 
 namespace SymbolicImplicationVerification.Terms.FunctionValues
 {
-    public abstract class FunctionValue<D, T> : Term<T>
+    public class FunctionValue<D, T> : Term<T>
         where D : Type
         where T : Type
     {
@@ -16,7 +16,10 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
 
         #region Constructors
 
-        public FunctionValue(Term<D> argument, T termTpye) : base(termTpye)
+        protected FunctionValue(FunctionValue<D, T> functionValue)
+            : this(functionValue.argument.DeepCopy(), (T) functionValue.termType.DeepCopy()) { }
+
+        protected FunctionValue(Term<D> argument, T termTpye) : base(termTpye)
         {
             this.argument = argument;
         }
@@ -33,13 +36,25 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
 
         #endregion
 
+        #region Implicit conversions
+
+        public static implicit operator FunctionValue<Type, Type>(FunctionValue<D, T> functionValue)
+        {
+            return new FunctionValue<Type, Type>(functionValue.argument, functionValue.termType.DeepCopy());
+        }
+
+        #endregion
+
         #region Public abstract methods
 
         /// <summary>
         /// Create a deep copy of the current function value.
         /// </summary>
         /// <returns>The created deep copy of the function value.</returns>
-        public override abstract FunctionValue<D, T> DeepCopy();
+        public override FunctionValue<D, T> DeepCopy()
+        {
+            return new FunctionValue<D, T>(this);
+        }
 
         #endregion
 
@@ -60,9 +75,7 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is FunctionValue<D, T> other &&
-                   argument.Equals(other.argument);
+            return obj is FunctionValue<D, T> other && argument.Equals(other.argument);
         }
 
         /// <summary>
