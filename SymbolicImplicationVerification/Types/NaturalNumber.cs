@@ -1,4 +1,5 @@
 ﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms.Constants;
 using System;
 
@@ -54,6 +55,15 @@ namespace SymbolicImplicationVerification.Types
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return "\\mathbb{N}";
+        }
 
         /// <summary>
         /// Creates a deep copy of the current type.
@@ -131,12 +141,134 @@ namespace SymbolicImplicationVerification.Types
             return new GreaterThanOrEqualTo(copyTerm, naturalNumberLowerBound);
         }
 
+        /// <summary>
+        /// Calculates the intersection of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override IntegerType? Intersection(IntegerType other)
+        {
+            const int naturalNumberLowerBound = 0;
+
+            if (other is Integer or NaturalNumber)
+            {
+                return NaturalNumber.Instance();
+            }
+
+            if (other is PositiveInteger or ZeroOrOne)
+            {
+                return other.DeepCopy();
+            }
+
+            if (other is ConstantBoundedInteger constantBounded)
+            {
+                bool notEmptyIntersection = constantBounded.UpperBoundValue >= naturalNumberLowerBound;
+
+                if (notEmptyIntersection)
+                {
+                    int lowerBound = Math.Max(constantBounded.LowerBoundValue, naturalNumberLowerBound);
+
+                    return new ConstantBoundedInteger(lowerBound, constantBounded.UpperBoundValue);
+                }
+            }
+
+            if (other is TermBoundedInteger bounded)
+            {
+                return IntersectionBounds(
+                    bounded.LowerBound.DeepCopy(),
+                    bounded.UpperBound.DeepCopy(),
+                    new IntegerConstant(naturalNumberLowerBound)
+                );
+
+                //IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
+                //IntegerTypeTerm otherUpperBound = bounded.UpperBound.DeepCopy();
+
+                //IntegerConstant naturalNumberLower = new IntegerConstant(naturalNumberLowerBound);
+
+                //Formula chooseOtherLower = new LessThanOrEqualTo(naturalNumberLower, otherLowerBound).Evaluated();
+                //Formula chooseThisLower  = new LessThanOrEqualTo(otherLowerBound, naturalNumberLower).Evaluated();
+
+                //Formula emptyIntersection = new LessThan(otherUpperBound, naturalNumberLower).Evaluated();
+
+                //var possibleBounds = new List<(IntegerTypeTerm, Formula)>
+                //{
+                //    (otherLowerBound   , chooseThisLower ),
+                //    (naturalNumberLower, chooseOtherLower)
+                //};
+
+                //foreach ((IntegerTypeTerm lower, Formula lowerResult) bounds in possibleBounds)
+                //{
+                //    bool chooseThisLowerBound = bounds.lowerResult is TRUE && bounds.lowerResult is TRUE;
+                //    bool notEmptyIntersection = emptyIntersection  is not TRUE;
+
+                //    if (chooseThisLowerBound && notEmptyIntersection)
+                //    {
+                //        return new TermBoundedInteger(bounds.lower, otherUpperBound);
+                //    }
+                //}
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Calculates the union of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override IntegerType? Union(IntegerType other)
+        {
+            const int naturalNumberLowerBound = 0;
+
+            if (other is Integer)
+            {
+                return Integer.Instance();
+            }
+
+            if (other is NaturalNumber or PositiveInteger or ZeroOrOne)
+            {
+                return NaturalNumber.Instance();
+            }
+
+            if (other is BoundedIntegerType bounded)
+            {
+                Formula subsetCondition = new LessThanOrEqualTo(
+                    new IntegerConstant(naturalNumberLowerBound), bounded.LowerBound.DeepCopy()).Evaluated();
+
+                return subsetCondition is TRUE ? NaturalNumber.Instance() : null;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is NaturalNumber;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         /*========================= Addition result type selection ==========================*/
 
         /// <summary>
-        /// Determines the result type of an addition, with a constant <see cref="int"/> right operand.
+        /// Determines the result type of an addition, with a lowerBoundConstant <see cref="int"/> right operand.
         /// </summary>
-        /// <param name="rightOperandValue">The constant right operand of the addition.</param>
+        /// <param name="rightOperandValue">The lowerBoundConstant right operand of the addition.</param>
         /// <returns>The result <see cref="IntegerType"/> of the addition.</returns>
         public override IntegerType AdditionWithType(int rightOperandValue) => rightOperandValue switch
         {
@@ -221,9 +353,9 @@ namespace SymbolicImplicationVerification.Types
         /*========================= Subtraction result type selection ==========================*/
 
         /// <summary>
-        /// Determines the result type of a subtraction, with a constant <see cref="int"/> right operand.
+        /// Determines the result type of a subtraction, with a lowerBoundConstant <see cref="int"/> right operand.
         /// </summary>
-        /// <param name="rightOperandValue">The constant right operand of the subtraction.</param>
+        /// <param name="rightOperandValue">The lowerBoundConstant right operand of the subtraction.</param>
         /// <returns>The result <see cref="IntegerType"/> of the subtraction.</returns>
         public override IntegerType SubtractionWithType(int rightOperandValue) => rightOperandValue switch
         {
@@ -307,9 +439,9 @@ namespace SymbolicImplicationVerification.Types
         /*========================= Multiplication result type selection ==========================*/
 
         /// <summary>
-        /// Determines the result type of a multiplication, with a constant <see cref="int"/> right operand.
+        /// Determines the result type of a multiplication, with a lowerBoundConstant <see cref="int"/> right operand.
         /// </summary>
-        /// <param name="rightOperandValue">The constant right operand of the multiplication.</param>
+        /// <param name="rightOperandValue">The lowerBoundConstant right operand of the multiplication.</param>
         /// <returns>The result <see cref="IntegerType"/> of the multiplication.</returns>
         public override IntegerType MultiplicationWithType(int rightOperandValue) => rightOperandValue switch
         {

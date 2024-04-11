@@ -7,6 +7,7 @@ using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Terms.Operations;
 using System.Text;
+using SymbolicImplicationVerification.Formulas.Operations;
 
 namespace SymbolicImplicationVerification.Programs
 {
@@ -108,7 +109,8 @@ namespace SymbolicImplicationVerification.Programs
                 delimiter = ", ";
             }
 
-            return string.Format("{0} := {1}", variableStringBuilder.ToString(), valueStringBuilder.ToString());
+            return string.Format(
+                "\\assign{{{0}}}{{{1}}}", variableStringBuilder.ToString(), valueStringBuilder.ToString());
         }
 
         /// <summary>
@@ -175,6 +177,36 @@ namespace SymbolicImplicationVerification.Programs
                 return FALSE.Instance();
             }
 
+            LinkedList<Formula> linearOperands;
+
+            if (formula is BinaryOperationFormula binaryOperation)
+            {
+                linearOperands = binaryOperation.LinearOperands();
+
+                if (linearOperands.Count == 1)
+                {
+                    formula = linearOperands.First();
+                    linearOperands.RemoveFirst();
+                }
+                else
+                {
+                    LinkedList<Formula> binarize = new LinkedList<Formula>();
+
+                    foreach (Formula lin in linearOperands)
+                    {
+                        binarize.AddLast(lin);
+                    }
+
+                    formula = binaryOperation.Binarize(binarize);
+                }
+            }
+            else
+            {
+                linearOperands = new LinkedList<Formula>();
+            }
+
+            StringBuilder replaceString = new StringBuilder();
+
             List<(IntegerTypeTerm value, LinkedList<EntryPoint<IntegerType>> entryPoints)> integerEntries
                 = new List<(IntegerTypeTerm, LinkedList<EntryPoint<IntegerType>>)>(integerAssignments.Count);
 
@@ -182,20 +214,22 @@ namespace SymbolicImplicationVerification.Programs
                 = new List<(LogicalTerm, LinkedList<EntryPoint<Logical>>)>(integerAssignments.Count);
 
             LinkedList<Formula> constraints = new LinkedList<Formula>();
+            LinkedList<Formula> changeIdent = new LinkedList<Formula>();
 
             foreach ((Variable<IntegerType> var, IntegerTypeTerm value) assign in integerAssignments)
             {
+                if (replaceString.Length > 0)
+                {
+                    replaceString.Append(", ");
+                }
+
+                replaceString.AppendFormat("{0} \\leftarrow {1}", assign.var, assign.value);
+
                 Variable<IntegerType> variable = assign.var;
-                IntegerTypeTerm value = assign.value;
+                IntegerTypeTerm value = assign.value.Evaluated();
 
                 IntegerType variableType = variable.TermType;
                 IntegerType valueType    = value.TermType;
-
-                if (value is IntegerTypeBinaryOperationTerm operation)
-                {
-                    value = operation.Simplified();
-                    valueType = value.TermType;
-                }
 
                 bool constantValueOutOfRange = 
                     value is IntegerTypeConstant constant && variableType.IsValueOutOfRange(constant.Value);
@@ -207,10 +241,24 @@ namespace SymbolicImplicationVerification.Programs
 
                 if (formula is not TRUE)
                 {
-                    integerEntries.Add((assign.value, PatternReplacer<IntegerType>.FindEntryPoints(formula, variable)));
+                    integerEntries.Add(
+                        (assign.value, PatternReplacer<IntegerType>.FindEntryPoints(formula, variable)));
                 }
 
-                if (!variableType.TypeAssignable(valueType))
+                foreach (Formula linearOperand in linearOperands)
+                {
+                    if (linearOperand.HasIdentifier && !changeIdent.Contains(linearOperand))
+                    {
+                        var entry = PatternReplacer<IntegerType>.FindEntryPoints(linearOperand, variable);
+
+                        if (entry.Count > 0)
+                        {
+                            changeIdent.AddLast(linearOperand);
+                        }
+                    }
+                }
+
+                if (!variableType.TypeAssignable(valueType) && value is not IntegerTypeConstant)
                 {
                     constraints.AddLast(variableType.TypeConstraintOn(assign.value));
                 }
@@ -218,10 +266,38 @@ namespace SymbolicImplicationVerification.Programs
 
             foreach ((Variable<Logical> var, LogicalTerm value) assign in logicalAssignments)
             {
+                if (replaceString.Length > 0)
+                {
+                    replaceString.Append(", ");
+                }
+                replaceString.AppendFormat("{0} \\leftarrow {1}", assign.var, assign.value);
+
                 if (formula is not TRUE)
                 {
                     logicalEntries.Add((assign.value, PatternReplacer<Logical>.FindEntryPoints(formula, assign.var)));
                 }
+
+                foreach (Formula linearOperand in linearOperands)
+                {
+                    if (linearOperand.HasIdentifier && !changeIdent.Contains(linearOperand))
+                    {
+                        var entry = PatternReplacer<Logical>.FindEntryPoints(linearOperand, assign.var);
+
+                        if (entry.Count > 0)
+                        {
+                            changeIdent.AddLast(linearOperand);
+                        }
+                    }
+                }
+            }
+
+            formula.Identifier = string.Format(
+                formula.HasIdentifier ? "{0}^{{{1}}}" : "({0})^{{{1}}}", formula, replaceString.ToString());
+
+            foreach (Formula changeIndetifier in changeIdent)
+            {
+                changeIndetifier.Identifier = string.Format(
+                    "{0}^{{{1}}}", changeIndetifier, replaceString.ToString());
             }
 
             foreach ((IntegerTypeTerm value, LinkedList<EntryPoint<IntegerType>> entryPoints) info in integerEntries)

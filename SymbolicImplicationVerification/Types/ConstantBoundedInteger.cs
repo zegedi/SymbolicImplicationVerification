@@ -54,9 +54,18 @@ namespace SymbolicImplicationVerification.Types
             set { upperBound.Value =  value; }
         }
 
-        public bool IsEmpty
+        public override bool IsEmpty
         {
             get { return lowerBound.Value > upperBound.Value; }
+        }
+
+        #endregion
+
+        #region Implicit conversions
+
+        public static implicit operator BoundedIntegerType(ConstantBoundedInteger boundedInteger)
+        {
+            return new TermBoundedInteger(boundedInteger.lowerBound.DeepCopy(), boundedInteger.upperBound.DeepCopy());
         }
 
         #endregion
@@ -137,6 +146,132 @@ namespace SymbolicImplicationVerification.Types
             LessThanOrEqualTo upperBoundConstraint = new LessThanOrEqualTo(secondCopy, upper);
 
             return new ConjunctionFormula(lowerBoundConstraint, upperBoundConstraint);
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is ConstantBoundedInteger other &&
+                   lowerBound.Equals(other.lowerBound) &&
+                   upperBound.Equals(other.upperBound);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Calculates the intersection of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override IntegerType? Intersection(IntegerType other)
+        {
+            const int naturalNumberLowerBound   = 0;
+            const int positiveIntegerLowerBound = 1;
+
+            if (other is Integer)
+            {
+                return DeepCopy();
+            }
+            
+            if (other is NaturalNumber or PositiveInteger or ZeroOrOne or ConstantBoundedInteger)
+            {
+                int numbersetLowerBound =
+                    other is PositiveInteger or ZeroOrOne ? positiveIntegerLowerBound :
+                    other is ConstantBoundedInteger bound1 ? bound1.LowerBoundValue : naturalNumberLowerBound;
+
+                int numbersetUpperBound =
+                    other is ZeroOrOne ? positiveIntegerLowerBound :
+                    other is ConstantBoundedInteger bound2 ? bound2.UpperBoundValue : int.MaxValue;
+
+                int lowerBound = Math.Max(LowerBoundValue, numbersetLowerBound);
+                int upperBound = Math.Min(UpperBoundValue, numbersetUpperBound);
+
+                bool emptyIntersection =
+                    UpperBoundValue < numbersetLowerBound || LowerBoundValue > numbersetUpperBound;
+
+                return emptyIntersection ? null : new ConstantBoundedInteger(lowerBound, upperBound);
+            }
+
+            if (other is TermBoundedInteger bounded)
+            {
+                IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
+                IntegerTypeTerm otherUpperBound = bounded.UpperBound.DeepCopy();
+
+                Formula chooseOtherLower = new LessThanOrEqualTo(lowerBound.DeepCopy(), otherLowerBound).Evaluated();
+                Formula chooseOtherUpper = new LessThanOrEqualTo(otherUpperBound, upperBound.DeepCopy()).Evaluated();
+                Formula chooseThisLower  = new LessThanOrEqualTo(otherLowerBound, lowerBound.DeepCopy()).Evaluated();
+                Formula chooseThisUpper  = new LessThanOrEqualTo(upperBound.DeepCopy(), otherUpperBound).Evaluated();
+
+                var possibleBounds = new List<(IntegerTypeTerm, IntegerTypeTerm, Formula, Formula)>
+                {
+                    (lowerBound.DeepCopy(), upperBound.DeepCopy(), chooseThisLower , chooseThisUpper ),
+                    (otherLowerBound      , upperBound.DeepCopy(), chooseOtherLower, chooseThisUpper ),
+                    (lowerBound.DeepCopy(), otherUpperBound      , chooseThisLower , chooseOtherUpper),
+                    (otherLowerBound      , otherUpperBound      , chooseOtherLower, chooseOtherUpper)
+                };
+
+                foreach ((IntegerTypeTerm lower, IntegerTypeTerm upper, Formula lowerResult, Formula upperResult) bounds in possibleBounds)
+                {
+                    bool chooseTheseBounds = bounds.lowerResult is TRUE && bounds.upperResult is TRUE;
+
+                    if (chooseTheseBounds)
+                    {
+                        return new TermBoundedInteger(bounds.lower, bounds.upper);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Calculates the intersection of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override IntegerType? Union(IntegerType other)
+        {
+            const int naturalNumberLowerBound   = 0;
+            const int positiveIntegerLowerBound = 1;
+
+            if (other is Integer)
+            {
+                return Integer.Instance();
+            }
+
+            IntegerTypeTerm otherLowerBound;
+            IntegerTypeTerm otherUpperBound;
+
+            if (other is BoundedIntegerType bounded)
+            {
+                otherLowerBound = bounded.LowerBound.DeepCopy();
+                otherUpperBound = bounded.UpperBound.DeepCopy();
+            }
+            else if (other is ZeroOrOne)
+            {
+                otherLowerBound = new IntegerConstant(naturalNumberLowerBound);
+                otherUpperBound = new IntegerConstant(positiveIntegerLowerBound);
+            }
+            else
+            {
+                return null;
+            }
+
+            return UnionBounds(lowerBound.DeepCopy(), upperBound.DeepCopy(), otherLowerBound, otherUpperBound);
         }
 
         /*========================= Addition result type selection ==========================*/

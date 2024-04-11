@@ -4,9 +4,11 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Patterns
 {
-    public abstract class AnythingPattern<T> : Pattern<T> where T : Type
+    public class AnythingPattern<T> : Pattern<T> where T : Type
     {
         #region Constructors
+
+        public AnythingPattern(AnythingPattern<T> anything) : base(anything.identifier, (T) anything.termType.DeepCopy()) { }
 
         public AnythingPattern(int identifier, T termType) : base(identifier, termType) { }
 
@@ -18,7 +20,19 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         /// Create a deep copy of the current anything pattern.
         /// </summary>
         /// <returns>The created deep copy of the anything pattern.</returns>
-        public override abstract AnythingPattern<T> DeepCopy();
+        public override AnythingPattern<T> DeepCopy()
+        {
+            return new AnythingPattern<T>(this);
+        }
+
+        /// <summary>
+        /// Evaluated the given pattern, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override AnythingPattern<T> Evaluated()
+        {
+            return DeepCopy();
+        }
 
         #endregion
 

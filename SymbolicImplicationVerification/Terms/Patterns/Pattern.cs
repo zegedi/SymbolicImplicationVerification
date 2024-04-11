@@ -43,6 +43,12 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         /// <returns>The created deep copy of the pattern.</returns>
         public override abstract Pattern<T> DeepCopy();
 
+        /// <summary>
+        /// Evaluated the given pattern, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override abstract Pattern<T> Evaluated();
+
         #endregion
 
         #region Public methods
@@ -57,9 +63,7 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is Pattern<T> other &&
-                   identifier == other.identifier;
+            return obj is Pattern<T> other && identifier == other.identifier;
         }
 
         /// <summary>

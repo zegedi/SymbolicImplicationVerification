@@ -1,6 +1,8 @@
 ﻿using SymbolicImplicationVerification.Terms.Constants;
-using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Types;
+using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Variables;
+using System.Text;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
 {
@@ -23,6 +25,23 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Returns a LaTeX code that represents the current object.
+        /// </summary>
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
+        {
+            StringBuilder formatString = new StringBuilder();
+
+            bool noLeftParenthesis  = leftComponent  is Variable<Logical> or LogicalConstant;
+            bool noRightParenthesis = rightComponent is Variable<Logical> or LogicalConstant;
+
+            formatString.Append(noLeftParenthesis  ? "{0} \\neq " : "({0}) \\neq ");
+            formatString.Append(noRightParenthesis ? "{1}" : "({1})");
+
+            return string.Format(formatString.ToString(), leftComponent, rightComponent);
+        }
 
         /// <summary>
         /// Determines whether the specified object is notEqual to the current object.
@@ -67,7 +86,7 @@ namespace SymbolicImplicationVerification.Formulas.Relations
 
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
@@ -88,7 +107,9 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                 (LogicalConstant leftConstant, LogicalConstant rightConstant) =>
                 leftConstant.Value != rightConstant.Value ? TRUE.Instance() : FALSE.Instance(),
 
-                (_, _) => left.Equals(right) ? FALSE.Instance() : new LogicalEqual(left, right)
+                (_, _) => left.Equals(right) ? FALSE.Instance() :
+                          left.Equals(leftComponent) && right.Equals(rightComponent) ?
+                          DeepCopy() : new LogicalEqual(left, right)
             };
         }
 

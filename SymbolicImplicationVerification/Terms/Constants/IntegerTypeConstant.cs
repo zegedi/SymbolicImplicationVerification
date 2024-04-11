@@ -104,6 +104,12 @@ namespace SymbolicImplicationVerification.Terms.Constants
         /// <returns>The created deep copy of the constant.</returns>
         public override abstract IntegerTypeConstant DeepCopy();
 
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override abstract IntegerTypeConstant Evaluated();
+
         #endregion
 
         #region Public methods

@@ -19,6 +19,12 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         /// <returns>The created deep copy of the constant pattern.</returns>
         public override abstract ConstantPattern<V, T> DeepCopy();
 
+        /// <summary>
+        /// Evaluated the given pattern, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override abstract ConstantPattern<V, T> Evaluated();
+
         #endregion
 
         #region Public methods

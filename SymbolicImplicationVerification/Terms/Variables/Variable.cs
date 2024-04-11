@@ -42,6 +42,15 @@ namespace SymbolicImplicationVerification.Terms.Variables
             return new Variable<T>(this);
         }
 
+        /// <summary>
+        /// Evaluated the given variable, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override Variable<T> Evaluated()
+        {
+            return new Variable<T>(this);
+        }
+
         public override string Hash(HashLevel level)
         {
             return Convert.ToString(identifier);
@@ -69,19 +78,13 @@ namespace SymbolicImplicationVerification.Terms.Variables
             return base.GetHashCode();
         }
 
-
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
             return identifier;
-        }
-
-        #endregion
-
-        #region Implicit conversions
-
-        public static implicit operator Variable<Type>(Variable<T> variable)
-        {
-            return new Variable<Type>(variable.identifier, variable.termType);
         }
 
         #endregion

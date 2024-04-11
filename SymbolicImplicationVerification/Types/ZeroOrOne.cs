@@ -1,6 +1,7 @@
 ﻿using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Variables;
 using System;
 
 namespace SymbolicImplicationVerification.Types
@@ -55,6 +56,15 @@ namespace SymbolicImplicationVerification.Types
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return "\\{0, 1\\}";
+        }
 
         /// <summary>
         /// Creates a deep copy of the current type.
@@ -130,6 +140,96 @@ namespace SymbolicImplicationVerification.Types
             IntegerTypeEqual equalsOne  = new IntegerTypeEqual(secondCopy, one);
 
             return new DisjunctionFormula(equalsZero, equalsOne);
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is ZeroOrOne;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Calculates the intersection of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override IntegerType? Intersection(IntegerType other)
+        {
+            const int zeroOrOneLowerBound = 0;
+            const int zeroOrOneUpperBound = 1;
+
+            if (other is Integer or NaturalNumber or PositiveInteger or ZeroOrOne)
+            {
+                return ZeroOrOne.Instance();
+            }
+
+            if (other is ConstantBoundedInteger constantBounded)
+            {
+                bool emptyIntersection =
+                    constantBounded.LowerBoundValue > zeroOrOneUpperBound ||
+                    constantBounded.UpperBoundValue < zeroOrOneLowerBound;
+
+                int lowerBound = Math.Max(constantBounded.LowerBoundValue, zeroOrOneLowerBound);
+                int upperBound = Math.Min(constantBounded.UpperBoundValue, zeroOrOneUpperBound);
+
+                return emptyIntersection ? null : new ConstantBoundedInteger(lowerBound, upperBound);
+            }
+
+            if (other is TermBoundedInteger bounded)
+            {
+                return IntersectionBounds(
+                    bounded.LowerBound.DeepCopy(),
+                    bounded.UpperBound.DeepCopy(),
+                    new IntegerConstant(zeroOrOneLowerBound),
+                    new IntegerConstant(zeroOrOneUpperBound)
+                );
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Calculates the union of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override IntegerType? Union(IntegerType other)
+        {
+            const int zeroOrOneLowerBound = 0;
+            const int zeroOrOneUpperBound = 1;
+
+            if (other is Integer or NaturalNumber or PositiveInteger or ZeroOrOne)
+            {
+                return other.DeepCopy();
+            }
+
+            if (other is BoundedIntegerType bounded)
+            {
+                IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
+                IntegerTypeTerm otherUpperBound = bounded.UpperBound.DeepCopy();
+                IntegerTypeTerm thisLowerBound  = new IntegerConstant(zeroOrOneLowerBound);
+                IntegerTypeTerm thisUpperBound  = new IntegerConstant(zeroOrOneUpperBound);
+
+                return UnionBounds(thisLowerBound, thisUpperBound, otherLowerBound, otherUpperBound);
+            }
+
+            return null;
         }
 
         /*========================= Addition result type selection ==========================*/

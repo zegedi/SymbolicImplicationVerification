@@ -47,6 +47,11 @@ namespace SymbolicImplicationVerification.Types
             set { upperBound = value; }
         }
 
+        public abstract bool IsEmpty
+        {
+            get;
+        }
+
         #endregion
 
         #region Implicit conversions
@@ -66,6 +71,43 @@ namespace SymbolicImplicationVerification.Types
         /// </summary>
         /// <returns>The created deep copy of the bounded integer.</returns>
         public override abstract BoundedInteger<LTerm, LType, RTerm, RType> DeepCopy();
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return string.Format("[{0}..{1}]", lowerBound, upperBound);
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is BoundedInteger<LTerm, LType, RTerm, RType> other && 
+                   lowerBound.Equals(other.lowerBound) &&
+                   upperBound.Equals(other.upperBound);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
         #endregion
     }

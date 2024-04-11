@@ -53,16 +53,16 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
-            return "TRUE";
+            return "\\TRUE";
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
@@ -101,6 +101,16 @@ namespace SymbolicImplicationVerification.Formulas
         public override TRUE DeepCopy()
         {
             return TRUE.Instance();
+        }
+
+        public override Formula ConjunctionWith(Formula other)
+        {
+            return other is NotEvaluable ? NotEvaluable.Instance() : other.DeepCopy();
+        }
+
+        public override Formula DisjunctionWith(Formula other)
+        {
+            return other is NotEvaluable ? NotEvaluable.Instance() : TRUE.Instance();
         }
 
         /// <summary>

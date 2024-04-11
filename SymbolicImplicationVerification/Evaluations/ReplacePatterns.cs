@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 
 namespace SymbolicImplicationVerification.Evaluations
 {
-    public static class Patterns
+    public static class ReplacePatterns
     {
         #region Static fields
 

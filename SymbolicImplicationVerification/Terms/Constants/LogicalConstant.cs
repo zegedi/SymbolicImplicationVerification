@@ -15,10 +15,28 @@ namespace SymbolicImplicationVerification.Terms.Constants
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return value ? "\\true" : "\\false";
+        }
+
+        /// <summary>
         /// Create a deep copy of the current logical constant.
         /// </summary>
         /// <returns>The created deep copy of the logical constant.</returns>
         public override LogicalConstant DeepCopy()
+        {
+            return new LogicalConstant(this);
+        }
+
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override LogicalConstant Evaluated()
         {
             return new LogicalConstant(this);
         }
@@ -33,9 +51,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is not null &&
-                   obj is LogicalConstant other &&
-                   value == other.value;
+            return obj is LogicalConstant other && value == other.value;
         }
 
         /// <summary>

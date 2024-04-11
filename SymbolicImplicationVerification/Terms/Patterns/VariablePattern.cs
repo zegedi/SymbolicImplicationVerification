@@ -26,13 +26,23 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         /// <returns>The created deep copy of the variable pattern.</returns>
         public override abstract VariablePattern<T> DeepCopy();
 
+        /// <summary>
+        /// Evaluated the given pattern, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override abstract VariablePattern<T> Evaluated();
+
         #endregion
 
         #region Public methods
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            return "var" + Convert.ToString(Identifier);
+            return string.Format("variablePattern_{0}", identifier);
         }
 
         /// <summary>

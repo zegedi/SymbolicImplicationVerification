@@ -54,6 +54,8 @@ namespace SymbolicImplicationVerification.Formulas.Operations
 
         public abstract LinkedList<Formula> LinearOperands();
 
+        public abstract LinkedList<Formula> RecursiveLinearOperands();
+
         public abstract LinkedList<Formula> SimplifiedLinearOperands();
 
         public abstract BinaryOperationFormula Binarize(LinkedList<Formula> formulas);
@@ -81,12 +83,12 @@ namespace SymbolicImplicationVerification.Formulas.Operations
 
         #region Protected methods
 
-        protected LinkedList<Formula> LinearOperands(Func<BinaryOperationFormula, bool> predicate)
+        protected LinkedList<Formula> LinearOperands(
+            Func<BinaryOperationFormula, bool> predicate, bool recursive = false)
         {
             LinkedList<Formula> unprocessed = new LinkedList<Formula>();
 
-            unprocessed.AddLast(leftOperand);
-            unprocessed.AddLast(rightOperand);
+            unprocessed.AddLast(this);
 
             LinkedList<Formula> operands = new LinkedList<Formula>();
 
@@ -95,10 +97,12 @@ namespace SymbolicImplicationVerification.Formulas.Operations
                 Formula operand = unprocessed.First();
                 unprocessed.RemoveFirst();
 
-                if (operand is BinaryOperationFormula binary && predicate(binary))
+                bool processOperands = recursive || !operand.HasIdentifier;
+
+                if (operand is BinaryOperationFormula binary && predicate(binary) && processOperands)
                 {
-                    unprocessed.AddLast(binary.leftOperand);
-                    unprocessed.AddLast(binary.rightOperand);
+                    unprocessed.AddFirst(binary.rightOperand);
+                    unprocessed.AddFirst(binary.leftOperand);
                 }
                 else
                 {
@@ -118,33 +122,64 @@ namespace SymbolicImplicationVerification.Formulas.Operations
             LinkedListNode<Formula>? currentNode = operands.First;
             LinkedListNode<Formula>? nextNode = currentNode?.Next;
 
+            //while (currentNode is not null)
+            //{
+            //    if (currentNode.Value is BinaryRelationFormula<T> current)
+            //    {
+            //        while (nextNode is not null)
+            //        {
+            //            if (nextNode.Value is BinaryRelationFormula<T> next)
+            //            {
+            //                Formula result = simplify(current, next);
+
+            //                if (resultPredicate(result) && currentNode is not null)
+            //                {
+            //                    operands.AddAfter(currentNode, result);
+
+            //                    operands.Remove(currentNode);
+            //                    operands.Remove(nextNode);
+
+            //                    operands.AddFirst(result);
+
+            //                    currentNode = operands.First;
+            //                    nextNode    = currentNode;
+            //                }
+            //            }
+
+            //            nextNode = nextNode?.Next;
+            //        }
+            //    }
+
+            //    currentNode = currentNode?.Next;
+            //    nextNode    = currentNode?.Next;
+            //}
+
             while (currentNode is not null)
             {
-                if (currentNode.Value is BinaryRelationFormula<T> current)
+                while (nextNode is not null)
                 {
-                    while (nextNode is not null)
+                    if (currentNode!.Value is BinaryRelationFormula<T> current &&
+                        nextNode.Value     is BinaryRelationFormula<T> next)
                     {
-                        if (nextNode.Value is BinaryRelationFormula<T> next)
+                        Formula result = simplify(current, next);
+
+                        if (resultPredicate(result))
                         {
-                            Formula result = simplify(current, next);
+                            LinkedListNode<Formula> resultNode
+                                = operands.AddAfter(currentNode, result);
 
-                            if (resultPredicate(result))
-                            {
-                                operands.Remove(currentNode!);
-                                operands.Remove(nextNode);
+                            operands.Remove(currentNode);
+                            operands.Remove(nextNode);
 
-                                operands.AddFirst(result);
-
-                                currentNode = operands.First;
-                                nextNode    = currentNode;
-                            }
+                            currentNode = resultNode;
+                            nextNode    = resultNode;
                         }
-
-                        nextNode = nextNode?.Next;
                     }
+
+                    nextNode = nextNode.Next;
                 }
 
-                currentNode = currentNode?.Next;
+                currentNode = currentNode.Next;
                 nextNode    = currentNode?.Next;
             }
 

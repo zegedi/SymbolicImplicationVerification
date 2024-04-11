@@ -7,6 +7,7 @@ using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.FunctionValues;
 using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Types;
+using System.Text;
 
 namespace SymbolicImplicationVerification.Terms.Operations.Linear
 {
@@ -48,11 +49,6 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             set { operandList = value; }
         }
 
-        public static implicit operator OTerm(LinearOperationTerm<OTerm, OType> linearOperation)
-        {
-            return linearOperation;
-        }
-
         #endregion
 
         #region Protected static methods
@@ -83,25 +79,28 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Public methods
 
-        public override string ToString()
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
         {
-            string result = String.Empty;
-
-            foreach (var item in OperandList)
-            {
-                result = result + item.ToString() + ", ";
-            }
-
-            return result;
+            return obj is LinearOperationTerm<OTerm, OType> other &&
+                   operandList.Count == other.operandList.Count &&
+                   operandList.All(other.operandList.Contains);
         }
 
-        public OTerm Process()
+        public override Term<OType> Evaluated()
         {
             OrderOperands();
 
             LinkedList<LinkedList<OTerm>> operandGroups = GroupOperands();
 
-            LinkedList<OTerm> processedGroups = ProcessEachGroup(operandGroups);
+            LinkedList<Term<OType>> processedGroups = ProcessEachGroup(operandGroups);
 
             return AccumulateGroups(processedGroups);
         }
@@ -125,33 +124,6 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             }
         }
 
-        /*
-        /// <summary>
-        /// Determines whether the specified object is equal to the current object.
-        /// </summary>
-        /// <param name="obj">The object to compare with the current object.</param>
-        /// <returns>
-        ///   <see langword="true"/> if the specified object is equal to the current object; 
-        ///   otherwise, <see langword="false"/>.
-        /// </returns>
-        public override bool Equals(object? obj)
-        {
-            return obj is not null &&
-                   obj is LinearOperationTerm<OTerm, OType> other &&
-                   leftOperand.Equals(other.LeftOperand) &&
-                   rightOperand.Equals(other.RightOperand);
-        }
-
-        /// <summary>
-        /// Serves as the default hash function.
-        /// </summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-        */
-
         #endregion
 
         #region Protected abstract methods
@@ -160,70 +132,36 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         protected abstract void OrderOperands();
 
-        protected abstract OTerm? ProcessNextOperand(OTerm? processedGroup, OTerm? nextOperand);
+        protected abstract Term<OType>? ProcessNextOperand(Term<OType>? processedGroup, OTerm? nextOperand);
 
-        protected abstract OTerm ProcessNextGroup(OTerm accumulated, OTerm nextGroup);
-
-
-        /*
-        public void Simplify()
-        {
-            Dictionary<string, (OTerm term, int constant)> equalHashes = new Dictionary<string, (OTerm, int)>();
-
-            foreach (OTerm operand in operandList)
-            {
-                string hash = operand.Hash(HashLevel.NO_CONSTANTS);
-
-                if (!equalHashes.ContainsKey(hash))
-                {
-                    equalHashes.Add(hash, (operand, 0));
-                }
-
-                (OTerm term, int constant) accumulated = equalHashes[hash];
-
-                equalHashes[hash] = (
-                    accumulated.term is not LinearOperationTerm<OTerm, OType> &&
-                    operand is LinearOperationTerm<OTerm, OType> ? 
-                    operand : accumulated.term,
-
-                    accumulated.constant + 
-                    (operand is LinearOperationTerm<OTerm, OType> linear ? linear.AccumulateConstants() : 1)
-                );
-            }
-
-            LinkedList<OTerm> newOperandList = new LinkedList<OTerm>();
-
-            foreach (KeyValuePair<string, (OTerm term, int constant)> operand in equalHashes)
-            {
-                if (operand.Value.constant == 0)
-                {
-                    continue;
-                }
-
-                if (operand.Value.term is LinearMultiplication linear)
-                {
-                    LinkedList<IntegerTpyeTerm> operands = new LinkedList<IntegerTpyeTerm>();
-
-                    foreach (var op in linear.operandList)
-                    {
-                        if (op is not IntegerTypeConstant)
-                        {
-                            operands.AddLast(op);
-                        }
-                    }
-
-                    if (operand.Value.constant != 1)
-                    {
-
-                    }
-                }
-            }
-        }
-        */
+        protected abstract Term<OType> ProcessNextGroup(Term<OType> accumulated, Term<OType> nextGroup);
 
         #endregion
 
         #region Protected methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <param name="operationSymbol">A symbol that represents the current linear operation.</param>
+        /// <returns>A string that represents the current object.</returns>
+        protected string ToString(string operationSymbol)
+        {
+            StringBuilder stringBuilder = new StringBuilder(string.Format("{0}(", operationSymbol));
+
+            string delimiter = string.Empty;
+
+            foreach (OTerm operand in operandList)
+            {
+                stringBuilder.AppendFormat("{0}{1}", delimiter, operand);
+
+                delimiter = ", ";
+            }
+
+            stringBuilder.Append(")");
+
+            return stringBuilder.ToString();
+        }
 
         protected int AccumulateConstants(int neutralValue, Func<int, int, int> accumulate)
         {
@@ -308,13 +246,13 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return operandGroups;
         }
 
-        protected LinkedList<OTerm> ProcessEachGroup(LinkedList<LinkedList<OTerm>> groups)
+        protected LinkedList<Term<OType>> ProcessEachGroup(LinkedList<LinkedList<OTerm>> groups)
         {
-            LinkedList<OTerm> processedGroups = new LinkedList<OTerm>();
+            LinkedList<Term<OType>> processedGroups = new LinkedList<Term<OType>>();
 
             foreach (LinkedList<OTerm> group in groups)
             {
-                OTerm? processedGroup = null;
+                Term<OType>? processedGroup = null;
 
                 foreach (OTerm operand in group)
                 {
@@ -330,9 +268,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return processedGroups;
         }
 
-        protected OTerm AccumulateGroups(LinkedList<OTerm> processedGroups)
+        protected Term<OType> AccumulateGroups(LinkedList<Term<OType>> processedGroups)
         {
-            OTerm accumulated = processedGroups.First();
+            Term<OType> accumulated = processedGroups.First();
 
             processedGroups.RemoveFirst();
 

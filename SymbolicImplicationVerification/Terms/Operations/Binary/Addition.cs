@@ -8,6 +8,13 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 {
     public class Addition : IntegerTypeBinaryOperationTerm
     {
+        #region Constant values
+
+        private const int additiveNeutralElement = 0;
+        private const int additiveInverseOfOne   = -1;
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -127,17 +134,20 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             return new Addition(this);
         }
 
-        public override IntegerTypeBinaryOperationTerm
-            CreateInstance(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
+        public override Addition CreateInstance(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
         {
             return new Addition(leftOperand, rightOperand);
         }
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendFormat("{0}+", leftOperand.ToString());
+            stringBuilder.AppendFormat("{0} + ", leftOperand.ToString());
 
             if (rightOperand is Addition or Subtraction)
             {
@@ -192,220 +202,70 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
                    rightOperand.Matches(addition.rightOperand);
         }
 
-        public override IntegerTypeTerm Evaluated(IntegerTypeTerm left, IntegerTypeTerm right)
-        {
-            const int additiveNeutralElement = 0;
-            const int additiveInverseOfOne = -1;
-
-            return (left, right) switch
-            {
-                (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant) 
-                    => new IntegerConstant(leftConstant.Value + rightConstant.Value),
-
-                (IntegerTypeConstant constant, _) => constant.Value switch
-                {
-                    < additiveNeutralElement => new Subtraction(right, new IntegerConstant(-1 * constant.Value)),
-                    > additiveNeutralElement => new Addition(right, constant),
-                                           _ => right
-                },
-
-                (_, Multiplication multip) => multip.LeftOperand switch
-                {
-                    IntegerTypeConstant { Value: additiveInverseOfOne } =>
-                        new Subtraction(left, multip.RightOperand),
-
-                    IntegerTypeConstant { Value: < additiveInverseOfOne } constant =>
-                         new Subtraction(left, (IntegerConstant)(-1 * constant.Value) * multip.RightOperand),
-
-                    _ => new Addition(left, multip)
-                },
-
-                (_, IntegerTypeConstant constant) => constant.Value switch
-                {
-                    < additiveNeutralElement => new Subtraction(left, new IntegerConstant(-1 * constant.Value)),
-                    > additiveNeutralElement => new Addition(left, constant),
-                                           _ => left
-                },
-
-                (_, _) => new Addition(left, right)
-            };
-        }
-
-        public override IntegerTypeTerm Simplified()
-        {
-            IntegerTypeTerm result = Evaluated();
-
-            if (result is IntegerTypeBinaryOperationTerm operation)
-            {
-                IntegerTypeLinearOperationTerm linearized = operation.Linearized();
-
-                result = linearized.Process();
-
-                result = PatternReplacer<IntegerType>.PatternsApplied(
-                    result, Evaluations.Patterns.CollapseGroups);
-
-                if (result is IntegerTypeBinaryOperationTerm operationTerm)
-                {
-                    result = operationTerm.Evaluated();
-
-                    result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
-                }
-            }
-
-            return result;
-        }
-
-        /*
-        /// <summary>
-        /// Creates a simplified version of the leftOperand.
-        /// </summary>
-        /// <returns>The simplified version of the leftOperand.</returns>
-        public override IntegerTpyeTerm Evaluated()
+        public override IntegerTypeTerm Evaluated()
         {
             return Evaluated(
-                (left, right) => new IntegerConstant(left.Value + right.Value),
-                (left, right) =>
-                {
-                    const int additionNeutralElement = 0;
-
-                    if (left is IntegerTypeConstant leftConstant)
-                    {
-                        if (leftConstant.Value == additionNeutralElement)
-                        {
-                            return right;
-                        }
-
-                        return new Addition(leftConstant, right);
-                    }
-
-                    if (right is IntegerTypeConstant rightConstant)
-                    {
-                        if (rightConstant.Value == additionNeutralElement)
-                        {
-                            return left;
-                        }
-
-                        return new Addition(left, rightConstant);
-                    }
-
-                    return new Addition(left, right);
-                }
+                result => PatternReplacer<IntegerType>.PatternsApplied(result, ReplacePatterns.CollapseGroups),
+                result => PatternReplacer<IntegerType>.PatternsApplied(result, ReplacePatterns.LeftAssociateRules)
             );
         }
-        */
 
-        public override IntegerTypeLinearOperationTerm Linearized()
+        #endregion
+
+        #region Protected methods
+
+        protected override IntegerTypeTerm Simplified(IntegerTypeTerm left, IntegerTypeTerm right) => (left, right) switch
         {
-            // Expand all parenthesis.
-            IntegerTypeTerm expanded 
-                = PatternReplacer<IntegerType>.PatternsApplied(this, Evaluations.Patterns.ExpandRules);
+            (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant)
+                => new IntegerConstant(leftConstant.Value + rightConstant.Value),
 
-            // Convert all subtractions into multiplications and additions.
-            IntegerTypeTerm subtractionsConverted
-                = PatternReplacer<IntegerType>.PatternsApplied(expanded, Evaluations.Patterns.ConvertSubtractions);
-
-            // Create the "queue" of unprocessed terms and list of operands.
-            LinkedList<IntegerTypeTerm> unprocessed = new LinkedList<IntegerTypeTerm>();
-            LinkedList<IntegerTypeTerm> operandList = new LinkedList<IntegerTypeTerm>();
-
-            unprocessed.AddLast(subtractionsConverted);
-
-            while (unprocessed.Count > 0)
+            (IntegerTypeConstant constant, _) => constant.Value switch
             {
-                IntegerTypeTerm nextInProcess = unprocessed.First();
-                unprocessed.RemoveFirst();
+                < additiveNeutralElement => new Subtraction(right, new IntegerConstant(-1 * constant.Value)),
+                > additiveNeutralElement => new Addition(right, constant),
+                _ => right
+            },
 
-                if (nextInProcess is Multiplication multiplication)
-                {
-                    operandList.AddLast(multiplication.Linearized());
-                }
-                else if (nextInProcess is IntegerTypeBinaryOperationTerm addition)
-                {
-                    unprocessed.AddLast(addition.LeftOperand);
-                    unprocessed.AddLast(addition.RightOperand);
-                }
-                else
-                {
-                    operandList.AddLast(nextInProcess);
-                }
-            }
+            (_, Multiplication multip) => multip.LeftOperand switch
+            {
+                IntegerTypeConstant { Value: additiveInverseOfOne } =>
+                    new Subtraction(left, multip.RightOperand),
 
-            return new LinearAddition(operandList, subtractionsConverted.TermType.DeepCopy());
-        }
+                IntegerTypeConstant { Value: < additiveInverseOfOne } constant =>
+                        new Subtraction(left, (IntegerConstant)(-1 * constant.Value) * multip.RightOperand),
 
-        public void ProcessNext(IntegerTypeTerm nextInProcess, 
-            LinkedList<IntegerTypeTerm> unprocessed, LinkedList<IntegerTypeTerm> operandList)
+                _ => new Addition(left, multip)
+            },
+
+            (_, IntegerTypeConstant constant) => constant.Value switch
+            {
+                < additiveNeutralElement => new Subtraction(left, new IntegerConstant(-1 * constant.Value)),
+                > additiveNeutralElement => new Addition(left, constant),
+                _ => left
+            },
+
+            (_, _) => new Addition(left, right)
+        };
+
+        protected override IntegerTypeLinearOperationTerm Linearized()
         {
-            if (nextInProcess is Multiplication multiplication)
-            {
-                var linearMuliplication = multiplication.Linearized();
+            return Linearized(
+                operation => {
 
-                foreach (var operands in linearMuliplication.OperandList)
-                {
-                    operandList.AddLast(operands);
-                }
-            }
-            else if (nextInProcess is IntegerTypeBinaryOperationTerm addition)
-            {
-                unprocessed.AddLast(addition.LeftOperand);
-                unprocessed.AddLast(addition.RightOperand);
-            }
-            else
-            {
-                operandList.AddLast(nextInProcess);
-            }
+                    // Expand all parenthesis.
+                    IntegerTypeTerm expanded
+                        = PatternReplacer<IntegerType>.PatternsApplied(operation, ReplacePatterns.ExpandRules);
+
+                    // Convert all subtractions into multiplications and additions.
+                    IntegerTypeTerm subtractionsConverted
+                        = PatternReplacer<IntegerType>.PatternsApplied(expanded, ReplacePatterns.ConvertSubtractions);
+
+                    return subtractionsConverted;
+                },
+                nextInProcess => nextInProcess is Multiplication,
+                (operandList, termType) => new LinearAddition(operandList, termType.DeepCopy())
+            );
         }
-
-
-        /*
-        public Addition Expand()
-        {
-            // Expand the left operation if it's an expression.
-            IntegerTpyeTerm leftExpanded = leftConstant is IExpression<IntegerTypeBinaryOperationTerm> left ? left.Expand() : leftConstant;
-
-            // Expand the right operation if it's an expression.
-            IntegerTpyeTerm rightExpanded = rightConstant is IExpression<IntegerTypeBinaryOperationTerm> right ? right.Expand() : rightConstant;
-
-            IntegerType additionTermType = leftConstant.TermType.AdditionWithType((dynamic)rightConstant.TermType);
-
-            return new Addition(leftExpanded, rightExpanded, additionTermType);
-        }
-        */
-
-        /*
-        public LinearAddition LinearizeAddition()
-        {
-            LinkedList<Term<IntegerType>> linearOperands = new LinkedList<Term<IntegerType>>();
-
-            LinkedList<(bool invertRightOperand, Term<IntegerType> term)> unprocessedOperands = new LinkedList<(bool, Term<IntegerType>)>();
-            unprocessedOperands.AddLast((false, leftConstant));
-            unprocessedOperands.AddLast((false, rightConstant));
-
-            while (unprocessedOperands.Count > 0)
-            {
-                (bool invertRightOperand, Term<IntegerType> term) nextOperand = unprocessedOperands.First!.Value;
-                unprocessedOperands.RemoveFirst();
-
-                if (nextOperand.term is Addition asd || nextOperand.term is Subtraction)
-                {
-                    unprocessedOperands.AddLast((false, nextOperand.term.L));
-                    unprocessedOperands.AddLast((false, rightConstant));
-                }
-
-                if (nextOperand.term is IntegerTypeBinaryOperationTerm)
-                {
-                    // linearizáljuk
-                }
-                else
-                {
-                    if (nextOperand.term is IntegerTypeConstant<IntegerType>)
-                    {
-
-                    }
-                }
-            }
-        }
-        */
 
         #endregion
     }

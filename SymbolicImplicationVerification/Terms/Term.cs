@@ -11,7 +11,7 @@ using SymbolicImplicationVerification.Terms.Variables;
 
 namespace SymbolicImplicationVerification.Terms
 {
-    public abstract class Term<T> : IMatch, IDeepCopy<Term<T>> where T : Type
+    public abstract class Term<T> : IMatch, IEvaluable<Term<T>>, IDeepCopy<Term<T>> where T : Type
     {
         #region Fields
 
@@ -33,10 +33,7 @@ namespace SymbolicImplicationVerification.Terms
         public T TermType
         {
             get { return termType; }
-            private set
-            {
-                termType = value;
-            }
+            set { termType = value; }
         }
 
         #endregion
@@ -50,6 +47,12 @@ namespace SymbolicImplicationVerification.Terms
         /// </summary>
         /// <returns>The created deep copy of the term.</returns>
         public abstract Term<T> DeepCopy();
+
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public abstract Term<T> Evaluated();
 
         #endregion
 

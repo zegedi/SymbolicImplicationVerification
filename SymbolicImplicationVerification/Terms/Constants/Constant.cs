@@ -80,9 +80,22 @@ namespace SymbolicImplicationVerification.Terms.Constants
             }
         }
 
-        public override string ToString()
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
         {
-            return Convert.ToString(value)!;
+            return Convert.ToString(value);
+        }
+
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override Constant<V,T> Evaluated()
+        {
+            return DeepCopy();
         }
 
         /// <summary>

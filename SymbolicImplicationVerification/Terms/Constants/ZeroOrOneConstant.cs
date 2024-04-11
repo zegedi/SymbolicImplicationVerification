@@ -25,6 +25,15 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return new ZeroOrOneConstant(this);
         }
 
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override ZeroOrOneConstant Evaluated()
+        {
+            return new ZeroOrOneConstant(this);
+        }
+
         #endregion
     }
 }

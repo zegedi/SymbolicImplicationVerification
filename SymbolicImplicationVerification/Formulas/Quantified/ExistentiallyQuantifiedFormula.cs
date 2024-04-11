@@ -1,5 +1,6 @@
 ﻿using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas.Quantified
 {
@@ -23,24 +24,92 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
             return string.Format(
-                "\\exists {0} \\in {1} : {2}", 
-                quantifiedVariable.ToString(), quantifiedVariable.TermType.ToString(), statement.ToString());
+                "\\exists {0} \\in {1} \\,\\colon {2}",
+                quantifiedVariable, quantifiedVariable.TermType, statement
+            );
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        public override Formula Evaluated() => (quantifiedVariable, statement.Evaluated()) switch
+        public override Formula Evaluated()
         {
-            (_, _) => new ExistentiallyQuantifiedFormula<T>(this)
-        };
+            Variable<T> quantified = quantifiedVariable.DeepCopy();
+
+            if (quantified.TermType is TermBoundedInteger boundedInteger)
+            {
+                boundedInteger.LowerBound = boundedInteger.LowerBound.Evaluated();
+                boundedInteger.UpperBound = boundedInteger.UpperBound.Evaluated();
+            }
+
+            return (quantified.TermType, statement.Evaluated()) switch
+            {
+                (BoundedIntegerType { IsEmpty: true }, _) => FALSE.Instance(),
+
+                (_, FALSE       ) => FALSE.Instance(),
+                (_, TRUE        ) => TRUE.Instance(),
+                (_, NotEvaluable) => NotEvaluable.Instance(),
+                (_, Formula eval) => eval.Equals(statement) &&
+                                     quantified.Equals(quantifiedVariable) &&
+                                     quantified.TermType.Equals(quantifiedVariable.TermType) ? 
+                                     DeepCopy() : new ExistentiallyQuantifiedFormula<T>(quantified, eval)
+            };
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is ExistentiallyQuantifiedFormula<T> other &&
+                   quantifiedVariable.Equals(other.quantifiedVariable) &&
+                   quantifiedVariable.TermType.Equals(other.quantifiedVariable.TermType) &&
+                   statement.Equals(other.statement);
+        }
+
+        public override Formula ConjunctionWith(Formula other)
+        {
+            if (other is ExistentiallyQuantifiedFormula<T> existentiallyQuantified)
+            {
+                T? intersection = (T?) quantifiedVariable.TermType.Intersection(
+                    existentiallyQuantified.quantifiedVariable.TermType);
+
+                if (intersection is not null && StatementsEquivalent(existentiallyQuantified))
+                {
+                    ExistentiallyQuantifiedFormula<T> result = DeepCopy();
+
+                    result.quantifiedVariable.TermType = intersection;
+                }
+            }
+
+            if (this is ExistentiallyQuantifiedFormula<IntegerType> quantified)
+            {
+                return ConjunctionWith(quantified.DeepCopy(), other.DeepCopy());
+            }
+
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
         /// <summary>
         /// Determines whether the specified formula is equivalent to the current formula.
@@ -54,7 +123,7 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         /// </returns>
         public override bool Equivalent(Formula other)
         {
-            throw new NotImplementedException();
+            return Evaluated().Equals(other.Evaluated());
         }
 
         /// <summary>

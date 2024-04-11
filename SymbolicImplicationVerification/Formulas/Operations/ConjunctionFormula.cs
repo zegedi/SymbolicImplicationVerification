@@ -11,7 +11,7 @@ namespace SymbolicImplicationVerification.Formulas
 
         public ConjunctionFormula(ConjunctionFormula conjunction) : base(
             conjunction.identifier, 
-            conjunction.leftOperand.DeepCopy(), 
+            conjunction.leftOperand .DeepCopy(), 
             conjunction.rightOperand.DeepCopy()) { }
 
         public ConjunctionFormula(Formula leftOperand, Formula rightOperand)
@@ -25,16 +25,16 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
-            return string.Format("{0} && {1}", leftOperand, rightOperand);
+            return string.Format("{0} \\wedge {1}", leftOperand, rightOperand);
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated() => (leftOperand.Evaluated(), rightOperand.Evaluated()) switch
@@ -45,7 +45,9 @@ namespace SymbolicImplicationVerification.Formulas
             (TRUE        , Formula right) => right,
             (_           , FALSE        ) => FALSE.Instance(),
             (FALSE       , _            ) => FALSE.Instance(),
-            (_           , _            ) => new ConjunctionFormula(this)
+            //(Formula left, Formula right) => left.Equals(leftOperand) && right.Equals(rightOperand) ?
+            //                                 DeepCopy() : new ConjunctionFormula(left, right)
+            (Formula left, Formula right) => left.ConjunctionWith(right)
         };
 
         /// <summary>
@@ -75,6 +77,11 @@ namespace SymbolicImplicationVerification.Formulas
         public override LinkedList<Formula> LinearOperands()
         {
             return LinearOperands(binary => binary is ConjunctionFormula); 
+        }
+
+        public override LinkedList<Formula> RecursiveLinearOperands()
+        {
+            return LinearOperands(binary => binary is ConjunctionFormula, true);
         }
 
         public override LinkedList<Formula> SimplifiedLinearOperands()

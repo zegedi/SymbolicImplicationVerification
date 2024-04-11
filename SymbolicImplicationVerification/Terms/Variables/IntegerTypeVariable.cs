@@ -107,6 +107,15 @@ namespace SymbolicImplicationVerification.Terms.Variables
             return new IntegerTypeVariable(this);
         }
 
+        /// <summary>
+        /// Evaluated the given variable, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override IntegerTypeVariable Evaluated()
+        {
+            return new IntegerTypeVariable(this);
+        }
+
         #endregion
     }
 }

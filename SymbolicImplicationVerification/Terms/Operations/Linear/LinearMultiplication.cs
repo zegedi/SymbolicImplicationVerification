@@ -11,7 +11,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
         public LinearMultiplication(IntegerType termType) : base(termType) { }
 
         public LinearMultiplication(LinkedList<IntegerTypeTerm> operandList, IntegerType termType)
-            : base(operandList,termType) { }
+            : base(operandList, termType) { }
 
         public LinearMultiplication(LinearMultiplication linear)
             : base(OperandListDeepCopy(linear.operandList), linear.termType.DeepCopy()) { }
@@ -44,6 +44,41 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
         #region Public methods
 
         /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is LinearMultiplication other &&
+                   operandList.Count == other.operandList.Count &&
+                   operandList.All(other.operandList.Contains);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            const string multiplicationOperationSymbol = "*";
+
+            return ToString(multiplicationOperationSymbol);
+        }
+
+        /// <summary>
         /// Create a deep copy of the current linear multiplication term.
         /// </summary>
         /// <returns>The created deep copy of the linear multiplication term.</returns>
@@ -64,7 +99,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                 {
                     IntegerConstant                    => int.MaxValue,
                     ChiFunction                        => int.MaxValue - 1,
-                    Summation<IntegerType>             => int.MaxValue - 2,
+                    Summation                          => int.MaxValue - 2,
                     IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerConstant),
                     Variable<IntegerType>              => 1,
                     _                                  => 0,
@@ -91,12 +126,12 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
         {
             if (nextOperand is null)
             {
-                return processedGroup!;
+                return processedGroup;
             }
 
             IntegerTypeTerm processedOperand =
                 nextOperand is IntegerTypeLinearOperationTerm operation ?
-                operation.Process() : nextOperand;
+                operation.Evaluated() : nextOperand;
 
             return processedGroup is not null ?
                    new Multiplication(processedGroup, processedOperand) : processedOperand;

@@ -1,4 +1,5 @@
 ﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms.Constants;
 using System;
 
@@ -54,6 +55,15 @@ namespace SymbolicImplicationVerification.Types
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return "\\mathbb{N}^+";
+        }
 
         /// <summary>
         /// Creates a deep copy of the current type.
@@ -130,6 +140,128 @@ namespace SymbolicImplicationVerification.Types
             IntegerTypeTerm copyTerm = term.DeepCopy();
 
             return new GreaterThanOrEqualTo(copyTerm, positiveIntegerLowerBound);
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is PositiveInteger;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Calculates the intersection of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override IntegerType? Intersection(IntegerType other)
+        {
+            const int positiveIntegerLowerBound = 1;
+
+            if (other is Integer or NaturalNumber or PositiveInteger)
+            {
+                return PositiveInteger.Instance();
+            }
+
+            if (other is ZeroOrOne)
+            {
+                return other.DeepCopy();
+            }
+
+            if (other is ConstantBoundedInteger constantBounded)
+            {
+                bool notEmptyIntersection = constantBounded.UpperBoundValue >= positiveIntegerLowerBound;
+
+                if (notEmptyIntersection)
+                {
+                    int lowerBound = Math.Max(constantBounded.LowerBoundValue, positiveIntegerLowerBound);
+
+                    return new ConstantBoundedInteger(lowerBound, constantBounded.UpperBoundValue);
+                }
+            }
+
+            if (other is TermBoundedInteger bounded)
+            {
+                return IntersectionBounds(
+                    bounded.LowerBound.DeepCopy(), 
+                    bounded.UpperBound.DeepCopy(), 
+                    new IntegerConstant(positiveIntegerLowerBound)
+                );
+
+                //IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
+                //IntegerTypeTerm otherUpperBound = bounded.UpperBound.DeepCopy();
+
+                //IntegerConstant positiveIntegerLower = new IntegerConstant(positiveIntegerLowerBound);
+
+                //Formula chooseOtherLower = new LessThanOrEqualTo(positiveIntegerLower, otherLowerBound).Evaluated();
+                //Formula chooseThisLower  = new LessThanOrEqualTo(otherLowerBound, positiveIntegerLower).Evaluated();
+
+                //Formula emptyIntersection = new LessThan(otherUpperBound, positiveIntegerLower).Evaluated();
+
+                //var possibleBounds = new List<(IntegerTypeTerm, Formula)>
+                //{
+                //    (otherLowerBound     , chooseThisLower ),
+                //    (positiveIntegerLower, chooseOtherLower)
+                //};
+
+                //foreach ((IntegerTypeTerm lower, Formula lowerResult) bounds in possibleBounds)
+                //{
+                //    bool chooseThisLowerBound = bounds.lowerResult is     TRUE;
+                //    bool notEmptyIntersection = emptyIntersection  is not TRUE;
+
+                //    if (chooseThisLowerBound && notEmptyIntersection)
+                //    {
+                //        return new TermBoundedInteger(bounds.lower, otherUpperBound);
+                //    }
+                //}
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Calculates the union of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override IntegerType? Union(IntegerType other)
+        {
+            const int positiveIntegerLowerBound = 0;
+
+            if (other is Integer or NaturalNumber)
+            {
+                return other.DeepCopy();
+            }
+
+            if (other is PositiveInteger or ZeroOrOne)
+            {
+                return NaturalNumber.Instance();
+            }
+
+            if (other is BoundedIntegerType bounded)
+            {
+                Formula subsetCondition = new LessThanOrEqualTo(
+                    new IntegerConstant(positiveIntegerLowerBound), bounded.LowerBound.DeepCopy()).Evaluated();
+
+                return subsetCondition is TRUE ? NaturalNumber.Instance() : null;
+            }
+
+            return null;
         }
 
         /*========================= Addition result type selection ==========================*/

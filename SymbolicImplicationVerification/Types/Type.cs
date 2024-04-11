@@ -76,6 +76,20 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>The formulated constraint on the term.</returns>
         public abstract Formula TypeConstraintOn(TypeTerm term);
 
+        /// <summary>
+        /// Calculates the intersection of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public abstract Type? Intersection(Type other);
+
+        /// <summary>
+        /// Calculates the union of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public abstract Type? Union(Type other);
+
         #endregion
     }
 }

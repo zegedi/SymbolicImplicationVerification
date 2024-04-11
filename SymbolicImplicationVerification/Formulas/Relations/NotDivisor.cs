@@ -24,12 +24,12 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
-            return string.Format("{0}!|{1}", leftComponent.ToString(), rightComponent.ToString());
+            return string.Format("{0} \\nmid {1}", leftComponent, rightComponent);
         }
 
         /// <summary>
@@ -72,32 +72,23 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        /// <exception cref="InvalidOperationException">If the left component is zero.</exception>
-        public override Formula Evaluated()
+        public override Formula Evaluated() => (leftComponent.Evaluated(), rightComponent.Evaluated()) switch
         {
-            IntegerTypeTerm left =
-                leftComponent is IntegerTypeBinaryOperationTerm leftOperation ?
-                leftOperation.Simplified() : leftComponent.DeepCopy();
+            (IntegerTypeConstant { Value: 0       }, _) => NotEvaluable.Instance(),
+            (IntegerTypeConstant { Value: 1 or -1 }, _) => FALSE.Instance(),
+            (_, IntegerTypeConstant { Value: 0 }      ) => FALSE.Instance(),
 
-            IntegerTypeTerm right =
-                rightComponent is IntegerTypeBinaryOperationTerm rightOperation ?
-                rightOperation.Simplified() : rightComponent.DeepCopy();
-
-            return (left, right) switch
-            {
-                (IntegerTypeConstant { Value: 0       }, _) => NotEvaluable.Instance(),
-                (IntegerTypeConstant { Value: 1 or -1 }, _) => FALSE.Instance(),
-                (_ , IntegerTypeConstant { Value: 0 })      => FALSE.Instance(),
-
-                (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant) =>
+            (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant) =>
                 rightConstant.Value % leftConstant.Value != 0 ? TRUE.Instance() : FALSE.Instance(),
 
-                (_, _) => left.Equals(right) ? FALSE.Instance() : new NotDivisor(left, right)
-            };
-        }
+            (IntegerTypeTerm left, IntegerTypeTerm right) =>
+                left.Equals(right) ? FALSE.Instance() :
+                left.Equals(leftComponent) && right.Equals(rightComponent) ?
+                DeepCopy() : new NotDivisor(left, right)
+        };
 
         /// <summary>
         /// Negates the given expression, without modifying the original.

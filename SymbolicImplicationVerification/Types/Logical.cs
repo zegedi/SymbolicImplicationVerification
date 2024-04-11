@@ -55,6 +55,15 @@ namespace SymbolicImplicationVerification.Types
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return "\\mathbb{L}";
+        }
+
+        /// <summary>
         /// Creates a deep copy of the current type.
         /// </summary>
         /// <returns>The created deep copy of the type.</returns>
@@ -158,6 +167,48 @@ namespace SymbolicImplicationVerification.Types
             bool isLogicalTerm = term.TermType is Logical;
 
             return isLogicalTerm ? TRUE.Instance() : FALSE.Instance();
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is Logical;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Calculates the intersection of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override Logical? Intersection(Type other)
+        {
+            return other is Logical ? Logical.Instance() : null;
+        }
+
+        /// <summary>
+        /// Calculates the union of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override Logical? Union(Type other)
+        {
+            return other is Logical ? Logical.Instance() : null;
         }
 
         #endregion

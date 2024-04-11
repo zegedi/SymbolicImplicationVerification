@@ -7,6 +7,7 @@ using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
+using SymbolicImplicationVerification.Implies;
 
 namespace SymImplTest
 {
@@ -544,26 +545,173 @@ namespace SymImplTest
             Assert.IsTrue(expectedResult.Equivalent(secondFormula.ConjunctionWith(firstFormula)));
         }
 
-        //static IEnumerable<object[]> MindenSzamNoveleseEggyel
-        //{
-        //    get
-        //    {
-        //        var x = new IntegerTypeVariable("x", Integer.Instance());
-        //        var y = new IntegerTypeVariable("y", Integer.Instance());
+        static IEnumerable<object[]> PrimszamEldontesData
+        {
+            get
+            {
+                var x  = new IntegerTypeVariable("x", PositiveInteger.Instance());
+                var xv = new IntegerTypeVariable("x'", PositiveInteger.Instance());
+                var k  = new IntegerTypeVariable("k", PositiveInteger.Instance());
+                var l  = new Variable<Logical>("l", Logical.Instance());
+                var t0 = new IntegerTypeVariable("t_0", Integer.Instance());
 
-        //        return new[]
-        //        {
-        //            new object[] { new IntegerTypeEqual(x, y), new LessThan(x, y), FALSE.Instance() },
-        //            new object[] { new IntegerTypeEqual(y, x), new LessThan(x, y), FALSE.Instance() },
-        //            new object[] { new IntegerTypeEqual(x, y), new LessThanOrEqualTo(x, y), new IntegerTypeEqual(x, y) },
-        //            new object[] { new IntegerTypeEqual(y, x), new LessThanOrEqualTo(x, y), new IntegerTypeEqual(y, x) },
+                var j1 = new IntegerTypeVariable("j", new TermBoundedInteger(2, x - 1));
+                var j2 = new IntegerTypeVariable("j", new TermBoundedInteger(2, k - 1));
+                var j3 = new IntegerTypeVariable("j", new TermBoundedInteger(2, k));
 
-        //            new object[] { new IntegerTypeNotEqual(x, y), new LessThan(x, y), new LessThan(x, y) },
-        //            new object[] { new IntegerTypeNotEqual(y, x), new LessThan(x, y), new LessThan(x, y) },
-        //            new object[] { new IntegerTypeNotEqual(x, y), new LessThanOrEqualTo(x, y), new LessThan(x, y) },
-        //            new object[] { new IntegerTypeNotEqual(y, x), new LessThanOrEqualTo(x, y), new LessThan(x, y) },
-        //        };
-        //    }
-        //}
+                var zero = new IntegerConstant(0);
+                var one = new IntegerConstant(1);
+                var two = new IntegerConstant(2);
+
+                var igaz = new LogicalConstant(true);
+
+                var Q = new IntegerTypeEqual(x, xv) & new GreaterThan(x, one);
+                Q.Identifier = "Q";
+
+                var R = Q.DeepCopy() & new LogicalEqual(
+                    l, new FormulaTerm(new UniversallyQuantifiedFormula<IntegerType>(j1, new NotDivisor(j1, x))));
+                R.Identifier = "R";
+
+                var Qv = Q.DeepCopy() & new IntegerTypeEqual(k, two) & new LogicalEqual(l, igaz);
+                Qv.Identifier = "Q'";
+
+                var P = 
+                    Q.DeepCopy() &
+                    new LessThanOrEqualTo(two, k) &
+                    new LessThanOrEqualTo(k, x) &
+                    new LogicalEqual(l,
+                    new FormulaTerm(new UniversallyQuantifiedFormula<IntegerType>(j2, new NotDivisor(j2, x))));
+                P.Identifier = "P";
+
+                var Qvv = 
+                    Q.DeepCopy() &
+                    new IntegerTypeEqual(x - k, t0) &
+                    new LessThanOrEqualTo(two, k + 1) &
+                    new LessThanOrEqualTo(k + 1, x) &
+                    new LogicalEqual(l,
+                    new FormulaTerm(new UniversallyQuantifiedFormula<IntegerType>(j3, new NotDivisor(j3, x))));
+                Qvv.Identifier = "Q''";
+
+                var assignment1 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (k, two)
+                },
+                new List<(Variable<Logical>, Term<Logical>)>()
+                {
+                    (l, igaz)
+                });
+
+                var assignment2 = new Assignment(new List<(Variable<Logical>, Term<Logical>)>()
+                {
+                    (l, new FormulaTerm(new LogicalTermFormula(l) & new NotDivisor(k, x)))
+                });
+
+                var assignment3 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (k, k + 1)
+                });
+
+
+                return new[]
+                {
+                    new object[] { new Imply(Q.DeepCopy(), new WeakestPrecondition(assignment1.DeepCopy(), Qv.DeepCopy())) },
+                    new object[] { new Imply(Qv.DeepCopy(), P.DeepCopy()) },
+                    new object[] { new Imply(P.DeepCopy() & new NegationFormula(new IntegerTypeNotEqual(k, x)), R.DeepCopy()) },
+                    new object[] { new Imply(P.DeepCopy(), new IntegerTypeNotEqual(k, x) | new NegationFormula(new IntegerTypeNotEqual(k, x))) },
+                    new object[] { new Imply(P.DeepCopy() & new IntegerTypeNotEqual(k, x), new GreaterThan(x - k, zero)) },
+                    new object[] { new Imply(P.DeepCopy() /* & new IntegerTypeNotEqual(k, x) & new IntegerTypeEqual(x - k, t0)*/, new WeakestPrecondition(assignment2, Qvv.DeepCopy())) },
+                    new object[] { new Imply(Qvv.DeepCopy(), new WeakestPrecondition(assignment3, P.DeepCopy())) }
+                };
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(PrimszamEldontesData))]
+        public void PrimszamEldontes(Imply imply)
+        {
+            imply.Test();
+        }
+
+
+        static IEnumerable<object[]> SzamokNoveleseEggyelData
+        {
+            get
+            {
+                var i  = new IntegerTypeVariable("i", NaturalNumber.Instance());
+                var n  = new IntegerTypeVariable("n", NaturalNumber.Instance());
+                var t0 = new IntegerTypeVariable("t_0", Integer.Instance());
+
+                var zero = new IntegerConstant(0);
+                var one  = new IntegerConstant(1);
+                var two  = new IntegerConstant(2);
+
+                var k1 = new IntegerTypeVariable("k", new TermBoundedInteger(one, n));
+                var k2 = new IntegerTypeVariable("k", new TermBoundedInteger(one, i - 1));
+                var k3 = new IntegerTypeVariable("k", new TermBoundedInteger(i, n));
+                var k4 = new IntegerTypeVariable("k", new TermBoundedInteger(one, i));
+                var k5 = new IntegerTypeVariable("k", new TermBoundedInteger(i + 1, n));
+
+                var x   = new ArrayVariable<IntegerType>("x" , n, Integer.Instance());
+                var xv  = new ArrayVariable<IntegerType>("x'", n, Integer.Instance());
+                var xi  = new ArrayVariable<IntegerType>("x" , n,  i, Integer.Instance());
+                var xvi = new ArrayVariable<IntegerType>("x'", n,  i, Integer.Instance());
+                var xk  = new ArrayVariable<IntegerType>("x" , n, k1, Integer.Instance());
+                var xvk = new ArrayVariable<IntegerType>("x'", n, k1, Integer.Instance());
+
+                var Q  = new IntegerTypeEqual(x, xv);
+                Q.Identifier = "Q";
+
+                var R  = new UniversallyQuantifiedFormula<IntegerType>(k1, new IntegerTypeEqual(xk, new Addition(xvk, one)));
+                R.Identifier = "R";
+
+                var Qv = Q.DeepCopy() & new IntegerTypeEqual(i, one);
+                Qv.Identifier = "Q'";
+
+                var P  = new LessThanOrEqualTo(one, i) &
+                         new LessThanOrEqualTo(i, n + 1) &
+                         new UniversallyQuantifiedFormula<IntegerType>(k2, new IntegerTypeEqual(xk, new Addition(xvk, one))) &
+                         new UniversallyQuantifiedFormula<IntegerType>(k3, new IntegerTypeEqual(xk, xvk));
+                P.Identifier = "P";
+
+                var Qvv = new LessThanOrEqualTo(one, i + 1) &
+                          new LessThanOrEqualTo(i + 1, n + 1) &
+                          new UniversallyQuantifiedFormula<IntegerType>(k4, new IntegerTypeEqual(xk, new Addition(xvk, one))) &
+                          new UniversallyQuantifiedFormula<IntegerType>(k5, new IntegerTypeEqual(xk, xvk));
+                Qvv.Identifier = "Q''";
+
+                var assignment1 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (i, one)
+                });
+
+                var assignment2 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (xi, new Addition(xi, one))
+                });
+
+                var assignment3 = new Assignment(new List<(Variable<IntegerType>, Term<IntegerType>)>()
+                {
+                    (i, i + 1)
+                });
+
+
+                return new[]
+                {
+                    new object[] { new Imply(Q.DeepCopy(), new WeakestPrecondition(assignment1.DeepCopy(), Qv.DeepCopy())) },
+                    new object[] { new Imply(Qv.DeepCopy(), P.DeepCopy()) },
+                    new object[] { new Imply(P.DeepCopy() & new NegationFormula(new IntegerTypeNotEqual(i, n + 1)), R.DeepCopy()) },
+                    new object[] { new Imply(P.DeepCopy(), new IntegerTypeNotEqual(i, n + 1) | new NegationFormula(new IntegerTypeNotEqual(i, n + 1))) },
+                    new object[] { new Imply(P.DeepCopy() & new IntegerTypeNotEqual(i, n + 1) & new IntegerTypeEqual(n + 1 - i, t0), new WeakestPrecondition(assignment2, Qvv.DeepCopy() & new IntegerTypeEqual(n + 1 - i, t0))) },
+                    new object[] { new Imply(Qvv.DeepCopy() & new IntegerTypeEqual(n + 1 - i, t0), new WeakestPrecondition(assignment3, P.DeepCopy() & new LessThan(n + 1 - i, t0))) },
+                };
+            }
+        }
+
+        [TestMethod]
+        [DynamicData(nameof(SzamokNoveleseEggyelData))]
+        public void SzamokNoveleseEggyel(Imply imply)
+        {
+            imply.Test();
+        }
     }
 }

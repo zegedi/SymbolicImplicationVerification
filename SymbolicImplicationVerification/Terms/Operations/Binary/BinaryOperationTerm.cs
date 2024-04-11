@@ -65,35 +65,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #region Public abstract methods
 
-        /*
-        /// <summary>
-        /// Determines wheter the given <see cref="object"/> matches the pattern.
-        /// </summary>
-        /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
-        /// <returns>
-        ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the <see cref="object"/> matches the pattern.</item>
-        ///     <item><see langword="false"/> - otherwise.</item>
-        ///   </list>
-        /// </returns>
-        public abstract bool Matches(object? obj);
-        */
-
         /// <summary>
         /// Create a deep copy of the current binary operation term.
         /// </summary>
         /// <returns>The created deep copy of the binary operation term.</returns>
         public override abstract BinaryOperationTerm<OTerm, OType> DeepCopy();
-
-        /// <summary>
-        /// Creates an evaluated version of the binary operation.
-        /// </summary>
-        /// <returns>The evaluated version of the binary operation.</returns>
-        public abstract OTerm Evaluated(OTerm left, OTerm right);
-
-        public abstract OTerm Simplified();
-
-        public abstract LinearOperationTerm<OTerm, OType> Linearized();
 
         public abstract BinaryOperationTerm<OTerm, OType> CreateInstance(OTerm leftOperand, OTerm rightOperand);
 
@@ -101,28 +77,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #region Public methods
 
-        /// <summary>
-        /// Determines whether the specified object is equal to the current object.
-        /// </summary>
-        /// <param name="obj">The object to compare with the current object.</param>
-        /// <returns>
-        ///   <see langword="true"/> if the specified object is equal to the current object; 
-        ///   otherwise, <see langword="false"/>.
-        /// </returns>
-        public override bool Equals(object? obj)
+        public bool RearrangementEquals(object? other)
         {
-            return obj is BinaryOperationTerm<OTerm, OType> other &&
-                   leftOperand .Equals(other.LeftOperand) &&
-                   rightOperand.Equals(other.RightOperand);
-        }
-
-        /// <summary>
-        /// Serves as the default hash function.
-        /// </summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
+            return other is BinaryOperationTerm<OTerm, OType> operation &&
+                   Linearized().Equals(operation.Linearized());
         }
 
         public override string Hash(HashLevel level)
@@ -130,25 +88,42 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             return leftOperand.Hash(level) + "_" + rightOperand.Hash(level);
         }
 
-        /*
-        public OTerm Simplified()
+        public Term<OType> Evaluated(
+            Func<Term<OType>, Term<OType>> collapseGroups,
+            Func<Term<OType>, Term<OType>> associateGroups)
         {
-            OTerm result = Evaluated();
+            Term<OType> result = Simplified();
 
             if (result is BinaryOperationTerm<OTerm, OType> operation)
             {
-                // Linearize the 
-                LinearOperationTerm<OTerm, OType> linearized = operation.Linearize();
+                LinearOperationTerm<OTerm, OType> linearized = operation.Linearized();
 
-                result = linearized.Process();
+                result = linearized.Evaluated();
 
-                result = PatternReplacer.PatternsApplied(result, Evaluations.Patterns.CollapseGroups);
+                result = collapseGroups(result);
 
-                result = PatternReplacer.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
+                if (result is BinaryOperationTerm<OTerm, OType> operationTerm)
+                {
+                    result = operationTerm.Simplified();
+
+                    result = associateGroups(result);
+                }
             }
 
             return result;
-        }*/
+        }
+
+        #endregion
+
+        #region Protected abstract methods
+
+        /// <summary>
+        /// Creates a simplified version of the binary operation.
+        /// </summary>
+        /// <returns>The simplified version of the binary operation.</returns>
+        protected abstract Term<OType> Simplified(Term<OType> leftOperand, Term<OType> rightOperand);
+
+        protected abstract LinearOperationTerm<OTerm, OType> Linearized();
 
         #endregion
 
@@ -157,106 +132,55 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         /// <summary>
         /// Creates a simplified version of the binary operation.
         /// </summary>
-        /// <param name="ConstantSimplification">How to simplify two constant operands.</param>
-        /// <param name="TermSimplification">Otherwise how to simplify the operands.</param>
         /// <returns>The simplified verion of the binary operation.</returns>
-        public OTerm Evaluated()
+        protected Term<OType> Simplified()
         {
-            OTerm left =
+            Term<OType> left =
                 leftOperand is BinaryOperationTerm<OTerm, OType> leftOperation ?
-                leftOperation.Evaluated() : (OTerm) leftOperand.DeepCopy();
+                leftOperation.Simplified() : leftOperand.Evaluated();
 
-            OTerm right =
+            Term<OType> right =
                 rightOperand is BinaryOperationTerm<OTerm, OType> rightOperation ?
-                rightOperation.Evaluated() : (OTerm) rightOperand.DeepCopy();
+                rightOperation.Simplified() : rightOperand.Evaluated();
 
-            return Evaluated(left, right);
+            return Simplified(left, right);
         }
 
-        /*
-        /// <summary>
-        /// Creates a simplified version of the binary operation.
-        /// </summary>
-        /// <param name="ConstantSimplification">How to simplify two constant operands.</param>
-        /// <param name="TermSimplification">Otherwise how to simplify the operands.</param>
-        /// <returns>The simplified verion of the binary operation.</returns>
-        protected OTerm Evaluated(
-            Func<IntegerTypeConstant, IntegerTypeConstant, OTerm> ConstantSimplification,
-            Func<OTerm, OTerm, OTerm> TermSimplification)
+        protected LinearOperationTerm<OTerm, OType> Linearized(
+            Func<Term<OType>, Term<OType>> preprocessBinaryOperation,
+            Func<BinaryOperationTerm<OTerm, OType>, bool> linearizeBinaryOperation,
+            Func<LinkedList<Term<OType>>, OType, LinearOperationTerm<OTerm, OType>> createLinearOperation)
         {
-            OTerm left =
-                leftOperand is BinaryOperationTerm<OTerm, OType> leftOperation ?
-                leftOperation.Evaluated() : leftOperand;
+            LinkedList<Term<OType>> unprocessed = new LinkedList<Term<OType>>();
+            LinkedList<Term<OType>> operandList = new LinkedList<Term<OType>>();
 
-            OTerm right =
-                rightOperand is BinaryOperationTerm<OTerm, OType> rightOperation ?
-                rightOperation.Evaluated() : rightOperand;
+            unprocessed.AddLast(preprocessBinaryOperation(this));
 
-            if (left  is IntegerTypeConstant leftConstant &&
-                right is IntegerTypeConstant rightConstant)
+            while (unprocessed.Count > 0)
             {
-                return ConstantSimplification(leftConstant, rightConstant);
-            }
+                Term<OType> nextInProcess = unprocessed.First();
+                unprocessed.RemoveFirst();
 
-            return TermSimplification(left, right);
-        }
-        */
-
-        /*
-        protected LinearOperationTerm<OTerm,OType> Linearize(
-            Func<Term<OType>, bool> appendOperands,
-            Func<Term<OType>, bool> invertRightOperand,
-            Func<Term<OType>, bool> appendLinearizedOperation )
-        {
-            LinkedList<OTerm> linearTerms = new LinkedList<OTerm>();
-
-            return null;
-        }
-        */
-        /*
-        protected abstract LinearOperationTerm<OTerm, OType> Linearize();
-
-        protected void Linearize(
-            LinearOperationTerm<OTerm, OType> linearizedOperation,
-            Func<BinaryOperationTerm<OTerm, OType>, bool> AppendOperands,
-            Func<BinaryOperationTerm<OTerm, OType>, bool> IsInverseOperation,
-            bool invertOperand,
-            Func<OTerm, OTerm> OperandInverter )
-        {
-            const bool selectLeftOperand  = false;
-            const bool selectRightOperand = true;
-
-            foreach (bool rightOperandSelected in new bool[] { selectLeftOperand, selectRightOperand })
-            {
-                OTerm operand = rightOperandSelected ? rightOperand : leftOperand;
-
-                BinaryOperationTerm<OTerm, OType>? operation = operand as BinaryOperationTerm<OTerm, OType>;
-
-                if (operation is null)
+                if (nextInProcess is BinaryOperationTerm<OTerm, OType> operation)
                 {
-                    linearizedOperation.OperandList.AddLast(
-                        invertOperand ? OperandInverter(operand) : operand);
-                }
-                else if (!AppendOperands(operation))
-                {
-                    linearizedOperation.OperandList.AddLast(operation.Linearize());
-                }
-                else if (rightOperandSelected && IsInverseOperation(operation))
-                {
-                    // kell-e invertálni
+                    if (linearizeBinaryOperation(operation))
+                    {
+                        operandList.AddLast(operation.Linearized());
+                    }
+                    else
+                    {
+                        unprocessed.AddLast(operation.leftOperand);
+                        unprocessed.AddLast(operation.rightOperand);
+                    }
                 }
                 else
                 {
-                    operation.Linearize(
-                        linearizedOperation, 
-                        AppendOperands,
-                        IsInverseOperation,
-                        OperandInverter
-                    );
+                    operandList.AddLast(nextInProcess);
                 }
             }
+
+            return createLinearOperation(operandList, termType);
         }
-        */
 
         #endregion
     }

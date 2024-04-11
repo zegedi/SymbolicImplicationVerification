@@ -25,6 +25,15 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return new NaturalNumberConstant(this);
         }
 
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override NaturalNumberConstant Evaluated()
+        {
+            return new NaturalNumberConstant(this);
+        }
+
         #endregion
     }
 }

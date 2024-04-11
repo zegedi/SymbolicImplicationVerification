@@ -1,4 +1,7 @@
-﻿using SymbolicImplicationVerification.Formulas.Relations;
+﻿using SymbolicImplicationVerification.Formulas.Operations;
+using SymbolicImplicationVerification.Formulas.Relations;
+using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Types;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -24,10 +27,34 @@ namespace SymbolicImplicationVerification.Formulas
 
         #region Public properties
 
+        public bool HasIdentifier
+        {
+            get { return identifier is not null; }
+        }
+
         public string? Identifier
         {
             get { return identifier; }
             set { identifier = value; }
+        }
+
+        #endregion
+
+        #region Public static operators
+
+        public static ConjunctionFormula operator &(Formula leftOperand, Formula rightOperand)
+        {
+            return new ConjunctionFormula(leftOperand, rightOperand);
+        }
+
+        public static DisjunctionFormula operator |(Formula leftOperand, Formula rightOperand)
+        {
+            return new DisjunctionFormula(leftOperand, rightOperand);
+        }
+
+        public static NegationFormula operator ~(Formula operand)
+        {
+            return new NegationFormula(operand);
         }
 
         #endregion
@@ -41,7 +68,7 @@ namespace SymbolicImplicationVerification.Formulas
         public abstract Formula Negated();
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public abstract Formula Evaluated();
@@ -88,6 +115,35 @@ namespace SymbolicImplicationVerification.Formulas
         /// </summary>
         /// <returns>The created deep copy of the formula.</returns>
         public abstract Formula DeepCopy();
+
+        /// <summary>
+        /// Returns a LaTeX code that represents the current object.
+        /// </summary>
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public abstract string ToLatex();
+
+        #endregion
+
+        #region Public virtual methods
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string ToString()
+        {
+            return identifier is not null ? identifier : ToLatex();
+        }
+
+        public virtual Formula ConjunctionWith(Formula other)
+        {
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        public virtual Formula DisjunctionWith(Formula other)
+        {
+            return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
 
         #endregion
 

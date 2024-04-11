@@ -32,6 +32,15 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return new IntegerConstant(this);
         }
 
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override IntegerConstant Evaluated()
+        {
+            return new IntegerConstant(this);
+        }
+
         #endregion
     }
 }

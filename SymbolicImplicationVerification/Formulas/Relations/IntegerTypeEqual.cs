@@ -123,25 +123,33 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
         {
-            IntegerTypeTerm left =
-                leftComponent is IntegerTypeBinaryOperationTerm leftOperation ?
-                leftOperation.Simplified() : leftComponent.DeepCopy();
+            IntegerTypeTerm left  = leftComponent .Evaluated();
+            IntegerTypeTerm right = rightComponent.Evaluated();
 
-            IntegerTypeTerm right =
-                rightComponent is IntegerTypeBinaryOperationTerm rightOperation ?
-                rightOperation.Simplified() : rightComponent.DeepCopy();
+            if (left is IntegerTypeBinaryOperationTerm leftOperation &&
+                leftOperation.RearrangementEquals(leftComponent))
+            {
+                left = leftComponent;
+            }
+
+            if (right is IntegerTypeBinaryOperationTerm rightOperation &&
+                rightOperation.RearrangementEquals(rightComponent))
+            {
+                right = rightComponent;
+            }
 
             Subtraction leftMinusRight = new Subtraction(left, right);
 
-            return leftMinusRight.Simplified() switch
+            return leftMinusRight.Evaluated() switch
             {
                 IntegerTypeConstant constant => constant.Value == 0 ? TRUE.Instance() : FALSE.Instance(),
-                                           _ => new IntegerTypeEqual(left, right)
+                                           _ => left.Equals(leftComponent) && right.Equals(rightComponent) ?
+                                                DeepCopy() : new IntegerTypeEqual(left, right)
             };
         }
 

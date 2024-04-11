@@ -1,6 +1,12 @@
-﻿using SymbolicImplicationVerification.Formulas.Quantified;
+﻿using SymbolicImplicationVerification.Evaluations;
+using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Quantified;
+using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas
 {
@@ -24,24 +30,127 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
             return string.Format(
-                "\\forall {0} \\in {1} : {2}",
-                quantifiedVariable.ToString(), quantifiedVariable.TermType.ToString(), statement.ToString());
+                "\\forall {0} \\in {1} \\,\\colon {2}",
+                quantifiedVariable, quantifiedVariable.TermType, statement
+            );
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        public override Formula Evaluated() => (quantifiedVariable, statement.Evaluated()) switch
+        public override Formula Evaluated()
         {
-            (_, _) => new UniversallyQuantifiedFormula<T>(this)
-        };
+            Variable<T> quantified = quantifiedVariable.DeepCopy();
+
+            if (quantified.TermType is TermBoundedInteger boundedInteger)
+            {
+                boundedInteger.LowerBound = boundedInteger.LowerBound.Evaluated();
+                boundedInteger.UpperBound = boundedInteger.UpperBound.Evaluated();
+            }
+
+            return (quantified.TermType, statement.Evaluated()) switch
+            {
+                (BoundedIntegerType { IsEmpty: true }, _) => TRUE.Instance(),
+
+                (_, FALSE       ) => FALSE.Instance(),
+                (_, TRUE        ) => TRUE.Instance(),
+                (_, NotEvaluable) => NotEvaluable.Instance(),
+                (_, Formula eval) => eval.Equals(statement) &&
+                                     quantified.Equals(quantifiedVariable) &&
+                                     quantified.TermType.Equals(quantifiedVariable.TermType) ?
+                                     DeepCopy() : new UniversallyQuantifiedFormula<T>(quantified, eval)
+            };
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is UniversallyQuantifiedFormula<T> other &&
+                   quantifiedVariable.Equals(other.quantifiedVariable) &&
+                   quantifiedVariable.TermType.Equals(other.quantifiedVariable.TermType) &&
+                   statement.Equals(other.statement);
+        }
+
+        public override Formula ConjunctionWith(Formula other)
+        {
+            if (other is UniversallyQuantifiedFormula<T> universallyQuantified)
+            {
+                T? intersection = 
+                    (T?) quantifiedVariable.TermType.Union(universallyQuantified.quantifiedVariable.TermType);
+
+                if (intersection is not null && StatementsEquivalent(universallyQuantified))
+                {
+                    UniversallyQuantifiedFormula<T> result = DeepCopy();
+
+                    result.quantifiedVariable.TermType = intersection;
+                }
+            }
+
+            if (this is UniversallyQuantifiedFormula<IntegerType> quantified)
+            {
+                return ConjunctionWith(quantified.DeepCopy(), other.DeepCopy());
+            }
+
+            //Term<T>? variableReplaceTerm = PatternReplacer<T>.QuantifiedVariableReplaced(this, other);
+
+            //if (variableReplaceTerm is not null && 
+            //    variableReplaceTerm is IntegerTypeTerm replace &&
+            //    quantifiedVariable.TermType is BoundedIntegerType bounded)
+            //{
+            //    IntegerConstant one = new IntegerConstant(1);
+
+            //    Formula decreaseLowerBound = 
+            //        new IntegerTypeEqual(one + replace.DeepCopy(), bounded.LowerBound.DeepCopy()).Evaluated();
+
+            //    Formula increaseUpperBound =
+            //        new IntegerTypeEqual(replace.DeepCopy(), one + bounded.UpperBound.DeepCopy()).Evaluated();
+
+            //    if (decreaseLowerBound is TRUE || increaseUpperBound is TRUE)
+            //    {
+            //        bool decrease = decreaseLowerBound is TRUE;
+
+            //        TermBoundedInteger newBounds = new TermBoundedInteger(
+            //            decrease ? replace.DeepCopy() : bounded.LowerBound.DeepCopy(),
+            //            decrease ? bounded.UpperBound.DeepCopy() : replace.DeepCopy()
+            //        );
+
+            //        return new UniversallyQuantifiedFormula<IntegerType>(
+            //            new Variable<IntegerType>(quantifiedVariable.Identifier, newBounds),
+            //            statement.DeepCopy()
+            //        );
+            //    }
+            //}
+
+            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        public virtual Formula DisjunctionWith(BinaryRelationFormula<T> other)
+        {
+            return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
         /// <summary>
         /// Determines whether the specified formula is equivalent to the current formula.
@@ -55,7 +164,7 @@ namespace SymbolicImplicationVerification.Formulas
         /// </returns>
         public override bool Equivalent(Formula other)
         {
-            throw new NotImplementedException();
+            return Evaluated().Equals(other.Evaluated());
         }
 
         /// <summary>

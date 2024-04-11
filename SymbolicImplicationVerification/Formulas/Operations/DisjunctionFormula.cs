@@ -24,16 +24,16 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
-            return string.Format("{0} || {1}", leftOperand, rightOperand);
+            return string.Format("{0} \\vee {1}", leftOperand, rightOperand);
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated() => (leftOperand.Evaluated(), rightOperand.Evaluated()) switch
@@ -44,7 +44,9 @@ namespace SymbolicImplicationVerification.Formulas
             (FALSE       , Formula right) => right,
             (_           , TRUE         ) => TRUE.Instance(),
             (TRUE        , _            ) => TRUE.Instance(),
-            (_           , _            ) => new DisjunctionFormula(this)
+            //(Formula left, Formula right) => left.Equals(leftOperand) && right.Equals(rightOperand) ?
+            //                                 DeepCopy() : new DisjunctionFormula(left, right)
+            (Formula left, Formula right) => left.DisjunctionWith(right)
         };
 
         public Formula Simplified()
@@ -86,6 +88,11 @@ namespace SymbolicImplicationVerification.Formulas
         public override LinkedList<Formula> LinearOperands()
         {
             return LinearOperands(binary => binary is DisjunctionFormula);
+        }
+
+        public override LinkedList<Formula> RecursiveLinearOperands()
+        {
+            return LinearOperands(binary => binary is DisjunctionFormula, true);
         }
 
         public override LinkedList<Formula> SimplifiedLinearOperands()

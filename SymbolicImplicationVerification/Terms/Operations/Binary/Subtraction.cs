@@ -9,6 +9,13 @@ namespace SymbolicImplicationVerification.Terms.Operations
 {
     public class Subtraction : IntegerTypeBinaryOperationTerm
     {
+        #region Constant values
+
+        private const int additiveNeutralElement = 0;
+        private const int additiveInverseOfOne = -1;
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -118,33 +125,6 @@ namespace SymbolicImplicationVerification.Terms.Operations
 
         #endregion
 
-        /*
-        #region Public static operators
-
-        public static Addition operator +(Subtraction subtraction, IntegerTpyeTerm term)
-        {
-            IntegerType resultType = subtraction.termType.AdditionWithType((dynamic)term.TermType);
-
-            return new Addition(subtraction, term, resultType);
-        }
-
-        public static Subtraction operator -(Subtraction subtraction, IntegerTpyeTerm term)
-        {
-            IntegerType resultType = subtraction.termType.SubtractionWithType((dynamic)term.TermType);
-
-            return new Subtraction(subtraction, term, resultType);
-        }
-
-        public static Multiplication operator *(Subtraction subtraction, IntegerTpyeTerm term)
-        {
-            IntegerType resultType = subtraction.termType.MultiplicationWithType((dynamic)term.TermType);
-
-            return new Multiplication(subtraction, term, resultType);
-        }
-
-        #endregion
-        */
-
         #region Public methods
 
         /// <summary>
@@ -166,7 +146,7 @@ namespace SymbolicImplicationVerification.Terms.Operations
         {
             StringBuilder stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendFormat("{0}-", leftOperand.ToString());
+            stringBuilder.AppendFormat("{0} - ", leftOperand.ToString());
 
             if (rightOperand is IntegerTypeBinaryOperationTerm)
             {
@@ -216,146 +196,77 @@ namespace SymbolicImplicationVerification.Terms.Operations
         /// </returns>
         public override bool Matches(object? obj)
         {
-            return obj is not null &&
-                   obj is Subtraction subtraction &&
-                   // leftOperand  is IMatch leftPattern  &&
-                   // rightOperand is IMatch rightPattern &&
+            return obj is Subtraction subtraction &&
                    leftOperand .Matches(subtraction.leftOperand) &&
                    rightOperand.Matches(subtraction.rightOperand);
         }
 
-        public override IntegerTypeTerm Evaluated(IntegerTypeTerm left, IntegerTypeTerm right)
-        {
-            const int additiveNeutralElement = 0;
-            const int additiveInverseOfOne   = -1;
-
-            return (left, right) switch
-            {
-                (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant)
-                    => new IntegerConstant(leftConstant.Value - rightConstant.Value),
-
-                (_, Multiplication mult) => mult.LeftOperand switch
-                {
-                    IntegerTypeConstant { Value:   additiveInverseOfOne } =>
-                         new Addition(left, mult.RightOperand),
-
-                    IntegerTypeConstant { Value: < additiveInverseOfOne } constant =>
-                         new Addition(left, (IntegerConstant)(-1 * constant.Value) * mult.RightOperand),
-
-                    _ => new Subtraction(left, mult)
-                },
-
-                (IntegerTypeConstant constant, _) => constant.Value switch
-                {
-                    additiveNeutralElement => new Multiplication(new IntegerConstant(additiveInverseOfOne), right),
-                                         _ => new Subtraction(constant, right)
-                },
-
-                (_, IntegerTypeConstant constant) => constant.Value switch
-                {
-                    additiveNeutralElement => left,
-                                         _ => new Subtraction(left, constant)
-                },
-
-                (_, _) => left.Equals(right) switch
-                {
-                    true => new IntegerConstant(additiveNeutralElement),
-                       _ => new Subtraction(left, right)
-                }
-            };
-        }
-
-        public override IntegerTypeLinearOperationTerm Linearized()
-        {
-            // Expand all parenthesis.
-            IntegerTypeTerm expanded
-                = PatternReplacer<IntegerType>.PatternsApplied(this, Evaluations.Patterns.ExpandRules);
-
-            // Convert all subtractions into multiplications and additions.
-            IntegerTypeTerm subtractionsConverted
-                = PatternReplacer<IntegerType>.PatternsApplied(expanded, Evaluations.Patterns.ConvertSubtractions);
-
-            // Create the "queue" of unprocessed terms and list of operands.
-            LinkedList<IntegerTypeTerm> unprocessed = new LinkedList<IntegerTypeTerm>();
-            LinkedList<IntegerTypeTerm> operandList = new LinkedList<IntegerTypeTerm>();
-
-            unprocessed.AddLast(subtractionsConverted);
-
-            while (unprocessed.Count > 0)
-            {
-                IntegerTypeTerm nextInProcess = unprocessed.First();
-                unprocessed.RemoveFirst();
-
-                if (nextInProcess is Multiplication multiplication)
-                {
-                    operandList.AddLast(multiplication.Linearized());
-                }
-                else if (nextInProcess is IntegerTypeBinaryOperationTerm addition)
-                {
-                    unprocessed.AddLast(addition.LeftOperand);
-                    unprocessed.AddLast(addition.RightOperand);
-                }
-                else
-                {
-                    operandList.AddLast(nextInProcess);
-                }
-            }
-
-            return new LinearAddition(operandList, subtractionsConverted.TermType.DeepCopy());
-        }
-
-        public override IntegerTypeTerm Simplified()
-        {
-            IntegerTypeTerm result = Evaluated();
-
-            if (result is IntegerTypeBinaryOperationTerm operation)
-            {
-                IntegerTypeLinearOperationTerm linearized = operation.Linearized();
-
-                result = linearized.Process();
-
-                result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.CollapseGroups);
-
-                if (result is IntegerTypeBinaryOperationTerm operationTerm)
-                {
-                    result = operationTerm.Evaluated();
-
-                    result = PatternReplacer<IntegerType>.PatternsApplied(result, Evaluations.Patterns.LeftAssociateRules);
-                }
-            }
-
-            return result;
-        }
-
-        /*
-        /// <summary>
-        /// Creates a simplified version of the subtraction.
-        /// </summary>
-        /// <returns>The simplified version of the subtraction.</returns>
-        public override IntegerTpyeTerm Simplified()
+        public override IntegerTypeTerm Evaluated()
         {
             return Evaluated(
-                (left, right) => new IntegerConstant(left.Value - right.Value),
-                (left, right) =>
-                {
-                    const int additionNeutralValue = 0;
-
-                    if (left.Equals(right))
-                    {
-                        return new IntegerConstant(additionNeutralValue);
-                    }
-
-                    if (right is IntegerTypeConstant rightConstant &&
-                        rightConstant.Value == additionNeutralValue)
-                    {
-                        return left;
-                    }
-
-                    return new Subtraction(left, right);
-                }
+                result => PatternReplacer<IntegerType>.PatternsApplied(result, ReplacePatterns.CollapseGroups),
+                result => PatternReplacer<IntegerType>.PatternsApplied(result, ReplacePatterns.LeftAssociateRules)
             );
         }
-        */
+
+        #endregion
+
+        #region Protected methods
+
+        protected override IntegerTypeTerm Simplified(IntegerTypeTerm left, IntegerTypeTerm right) => (left, right) switch
+        {
+            (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant)
+                => new IntegerConstant(leftConstant.Value - rightConstant.Value),
+
+            (_, Multiplication mult) => mult.LeftOperand switch
+            {
+                IntegerTypeConstant { Value: additiveInverseOfOne } =>
+                        new Addition(left, mult.RightOperand),
+
+                IntegerTypeConstant { Value: < additiveInverseOfOne } constant =>
+                        new Addition(left, (IntegerConstant)(-1 * constant.Value) * mult.RightOperand),
+
+                _ => new Subtraction(left, mult)
+            },
+
+            (IntegerTypeConstant constant, _) => constant.Value switch
+            {
+                additiveNeutralElement => new Multiplication(new IntegerConstant(additiveInverseOfOne), right),
+                _ => new Subtraction(constant, right)
+            },
+
+            (_, IntegerTypeConstant constant) => constant.Value switch
+            {
+                additiveNeutralElement => left,
+                _ => new Subtraction(left, constant)
+            },
+
+            (_, _) => left.Equals(right) switch
+            {
+                true => new IntegerConstant(additiveNeutralElement),
+                _ => new Subtraction(left, right)
+            }
+        };
+
+        protected override IntegerTypeLinearOperationTerm Linearized()
+        {
+            return Linearized(
+                operation => {
+
+                    // Expand all parenthesis.
+                    IntegerTypeTerm expanded
+                        = PatternReplacer<IntegerType>.PatternsApplied(operation, ReplacePatterns.ExpandRules);
+
+                    // Convert all subtractions into multiplications and additions.
+                    IntegerTypeTerm subtractionsConverted
+                        = PatternReplacer<IntegerType>.PatternsApplied(expanded, ReplacePatterns.ConvertSubtractions);
+
+                    return subtractionsConverted;
+                },
+                nextInProcess => nextInProcess is Multiplication,
+                (operandList, termType) => new LinearAddition(operandList, termType.DeepCopy())
+            );
+        }
 
         #endregion
     }

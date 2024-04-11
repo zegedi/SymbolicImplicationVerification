@@ -1,6 +1,8 @@
-﻿using SymbolicImplicationVerification.Terms;
+﻿using SymbolicImplicationVerification.Evaluations;
+using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Operations;
+using SymbolicImplicationVerification.Terms.Variables;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
 {
@@ -24,12 +26,43 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         #region Public methods
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a LaTeX code that represents the current object.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override string ToString()
+        /// <returns>A string of LaTeX code that represents the current object.</returns>
+        public override string ToLatex()
         {
-            return string.Format("{0}={1}", leftComponent.ToString(), rightComponent.ToString());
+            return string.Format("{0} = {1}", leftComponent, rightComponent);
+        }
+
+        public Formula? SubstituteVariable(Formula formula)
+        {
+            Formula substitutedFormula = formula.DeepCopy();
+
+            LinkedList<EntryPoint<T>> entryPoints = new LinkedList<EntryPoint<T>>();
+
+            Term<T> replaceTerm = leftComponent;
+
+            List<(Term<T> leftComponent, Term<T> rightComponent)> pairs = new List<(Term<T>, Term<T>)>
+            {
+                (leftComponent, rightComponent),
+                (rightComponent, leftComponent)
+            };
+
+            foreach ((Term<T> leftComponent, Term<T> rightComponent) pair in pairs)
+            {
+                bool noEntryPointsFound = entryPoints.Count == 0;
+
+                if (pair.leftComponent is Variable<T> variable && noEntryPointsFound)
+                {
+                    PatternReplacer<T>.FindEntryPoints(entryPoints, substitutedFormula, variable);
+
+                    replaceTerm = pair.rightComponent;
+                }
+            }
+
+            PatternReplacer<T>.VariableReplaced(entryPoints, replaceTerm);
+
+            return entryPoints.Count > 0 ? substitutedFormula : null;
         }
 
         /*
@@ -75,7 +108,7 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         }
 
         /// <summary>
-        /// Evaluate the given expression, without modifying the original.
+        /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated() => (leftComponent, rightComponent) switch

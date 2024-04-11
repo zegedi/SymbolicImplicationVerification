@@ -4,6 +4,8 @@ using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Types;
 using Type = SymbolicImplicationVerification.Types.Type;
+using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Relations;
 
 namespace SymImplTest
 {
@@ -174,30 +176,30 @@ namespace SymImplTest
             var expectedExpression = (IntegerConstant)(constA * constB) * x * y;
             var expectedEvaluation = expectedExpression.Evaluated();
 
-            Assert.AreEqual(expectedEvaluation, expression1.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression2.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression3.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression4.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression5.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression6.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression7.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression8.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression9.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression10.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression11.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression12.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression13.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression14.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression15.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression16.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression17.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression18.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression19.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression20.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression21.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression22.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression23.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression24.Simplified());
+            Assert.AreEqual(expectedEvaluation, expression1.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression2.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression3.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression4.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression5.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression6.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression7.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression8.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression9.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression10.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression11.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression12.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression13.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression14.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression15.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression16.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression17.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression18.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression19.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression20.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression21.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression22.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression23.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression24.Evaluated());
 
         }
 
@@ -222,12 +224,12 @@ namespace SymImplTest
 
             var expectedResult = x + (number1 + number2 + number3);
 
-            Assert.AreEqual(expectedResult, expression1.Simplified());
-            Assert.AreEqual(expectedResult, expression2.Simplified());
-            Assert.AreEqual(expectedResult, expression3.Simplified());
-            Assert.AreEqual(expectedResult, expression4.Simplified());
-            Assert.AreEqual(expectedResult, expression5.Simplified());
-            Assert.AreEqual(expectedResult, expression6.Simplified());
+            Assert.AreEqual(expectedResult, expression1.Evaluated());
+            Assert.AreEqual(expectedResult, expression2.Evaluated());
+            Assert.AreEqual(expectedResult, expression3.Evaluated());
+            Assert.AreEqual(expectedResult, expression4.Evaluated());
+            Assert.AreEqual(expectedResult, expression5.Evaluated());
+            Assert.AreEqual(expectedResult, expression6.Evaluated());
         }
 
         [DataTestMethod]
@@ -253,12 +255,12 @@ namespace SymImplTest
             var resultExpression = (IntegerConstant)(A + B) * x + constC;
             var expectedResult = resultExpression.Evaluated();
 
-            Assert.AreEqual(expectedResult, expression1.Simplified());
-            Assert.AreEqual(expectedResult, expression2.Simplified());
-            Assert.AreEqual(expectedResult, expression3.Simplified());
-            Assert.AreEqual(expectedResult, expression4.Simplified());
-            Assert.AreEqual(expectedResult, expression5.Simplified());
-            Assert.AreEqual(expectedResult, expression6.Simplified());
+            Assert.AreEqual(expectedResult, expression1.Evaluated());
+            Assert.AreEqual(expectedResult, expression2.Evaluated());
+            Assert.AreEqual(expectedResult, expression3.Evaluated());
+            Assert.AreEqual(expectedResult, expression4.Evaluated());
+            Assert.AreEqual(expectedResult, expression5.Evaluated());
+            Assert.AreEqual(expectedResult, expression6.Evaluated());
         }
 
         [TestMethod]
@@ -270,7 +272,7 @@ namespace SymImplTest
             var expression = x - (x + y);
             var exprected = (IntegerConstant)(-1) * y;
 
-            var result = expression.Simplified();
+            var result = expression.Evaluated();
 
             Assert.AreEqual(exprected, result);
         }
@@ -312,14 +314,14 @@ namespace SymImplTest
 
             var expectedEvaluation = expectedExpression.Evaluated();
 
-            Assert.AreEqual(expectedEvaluation, expression1.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression2.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression3.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression4.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression5.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression6.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression7.Simplified());
-            Assert.AreEqual(expectedEvaluation, expression8.Simplified());
+            Assert.AreEqual(expectedEvaluation, expression1.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression2.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression3.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression4.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression5.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression6.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression7.Evaluated());
+            Assert.AreEqual(expectedEvaluation, expression8.Evaluated());
         }
 
         [DataTestMethod]
@@ -364,7 +366,7 @@ namespace SymImplTest
                                  (IntegerConstant)(E - C) * y + 
                                  (H - E * F);
 
-            Assert.AreEqual(expectedResult.Evaluated(), expression.Simplified());
+            Assert.AreEqual(expectedResult.Evaluated(), expression.Evaluated());
         }
 
         [DataTestMethod]
@@ -406,6 +408,41 @@ namespace SymImplTest
             expected = (constA * constB) + (constC + constD);
 
             Assert.AreEqual(expected, substituted);
+        }
+
+        [TestMethod]
+        public void VariableReplacedTest()
+        {
+            var k = new IntegerTypeVariable("k", Integer.Instance());
+            var x = new IntegerTypeVariable("x", Integer.Instance());
+
+            var bounds1 = new TermBoundedInteger(2, k - 1);
+            var bounds2 = new TermBoundedInteger(2, k);
+
+            var j1 = new IntegerTypeVariable("j", bounds1);
+            var j2 = new IntegerTypeVariable("j", bounds2);
+
+            var formula1 = new UniversallyQuantifiedFormula<IntegerType>(j1, new Divisor(j1, x));
+            var formula2 = new UniversallyQuantifiedFormula<IntegerType>(j2, new Divisor(j2, x));
+
+            Assert.AreEqual(formula2, PatternReplacer<IntegerType>.VariableReplaced(formula1, k, k + 1).Evaluated());
+        }
+
+        [TestMethod]
+        public void VariableReplacedTest2()
+        {
+            var k = new IntegerTypeVariable("k", Integer.Instance());
+            var i = new IntegerTypeVariable("i", Integer.Instance());
+
+            var bounds1 = new TermBoundedInteger(1, i);
+            var bounds2 = new TermBoundedInteger(1, i + 1);
+
+            var sum1 = new Summation(k, bounds1, i    , Integer.Instance());
+            var sum2 = new Summation(k, bounds2, i + 1, Integer.Instance());
+
+            var result = PatternReplacer<IntegerType>.VariableReplaced(sum1, i, i + 1).Evaluated();
+
+            Assert.AreEqual(sum2, PatternReplacer<IntegerType>.VariableReplaced(sum1, i, i + 1).Evaluated());
         }
     }
 }

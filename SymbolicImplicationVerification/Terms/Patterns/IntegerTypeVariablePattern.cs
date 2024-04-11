@@ -53,6 +53,15 @@ namespace SymbolicImplicationVerification.Terms.Patterns
             return new IntegerTypeVariablePattern(this);
         }
 
+        /// <summary>
+        /// Evaluated the given pattern, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override IntegerTypeVariablePattern Evaluated()
+        {
+            return new IntegerTypeVariablePattern(this);
+        }
+
         #endregion
     }
 }

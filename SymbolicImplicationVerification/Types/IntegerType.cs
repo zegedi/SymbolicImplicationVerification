@@ -1,4 +1,5 @@
 ﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
 using System;
 
@@ -71,6 +72,26 @@ namespace SymbolicImplicationVerification.Types
         }
 
         /// <summary>
+        /// Calculates the intersection of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public override IntegerType? Intersection(Type other)
+        {
+            return other is IntegerType type ? Intersection(type) : null;
+        }
+
+        /// <summary>
+        /// Calculates the union of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override IntegerType? Union(Type other)
+        {
+            return other is IntegerType type ? Union(type) : null;
+        }
+
+        /// <summary>
         /// Determines the result type of an addition, with an <see cref="IntegerType"/> right operand.
         /// </summary>
         /// <param name="rightOperand">The right operand of the addition.</param>
@@ -135,19 +156,95 @@ namespace SymbolicImplicationVerification.Types
 
         #endregion
 
-        #region Private methods
+        #region Protected methods
 
         /// <summary>
         /// Determines the <see cref="IntegerType"/> of the given <see cref="int"/> value.
         /// </summary>
         /// <param name="value">The value to operate on.</param>
         /// <returns>The <see cref="IntegerType"/> of the value.</returns>
-        private IntegerType IntegerTypeSelector(int value) => value switch
+        protected IntegerType IntegerTypeSelector(int value) => value switch
         {
             0 or 1 => ZeroOrOne.Instance(),
               >= 2 => PositiveInteger.Instance(),
                  _ => Integer.Instance()
         };
+
+        protected IntegerType? IntersectionBounds(
+            IntegerTypeTerm thisLowerBound, IntegerTypeTerm thisUpperBound, IntegerTypeTerm otherLowerBound)
+        {
+            return IntersectionBounds(thisLowerBound, thisUpperBound, otherLowerBound, thisUpperBound);
+        }
+
+        protected IntegerType? UnionBounds(
+            IntegerTypeTerm thisLowerBound , IntegerTypeTerm thisUpperBound, 
+            IntegerTypeTerm otherLowerBound, IntegerTypeTerm otherUpperBound)
+        {
+            Formula chooseOtherLower = new LessThanOrEqualTo( thisLowerBound, otherLowerBound).Evaluated();
+            Formula chooseOtherUpper = new LessThanOrEqualTo(otherUpperBound,  thisUpperBound).Evaluated();
+            Formula chooseThisLower  = new LessThanOrEqualTo(otherLowerBound,  thisLowerBound).Evaluated();
+            Formula chooseThisUpper  = new LessThanOrEqualTo( thisUpperBound, otherUpperBound).Evaluated();
+
+            var possibleBounds = new List<(IntegerTypeTerm, IntegerTypeTerm, Formula, Formula)>
+            {
+                (thisLowerBound , thisUpperBound , chooseThisLower , chooseThisUpper ),
+                (otherLowerBound, thisUpperBound , chooseOtherLower, chooseThisUpper ),
+                (thisLowerBound , otherUpperBound, chooseThisLower , chooseOtherUpper),
+                (otherLowerBound, otherUpperBound, chooseOtherLower, chooseOtherUpper)
+            };
+
+            foreach ((IntegerTypeTerm lower, IntegerTypeTerm upper, Formula lowerResult, Formula upperResult) bounds in possibleBounds)
+            {
+                bool chooseTheseBounds = bounds.lowerResult is TRUE && bounds.upperResult is TRUE;
+
+                if (chooseTheseBounds)
+                {
+                    return new TermBoundedInteger(bounds.lower, bounds.upper);
+                }
+            }
+
+            return null;
+        }
+
+        protected IntegerType? IntersectionBounds(
+            IntegerTypeTerm thisLowerBound , IntegerTypeTerm thisUpperBound,
+            IntegerTypeTerm otherLowerBound, IntegerTypeTerm otherUpperBound)
+        {
+            Formula chooseOtherLower = new GreaterThanOrEqualTo( thisLowerBound, otherLowerBound).Evaluated();
+            Formula chooseOtherUpper = new GreaterThanOrEqualTo(otherUpperBound,  thisUpperBound).Evaluated();
+            Formula chooseThisLower  = new GreaterThanOrEqualTo(otherLowerBound,  thisLowerBound).Evaluated();
+            Formula chooseThisUpper  = new GreaterThanOrEqualTo( thisUpperBound, otherUpperBound).Evaluated();
+
+            Formula hasIntersection =
+               (new IntegerTypeEqual(  thisLowerBound, otherLowerBound)  |
+                new IntegerTypeEqual(  thisUpperBound, otherUpperBound)  |
+                new IntegerTypeEqual(  thisLowerBound, otherUpperBound)  |
+                new IntegerTypeEqual(  thisUpperBound, otherLowerBound)  |
+               (new LessThanOrEqualTo( thisLowerBound, otherLowerBound)  &
+                new LessThanOrEqualTo(otherLowerBound,  thisUpperBound)) |
+               (new LessThanOrEqualTo(otherLowerBound,  thisLowerBound)  &
+                new LessThanOrEqualTo( thisLowerBound, otherUpperBound))).Evaluated();
+
+            var possibleBounds = new List<(IntegerTypeTerm, IntegerTypeTerm, Formula, Formula)>
+            {
+                ( thisLowerBound,  thisUpperBound,  chooseThisLower,  chooseThisUpper),
+                (otherLowerBound,  thisUpperBound, chooseOtherLower,  chooseThisUpper),
+                ( thisLowerBound, otherUpperBound,  chooseThisLower, chooseOtherUpper),
+                (otherLowerBound, otherUpperBound, chooseOtherLower, chooseOtherUpper)
+            };
+
+            foreach ((IntegerTypeTerm lower, IntegerTypeTerm upper, Formula lowerResult, Formula upperResult) bounds in possibleBounds)
+            {
+                bool chooseTheseBounds = bounds.lowerResult is TRUE && bounds.upperResult is TRUE;
+
+                if (chooseTheseBounds && hasIntersection is TRUE)
+                {
+                    return new TermBoundedInteger(bounds.lower, bounds.upper);
+                }
+            }
+
+            return null;
+        }
 
         #endregion
 
@@ -189,6 +286,20 @@ namespace SymbolicImplicationVerification.Types
         /// <param name="term">The term to formulate the constraint on.</param>
         /// <returns>The formulated constraint on the term.</returns>
         public abstract Formula TypeConstraintOn(IntegerTypeTerm term);
+
+        /// <summary>
+        /// Calculates the intersection of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the intersection.</param>
+        /// <returns>The intersection of the types.</returns>
+        public abstract IntegerType? Intersection(IntegerType other);
+
+        /// <summary>
+        /// Calculates the union of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public abstract IntegerType? Union(IntegerType other);
 
         /*========================= Addition result type selection ==========================*/
 

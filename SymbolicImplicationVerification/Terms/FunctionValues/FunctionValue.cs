@@ -4,7 +4,7 @@ using System.Security.AccessControl;
 
 namespace SymbolicImplicationVerification.Terms.FunctionValues
 {
-    public class FunctionValue<D, T> : Term<T>
+    public abstract class FunctionValue<D, T> : Term<T>
         where D : Type
         where T : Type
     {
@@ -36,25 +36,13 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
 
         #endregion
 
-        #region Implicit conversions
-
-        public static implicit operator FunctionValue<Type, Type>(FunctionValue<D, T> functionValue)
-        {
-            return new FunctionValue<Type, Type>(functionValue.argument, functionValue.termType.DeepCopy());
-        }
-
-        #endregion
-
         #region Public abstract methods
 
         /// <summary>
         /// Create a deep copy of the current function value.
         /// </summary>
         /// <returns>The created deep copy of the function value.</returns>
-        public override FunctionValue<D, T> DeepCopy()
-        {
-            return new FunctionValue<D, T>(this);
-        }
+        public override abstract FunctionValue<D, T> DeepCopy();
 
         #endregion
 

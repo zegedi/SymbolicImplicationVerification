@@ -1,4 +1,5 @@
 ﻿using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Terms.Constants;
 using System;
 
 namespace SymbolicImplicationVerification.Types
@@ -55,6 +56,15 @@ namespace SymbolicImplicationVerification.Types
         #region Public methods
 
         /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        public override string? ToString()
+        {
+            return "\\mathbb{Z}";
+        }
+
+        /// <summary>
         /// Creates a deep copy of the current type.
         /// </summary>
         /// <returns>The created deep copy of the type.</returns>
@@ -107,6 +117,48 @@ namespace SymbolicImplicationVerification.Types
         public override Formula TypeConstraintOn(IntegerTypeTerm term)
         {
             return TRUE.Instance();
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is Integer;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Calculates the union of the two integer types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override IntegerType? Intersection(IntegerType other)
+        {
+            return other.DeepCopy();
+        }
+
+        /// <summary>
+        /// Calculates the union of the two types.
+        /// </summary>
+        /// <param name="other">The other argument of the union.</param>
+        /// <returns>The union of the types.</returns>
+        public override Integer Union(IntegerType other)
+        {
+            return Integer.Instance();
         }
 
         /*========================= Addition result type selection ==========================*/
