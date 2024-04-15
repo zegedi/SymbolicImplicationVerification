@@ -57,6 +57,16 @@ namespace SymbolicImplicationVerification.Formulas
             return new NegationFormula(operand);
         }
 
+        public static bool operator ==(Formula leftOperand, Formula rightOperand)
+        {
+            return leftOperand.Equals(rightOperand);
+        }
+
+        public static bool operator !=(Formula leftOperand, Formula rightOperand)
+        {
+            return !leftOperand.Equals(rightOperand);
+        }
+
         #endregion
 
         #region Public abstract methods
@@ -99,12 +109,11 @@ namespace SymbolicImplicationVerification.Formulas
         {
             bool implies = Equivalent(consequence);
             
-            if (!implies && this is BinaryRelationFormula<IntegerType> first &&
-                consequence      is BinaryRelationFormula<IntegerType> second)
+            if (!implies)
             {
-                Formula intersection = first.ConjunctionWith(second);
+                Formula intersection = ConjunctionWith(consequence);
 
-                implies = intersection.Equivalent(first);
+                implies = Equivalent(intersection);
             }
 
             return implies;
@@ -147,6 +156,28 @@ namespace SymbolicImplicationVerification.Formulas
 
         #endregion
 
+        #region Public methods
+
+        /// <summary>
+        /// Completely evaluates the given formula, without modifying the original.
+        /// </summary>
+        /// <returns>The completely evaluated instance of the formula.</returns>
+        public Formula CompletelyEvaluated()
+        {
+            Formula result    = DeepCopy();
+            Formula evaluated = Evaluated();
+
+            while (result != evaluated)
+            {
+                result    = evaluated;
+                evaluated = evaluated.Evaluated();
+            }
+
+            return result;
+        }
+
+        #endregion
+
         #region Protected methods
 
         /// <summary>
@@ -159,9 +190,17 @@ namespace SymbolicImplicationVerification.Formulas
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
-        public bool Complements(Formula other)
+        protected bool Complements(Formula other)
         {
-            return Equivalent(other.Negated());
+            Formula evaluation        = CompletelyEvaluated();
+            Formula negatedEvaluation = other.Negated().CompletelyEvaluated();
+
+            return evaluation.Equivalent(negatedEvaluation);
+        }
+
+        protected Formula ReturnOrDeepCopy(Formula other)
+        {
+            return other == this ? DeepCopy() : other;
         }
 
         #endregion

@@ -35,9 +35,16 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
+            bool variableFromEmpyset = false;
+
+            if (quantifiedVariable.TermType is BoundedIntegerType bounded)
+            {
+                variableFromEmpyset = bounded.IsEmpty && bounded.Evaluated() == bounded;
+            }
+
             return string.Format(
                 "\\forall {0} \\in {1} \\,\\colon {2}",
-                quantifiedVariable, quantifiedVariable.TermType, statement
+                quantifiedVariable, variableFromEmpyset ? "\\emptyset" : quantifiedVariable.TermType, statement
             );
         }
 
@@ -47,25 +54,30 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
         {
-            Variable<T> quantified = quantifiedVariable.DeepCopy();
+            UniversallyQuantifiedFormula<T> result = DeepCopy();
 
-            if (quantified.TermType is TermBoundedInteger boundedInteger)
+            if (result.quantifiedVariable.TermType is TermBoundedInteger boundedInteger)
             {
-                boundedInteger.LowerBound = boundedInteger.LowerBound.Evaluated();
-                boundedInteger.UpperBound = boundedInteger.UpperBound.Evaluated();
+                TermBoundedInteger boundsEval = boundedInteger.Evaluated();
+
+                if (boundsEval != boundedInteger)
+                {
+                    boundedInteger.LowerBound = boundsEval.LowerBound;
+                    boundedInteger.UpperBound = boundsEval.UpperBound;
+
+                    return result;
+                }
             }
 
-            return (quantified.TermType, statement.Evaluated()) switch
+            return (quantifiedVariable.TermType, statement) switch
             {
                 (BoundedIntegerType { IsEmpty: true }, _) => TRUE.Instance(),
 
                 (_, FALSE       ) => FALSE.Instance(),
-                (_, TRUE        ) => TRUE.Instance(),
+                (_, TRUE        ) => TRUE .Instance(),
                 (_, NotEvaluable) => NotEvaluable.Instance(),
-                (_, Formula eval) => eval.Equals(statement) &&
-                                     quantified.Equals(quantifiedVariable) &&
-                                     quantified.TermType.Equals(quantifiedVariable.TermType) ?
-                                     DeepCopy() : new UniversallyQuantifiedFormula<T>(quantified, eval)
+                (_, _           ) => ReturnOrDeepCopy(
+                    new UniversallyQuantifiedFormula<T>(quantifiedVariable.DeepCopy(), statement.Evaluated()))
             };
         }
 
@@ -89,14 +101,26 @@ namespace SymbolicImplicationVerification.Formulas
         {
             if (other is UniversallyQuantifiedFormula<T> universallyQuantified)
             {
-                T? intersection = 
+                T? union = 
                     (T?) quantifiedVariable.TermType.Union(universallyQuantified.quantifiedVariable.TermType);
 
-                if (intersection is not null && StatementsEquivalent(universallyQuantified))
+                if (union is not null && StatementsEquivalent(universallyQuantified))
                 {
                     UniversallyQuantifiedFormula<T> result = DeepCopy();
 
-                    result.quantifiedVariable.TermType = intersection;
+                    result.quantifiedVariable.TermType = union;
+
+                    return result;
+                }
+            }
+
+            if (other is Equal<T> equal)
+            {
+                Formula? substituted = equal.SubstituteVariable(this);
+
+                if (substituted is not null)
+                {
+                    return new ConjunctionFormula(substituted, other.DeepCopy());
                 }
             }
 

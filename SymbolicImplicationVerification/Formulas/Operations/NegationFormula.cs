@@ -1,6 +1,8 @@
 ﻿using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas.Operations
 {
@@ -25,7 +27,11 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
-            return string.Format("\\neg ({0})", operand);
+            bool noParenthesis =
+                operand is LogicalTermFormula logicalTerm &&
+                logicalTerm.Argumentum is Variable<Logical> or LogicalConstant;
+
+            return string.Format(noParenthesis ? "\\neg {0}" : "\\neg ({0})", operand);
         }
 
         /// <summary>
@@ -34,7 +40,14 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
         {
-            return operand.Evaluated().Negated();
+            Formula result = operand.Negated();
+
+            if (result is NegationFormula)
+            {
+                result = new NegationFormula(operand.Evaluated());
+            }
+
+            return result;
         }
 
         /// <summary>

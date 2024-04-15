@@ -82,6 +82,15 @@ namespace SymbolicImplicationVerification.Types
         }
 
         /// <summary>
+        /// Evaluated the given expression, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override ConstantBoundedInteger Evaluated()
+        {
+            return new ConstantBoundedInteger(this);
+        }
+
+        /// <summary>
         /// Determines wheter the given <see cref="int"/> value is out of range for the <see cref="ConstantBoundedInteger"/> type.
         /// </summary>
         /// <param name="value">The <see cref="int"/> value to validate.</param>

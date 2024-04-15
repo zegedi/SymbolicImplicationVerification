@@ -17,20 +17,20 @@ namespace SymbolicImplicationVerification.Formulas
     {
         #region Fields
 
-        protected LogicalTerm argumentum;
+        protected LogicalTerm argument;
 
         #endregion
 
         #region Constructors
 
         public LogicalTermFormula(LogicalTermFormula logicalTerm)
-            : this(logicalTerm.identifier, logicalTerm.argumentum.DeepCopy()) { }
+            : this(logicalTerm.identifier, logicalTerm.argument.DeepCopy()) { }
 
-        public LogicalTermFormula(LogicalTerm argumentum) : this(null, argumentum) { }
+        public LogicalTermFormula(LogicalTerm argument) : this(null, argument) { }
 
-        public LogicalTermFormula(string? identifier, LogicalTerm argumentum) : base(identifier)
+        public LogicalTermFormula(string? identifier, LogicalTerm argument) : base(identifier)
         {
-            this.argumentum = argumentum;
+            this.argument = argument;
         }
 
         #endregion
@@ -39,8 +39,8 @@ namespace SymbolicImplicationVerification.Formulas
 
         public LogicalTerm Argumentum
         {
-            get { return argumentum; }
-            set { argumentum = value; }
+            get { return argument; }
+            set { argument = value; }
         }
 
         #endregion
@@ -72,12 +72,12 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Negated()
         {
-            if (argumentum is FormulaTerm formulaTerm)
+            if (argument is FormulaTerm formulaTerm)
             {
                 return formulaTerm.Formula.Negated();
             }
 
-            if (argumentum is LogicalConstant logicalConstant)
+            if (argument is LogicalConstant logicalConstant)
             {
                 return logicalConstant.Value? FALSE.Instance() : TRUE.Instance();
             }
@@ -91,12 +91,12 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
         {
-            if (argumentum is FormulaTerm formulaTerm)
+            if (argument is FormulaTerm formulaTerm)
             {
                 return formulaTerm.Formula.Evaluated();
             }
 
-            LogicalTerm argumentumEval = argumentum.Evaluated();
+            LogicalTerm argumentumEval = argument.Evaluated();
 
             if (argumentumEval is LogicalConstant logicalConstant)
             {
@@ -136,7 +136,7 @@ namespace SymbolicImplicationVerification.Formulas
         /// </returns>
         public override bool Equals(object? obj)
         {
-            return obj is LogicalTermFormula other && argumentum.Equals(other.argumentum);
+            return obj is LogicalTermFormula other && argument.Equals(other.argument);
         }
 
         /// <summary>
@@ -163,26 +163,26 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
-            if (argumentum is FormulaTerm formulaTerm)
+            if (argument is FormulaTerm formulaTerm)
             {
                 return formulaTerm.Formula.ToLatex();
             }
 
-            string? result = argumentum.ToString();
+            string? result = argument.ToString();
 
             return result is not null ? result : string.Empty;
         }
 
         public override Formula ConjunctionWith(Formula other)
         {
-            if (other is NotEvaluable)
-            {
-                return NotEvaluable.Instance();
-            }
-
-            if (argumentum is FormulaTerm formulaTerm)
+            if (argument is FormulaTerm formulaTerm)
             {
                 return formulaTerm.Formula.ConjunctionWith(other);
+            }
+
+            if (Complements(other))
+            {
+                return FALSE.Instance();
             }
 
             return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
@@ -190,14 +190,14 @@ namespace SymbolicImplicationVerification.Formulas
 
         public override Formula DisjunctionWith(Formula other)
         {
-            if (other is NotEvaluable)
-            {
-                return NotEvaluable.Instance();
-            }
-
-            if (argumentum is FormulaTerm formulaTerm)
+            if (argument is FormulaTerm formulaTerm)
             {
                 return formulaTerm.Formula.DisjunctionWith(other);
+            }
+
+            if (Complements(other))
+            {
+                return TRUE.Instance();
             }
 
             return new DisjunctionFormula(DeepCopy(), other.DeepCopy());

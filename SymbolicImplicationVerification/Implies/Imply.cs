@@ -181,25 +181,25 @@ namespace SymbolicImplicationVerification.Implies
                 return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
             }
 
-            if (hypothesisSimplified)
-            {
-                if (hypothesisEval.HasIdentifier)
-                {
-                    Formula nextHypothesis = hypothesisEval.DeepCopy();
-                    nextHypothesis.Identifier = null;
+            //if (hypothesisSimplified)
+            //{
+            //    if (hypothesisEval.HasIdentifier)
+            //    {
+            //        Formula nextHypothesis = hypothesisEval.DeepCopy();
+            //        nextHypothesis.Identifier = null;
 
-                    message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", hypothesisEval, nextHypothesis);
+            //        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", hypothesisEval, nextHypothesis);
 
-                    nextImply = new Imply(nextHypothesis, consequence);
+            //        nextImply = new Imply(nextHypothesis, consequence);
 
-                    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-                }
+            //        return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
+            //    }
 
-                nextImply = new Imply(hypothesisEval, consequence);
-                message   = "Egyszerűsítsd a baloldali részformulát.";
+            //    nextImply = new Imply(hypothesisEval, consequence);
+            //    message   = "Egyszerűsítsd a baloldali részformulát.";
 
-                return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-            }
+            //    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
+            //}
 
             //if (!hypothesis.Equals(hypothesisEval) || !consequence.Equals(consequenceEval))
             //{

@@ -1,7 +1,10 @@
 ﻿using System;
 using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Formulas;
+using SymbolicImplicationVerification.Formulas.Quantified;
+using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
 
@@ -106,7 +109,7 @@ namespace SymbolicImplicationVerification.Terms
 
         public override string ToString()
         {
-            return string.Format("\\sum_{{0}={1}}^{{2}} {4}",
+            return string.Format("\\sum_{{{0}={1}}}^{{{2}}} {3}",
                 indexVariable, indexBounds.LowerBound, indexBounds.UpperBound, argument);
         }
 
@@ -146,6 +149,40 @@ namespace SymbolicImplicationVerification.Terms
         public override int GetHashCode()
         {
             return base.GetHashCode();
+        }
+
+        public IntegerTypeTerm AdditionWith(IntegerTypeTerm other)
+        {
+            IntegerTypeTerm? matchedIndexVariable =
+                PatternReplacer<IntegerType>.MatchVariable(argument, indexVariable, other);
+
+            if (matchedIndexVariable is not null)
+            {
+                IntegerConstant one = new IntegerConstant(1);
+
+                Formula decreaseLowerBound = new IntegerTypeEqual(
+                    one + matchedIndexVariable.DeepCopy(), indexBounds.LowerBound.DeepCopy()).CompletelyEvaluated();
+
+                Formula increaseUpperBound = new IntegerTypeEqual(
+                    matchedIndexVariable.DeepCopy(), one + indexBounds.UpperBound.DeepCopy()).CompletelyEvaluated();
+
+                if (decreaseLowerBound is TRUE || increaseUpperBound is TRUE)
+                {
+                    bool decrease = decreaseLowerBound is TRUE;
+
+                    TermBoundedInteger newBounds = new TermBoundedInteger(
+                        decrease ? matchedIndexVariable.DeepCopy() : indexBounds.LowerBound.DeepCopy(),
+                        decrease ? indexBounds.UpperBound.DeepCopy() : matchedIndexVariable.DeepCopy()
+                    );
+
+                    Summation result = DeepCopy();
+                    result.indexBounds = newBounds;
+
+                    return result;
+                }
+            }
+
+            return new Addition(DeepCopy(), other.DeepCopy());
         }
 
         #endregion

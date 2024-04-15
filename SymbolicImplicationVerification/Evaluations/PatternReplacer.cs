@@ -62,9 +62,18 @@ namespace SymbolicImplicationVerification.Evaluations
                 {
                     continue;
                 }
-                else if (nextTerm is ArrayVariable<T> && nextPattern is ArrayVariable<T>)
+                else if (nextTerm    is ArrayVariable<T> nextArray && 
+                         nextPattern is ArrayVariable<T> nextArrayPattern)
                 {
-                    continue;
+                    if (typeof(T) == typeof(IntegerType) &&
+                        nextArray.IndexTerm is not null  && nextArrayPattern.IndexTerm is not null)
+                    {
+                        // Process the argument of the array variable.
+                        unprocessedTerms.AddLast((Term<T>)(object) nextArray.IndexTerm!);
+
+                        // Process the argument of the array variable pattern.
+                        unprocessedPatterns.AddLast((Term<T>)(object) nextArrayPattern.IndexTerm!);
+                    }
                 }
                 else
                 {
@@ -460,6 +469,27 @@ namespace SymbolicImplicationVerification.Evaluations
                   patternTerms.ContainsKey(anythingPatternIdentifier);
 
             return successfull ? patternTerms[anythingPatternIdentifier].DeepCopy() : null;
+        }
+
+        public static Term<T>? MatchVariable(Term<T> source, Variable<T> variable, Term<T> other)
+        {
+            const int anythingPatternIdentifier = 1;
+
+            AnythingPattern<T> anythingPattern = new AnythingPattern<T>(
+                anythingPatternIdentifier, (T) variable.TermType.DeepCopy());
+
+            Term<T> sourceVariableReplaced = VariableReplaced(
+                source.DeepCopy(), variable.DeepCopy(), anythingPattern);
+
+            // Matched pattern terms.
+            Dictionary<int, Term<T>> patternTerms = new Dictionary<int, Term<T>>();
+
+            bool successFullMatch =
+                sourceVariableReplaced.Matches(other) &&
+                MatchPatternTerms(other, sourceVariableReplaced, patternTerms) &&
+                patternTerms.ContainsKey(anythingPatternIdentifier);
+
+            return successFullMatch ? patternTerms[anythingPatternIdentifier].DeepCopy() : null;
         }
     }
 }

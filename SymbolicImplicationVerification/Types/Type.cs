@@ -13,6 +13,20 @@ namespace SymbolicImplicationVerification.Types
 
         #endregion
 
+        #region Public static operators
+
+        public static bool operator ==(Type first, Type second)
+        {
+            return first.Equals(second);
+        }
+
+        public static bool operator !=(Type first, Type second)
+        {
+            return !first.Equals(second);
+        }
+
+        #endregion
+
         #region Public abstract methods
 
         /// <summary>

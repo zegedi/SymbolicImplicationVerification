@@ -72,6 +72,12 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>The created deep copy of the bounded integer.</returns>
         public override abstract BoundedInteger<LTerm, LType, RTerm, RType> DeepCopy();
 
+        /// <summary>
+        /// Evaluated the given expression, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public abstract BoundedInteger<LTerm, LType, RTerm, RType> Evaluated();
+
         #endregion
 
         #region Public methods

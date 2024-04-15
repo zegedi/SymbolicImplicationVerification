@@ -92,50 +92,101 @@ namespace SymbolicImplicationVerification.Formulas
             (Formula thisEval, Formula otherEval) => thisEval.Equals(otherEval)
         };
 
+        //public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
+        //{
+        //    bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
+        //                                 or LessThan         or LessThanOrEqualTo
+        //                                 or GreaterThan      or GreaterThanOrEqualTo;
+
+        //    if (otherIsOrdering && AnyRearrangementEquals(this, other))
+        //    {
+        //        switch (other)
+        //        {
+        //            case IntegerTypeEqual:
+        //                return other.DeepCopy();
+
+        //            case IntegerTypeNotEqual:
+        //                return new LessThan(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+
+        //            case LessThan:
+        //                return IdenticalSideRearrangementEquals(this, other) ? 
+        //                       other.DeepCopy() : FALSE.Instance();
+
+        //            case GreaterThan:
+        //                return OppositeSideRearrangementEquals(this, other) ? 
+        //                       other.DeepCopy() : FALSE.Instance();
+
+        //            case LessThanOrEqualTo:
+        //                return IdenticalSideRearrangementEquals(this, other) ? DeepCopy() : 
+        //                       new IntegerTypeEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+
+        //            case GreaterThanOrEqualTo:
+        //                return OppositeSideRearrangementEquals(this, other) ? DeepCopy() :
+        //                       new IntegerTypeEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+        //        }
+        //    }
+
+        //    //bool otherIsDivisor = other is NotDivisor or Divisor;
+
+        //    //if (otherIsDivisor && IdenticalComponentsEquivalent(this, other))
+        //    //{
+        //    //    bool divisorFormulaTrue = other is NotDivisor;
+
+        //    //    return divisorFormulaTrue ? TRUE.Instance() : FALSE.Instance();
+        //    //}
+
+        //    return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+        //}
+
         public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
         {
-            bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
-                                         or LessThan         or LessThanOrEqualTo
-                                         or GreaterThan      or GreaterThanOrEqualTo;
-
-            if (otherIsOrdering && AnyRearrangementEquals(this, other))
-            {
-                switch (other)
+            Func<BinaryRelationFormula<IntegerType>, BinaryRelationFormula<IntegerType>, Formula> AnyRearrangementEqualsConjuctionWith
+                = (lessThanOrEqualTo, other) =>
                 {
-                    case IntegerTypeEqual:
-                        return other.DeepCopy();
+                    switch (other)
+                    {
+                        case IntegerTypeEqual:
+                            return other.DeepCopy();
 
-                    case IntegerTypeNotEqual:
-                        return new LessThan(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+                        case IntegerTypeNotEqual:
+                            return new LessThan(lessThanOrEqualTo.LeftComponent .DeepCopy(), 
+                                                lessThanOrEqualTo.RightComponent.DeepCopy());
 
-                    case LessThan:
-                        return IdenticalSideRearrangementEquals(this, other) ? 
-                               other.DeepCopy() : FALSE.Instance();
+                        case LessThan:
+                            return IdenticalSideRearrangementEquals(lessThanOrEqualTo, other) ?
+                                   other.DeepCopy() : FALSE.Instance();
 
-                    case GreaterThan:
-                        return OppositeSideRearrangementEquals(this, other) ? 
-                               other.DeepCopy() : FALSE.Instance();
+                        case GreaterThan:
+                            return OppositeSideRearrangementEquals(lessThanOrEqualTo, other) ?
+                                   other.DeepCopy() : FALSE.Instance();
 
-                    case LessThanOrEqualTo:
-                        return IdenticalSideRearrangementEquals(this, other) ? DeepCopy() : 
-                               new IntegerTypeEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
+                        case LessThanOrEqualTo:
+                            return IdenticalSideRearrangementEquals(lessThanOrEqualTo, other) ? DeepCopy() :
+                                   new IntegerTypeEqual(lessThanOrEqualTo.LeftComponent .DeepCopy(),
+                                                        lessThanOrEqualTo.RightComponent.DeepCopy());
 
-                    case GreaterThanOrEqualTo:
-                        return OppositeSideRearrangementEquals(this, other) ? DeepCopy() :
-                               new IntegerTypeEqual(leftComponent.DeepCopy(), rightComponent.DeepCopy());
-                }
-            }
+                        default: //GreaterThanOrEqualTo
+                            return OppositeSideRearrangementEquals(lessThanOrEqualTo, other) ? DeepCopy() :
+                                   new IntegerTypeEqual(lessThanOrEqualTo.LeftComponent .DeepCopy(),
+                                                        lessThanOrEqualTo.RightComponent.DeepCopy());
+                    }
+                };
 
-            //bool otherIsDivisor = other is NotDivisor or Divisor;
+            Func<Formula, Formula, Formula?> IdenticalComponentsEquivalentConjunctionWith
+                = (lessThanOrEqualTo, other) => null;
 
-            //if (otherIsDivisor && IdenticalComponentsEquivalent(this, other))
-            //{
-            //    bool divisorFormulaTrue = other is NotDivisor;
+            Func<Formula, Formula, Formula?> OppositeComponentsEquivalentConjunctionWith
+                = (lessThanOrEqualTo, other) => other switch
+                {
+                    Divisor    divisor    => new IntegerTypeEqual(divisor.LeftComponent .DeepCopy(), 
+                                                                  divisor.RightComponent.DeepCopy()),
+                    NotDivisor notDivisor => new IntegerTypeNotEqual(notDivisor.LeftComponent .DeepCopy(),
+                                                                     notDivisor.RightComponent.DeepCopy()),
+                    _ => null
+                };
 
-            //    return divisorFormulaTrue ? TRUE.Instance() : FALSE.Instance();
-            //}
-
-            return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
+            return ConjunctionWith(this, other, AnyRearrangementEqualsConjuctionWith,
+                IdenticalComponentsEquivalentConjunctionWith, OppositeComponentsEquivalentConjunctionWith);
         }
 
         public override Formula DisjunctionWith(BinaryRelationFormula<IntegerType> other)
@@ -216,8 +267,7 @@ namespace SymbolicImplicationVerification.Formulas
             return leftMinusRight.Evaluated() switch
             {
                 IntegerTypeConstant constant => constant.Value <= 0 ? TRUE.Instance() : FALSE.Instance(),
-                                           _ => left.Equals(leftComponent) && right.Equals(rightComponent) ?
-                                                DeepCopy() : new LessThanOrEqualTo(left, right)
+                                           _ => ReturnOrDeepCopy(new LessThanOrEqualTo(left, right))
             };
         }
 

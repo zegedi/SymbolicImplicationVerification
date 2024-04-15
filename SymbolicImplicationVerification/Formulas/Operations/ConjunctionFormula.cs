@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Runtime.ExceptionServices;
+using System.Text;
 using SymbolicImplicationVerification.Formulas.Operations;
+using SymbolicImplicationVerification.Formulas.Quantified;
 using SymbolicImplicationVerification.Formulas.Relations;
+using SymbolicImplicationVerification.Terms.Constants;
+using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas
@@ -30,24 +35,26 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
-            return string.Format("{0} \\wedge {1}", leftOperand, rightOperand);
+            bool addLeftParenthesis =
+                typeof(QuantifiedFormula<>).IsAssignableFrom(leftOperand.GetType());
+
+            return string.Format(
+                addLeftParenthesis ? "({0}) \\wedge {1}" : "{0} \\wedge {1}", leftOperand, rightOperand);
         }
 
         /// <summary>
         /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        public override Formula Evaluated() => (leftOperand.Evaluated(), rightOperand.Evaluated()) switch
+        public override Formula Evaluated() => (leftOperand, rightOperand) switch
         {
             (NotEvaluable, _            ) => NotEvaluable.Instance(),
             (_           , NotEvaluable ) => NotEvaluable.Instance(),
-            (Formula left, TRUE         ) => left,
-            (TRUE        , Formula right) => right,
-            (_           , FALSE        ) => FALSE.Instance(),
             (FALSE       , _            ) => FALSE.Instance(),
-            //(Formula left, Formula right) => left.Equals(leftOperand) && right.Equals(rightOperand) ?
-            //                                 DeepCopy() : new ConjunctionFormula(left, right)
-            (Formula left, Formula right) => left.ConjunctionWith(right)
+            (_           , FALSE        ) => FALSE.Instance(),
+            (Formula left, TRUE         ) => left .Evaluated(),
+            (TRUE        , Formula right) => right.Evaluated(),
+            (Formula left, Formula right) => ReturnOrDeepCopy(left.Evaluated().ConjunctionWith(right.Evaluated()))
         };
 
         /// <summary>
@@ -88,7 +95,8 @@ namespace SymbolicImplicationVerification.Formulas
         {
             return SimplifiedLinearOperands<IntegerType>(
                 (first, second) => first.ConjunctionWith(second),
-                formula => formula is not ConjunctionFormula
+                (first, second, formula) => !formula.Equals(first.DeepCopy() & second.DeepCopy()) &&
+                                            !formula.Equals(second.DeepCopy() & first.DeepCopy())
             );
         }
 

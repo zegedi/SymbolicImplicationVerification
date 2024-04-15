@@ -1,6 +1,7 @@
 ﻿using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
+using SymbolicImplicationVerification.Terms.Constants;
 using System;
 
 namespace SymbolicImplicationVerification.Types
@@ -176,20 +177,20 @@ namespace SymbolicImplicationVerification.Types
             return IntersectionBounds(thisLowerBound, thisUpperBound, otherLowerBound, thisUpperBound);
         }
 
-        protected IntegerType? UnionBounds(
+        protected IntegerType? IntersectionBounds(
             IntegerTypeTerm thisLowerBound , IntegerTypeTerm thisUpperBound, 
             IntegerTypeTerm otherLowerBound, IntegerTypeTerm otherUpperBound)
         {
-            Formula chooseOtherLower = new LessThanOrEqualTo( thisLowerBound, otherLowerBound).Evaluated();
-            Formula chooseOtherUpper = new LessThanOrEqualTo(otherUpperBound,  thisUpperBound).Evaluated();
-            Formula chooseThisLower  = new LessThanOrEqualTo(otherLowerBound,  thisLowerBound).Evaluated();
-            Formula chooseThisUpper  = new LessThanOrEqualTo( thisUpperBound, otherUpperBound).Evaluated();
+            Formula chooseOtherLower = new LessThanOrEqualTo( thisLowerBound, otherLowerBound).CompletelyEvaluated();
+            Formula chooseOtherUpper = new LessThanOrEqualTo(otherUpperBound,  thisUpperBound).CompletelyEvaluated();
+            Formula chooseThisLower  = new LessThanOrEqualTo(otherLowerBound,  thisLowerBound).CompletelyEvaluated();
+            Formula chooseThisUpper  = new LessThanOrEqualTo( thisUpperBound, otherUpperBound).CompletelyEvaluated();
 
             var possibleBounds = new List<(IntegerTypeTerm, IntegerTypeTerm, Formula, Formula)>
             {
-                (thisLowerBound , thisUpperBound , chooseThisLower , chooseThisUpper ),
-                (otherLowerBound, thisUpperBound , chooseOtherLower, chooseThisUpper ),
-                (thisLowerBound , otherUpperBound, chooseThisLower , chooseOtherUpper),
+                ( thisLowerBound,  thisUpperBound,  chooseThisLower,  chooseThisUpper),
+                (otherLowerBound,  thisUpperBound, chooseOtherLower,  chooseThisUpper),
+                ( thisLowerBound, otherUpperBound,  chooseThisLower, chooseOtherUpper),
                 (otherLowerBound, otherUpperBound, chooseOtherLower, chooseOtherUpper)
             };
 
@@ -206,14 +207,25 @@ namespace SymbolicImplicationVerification.Types
             return null;
         }
 
-        protected IntegerType? IntersectionBounds(
+        protected IntegerType? UnionBounds(
             IntegerTypeTerm thisLowerBound , IntegerTypeTerm thisUpperBound,
             IntegerTypeTerm otherLowerBound, IntegerTypeTerm otherUpperBound)
         {
-            Formula chooseOtherLower = new GreaterThanOrEqualTo( thisLowerBound, otherLowerBound).Evaluated();
-            Formula chooseOtherUpper = new GreaterThanOrEqualTo(otherUpperBound,  thisUpperBound).Evaluated();
-            Formula chooseThisLower  = new GreaterThanOrEqualTo(otherLowerBound,  thisLowerBound).Evaluated();
-            Formula chooseThisUpper  = new GreaterThanOrEqualTo( thisUpperBound, otherUpperBound).Evaluated();
+            Formula chooseOtherLower = 
+               (new GreaterThanOrEqualTo(thisLowerBound, otherLowerBound) |
+                new GreaterThanOrEqualTo(thisLowerBound, otherUpperBound)).CompletelyEvaluated();
+
+            Formula chooseOtherUpper =
+               (new GreaterThanOrEqualTo(otherUpperBound, thisUpperBound) |
+                new GreaterThanOrEqualTo(otherLowerBound, thisUpperBound)).CompletelyEvaluated();
+
+            Formula chooseThisLower = 
+               (new GreaterThanOrEqualTo(otherLowerBound, thisLowerBound) |
+                new GreaterThanOrEqualTo(otherLowerBound, thisUpperBound)).CompletelyEvaluated();
+
+            Formula chooseThisUpper =
+               (new GreaterThanOrEqualTo(thisUpperBound, otherUpperBound) |
+                new GreaterThanOrEqualTo(thisLowerBound, otherUpperBound)).CompletelyEvaluated();
 
             Formula hasIntersection =
                (new IntegerTypeEqual(  thisLowerBound, otherLowerBound)  |
@@ -223,7 +235,13 @@ namespace SymbolicImplicationVerification.Types
                (new LessThanOrEqualTo( thisLowerBound, otherLowerBound)  &
                 new LessThanOrEqualTo(otherLowerBound,  thisUpperBound)) |
                (new LessThanOrEqualTo(otherLowerBound,  thisLowerBound)  &
-                new LessThanOrEqualTo( thisLowerBound, otherUpperBound))).Evaluated();
+                new LessThanOrEqualTo( thisLowerBound, otherUpperBound))).CompletelyEvaluated();
+
+            IntegerConstant one = new IntegerConstant(1);
+
+            Formula unionConnected =
+               (new IntegerTypeEqual(one +  thisUpperBound, otherLowerBound) |
+                new IntegerTypeEqual(one + otherUpperBound,  thisLowerBound)).CompletelyEvaluated();
 
             var possibleBounds = new List<(IntegerTypeTerm, IntegerTypeTerm, Formula, Formula)>
             {
@@ -235,9 +253,11 @@ namespace SymbolicImplicationVerification.Types
 
             foreach ((IntegerTypeTerm lower, IntegerTypeTerm upper, Formula lowerResult, Formula upperResult) bounds in possibleBounds)
             {
-                bool chooseTheseBounds = bounds.lowerResult is TRUE && bounds.upperResult is TRUE;
+                bool chooseTheseBounds    = bounds.lowerResult is TRUE && bounds.upperResult is TRUE;
+                bool intersectionNotEmpty = hasIntersection is TRUE;
+                bool connectedUnion       = unionConnected  is TRUE;
 
-                if (chooseTheseBounds && hasIntersection is TRUE)
+                if (chooseTheseBounds && (intersectionNotEmpty || connectedUnion))
                 {
                     return new TermBoundedInteger(bounds.lower, bounds.upper);
                 }

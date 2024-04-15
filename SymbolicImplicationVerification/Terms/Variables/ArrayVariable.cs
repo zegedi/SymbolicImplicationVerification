@@ -116,7 +116,7 @@ namespace SymbolicImplicationVerification.Terms.Variables
 
                 if (indexTerm is not null)
                 {
-                    result &= indexTerm.Equals(other.indexTerm);
+                    result &= indexTerm.Matches(other.indexTerm);
                 }
             }
 

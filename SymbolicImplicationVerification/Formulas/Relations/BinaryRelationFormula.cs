@@ -1,8 +1,10 @@
 ﻿using SymbolicImplicationVerification.Formulas.Quantified;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Operations;
+using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Types;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
 {
@@ -61,6 +63,11 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                 return quantifiedFormula.ConjunctionWith(DeepCopy());
             }
 
+            if (other is BinaryRelationFormula<T> relationFormula)
+            {
+                return ConjunctionWith(relationFormula);
+            }
+
             return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
         }
 
@@ -69,6 +76,11 @@ namespace SymbolicImplicationVerification.Formulas.Relations
             if (other is QuantifiedFormula<T> quantifiedFormula)
             {
                 return quantifiedFormula.DisjunctionWith(DeepCopy());
+            }
+
+            if (other is BinaryRelationFormula<T> relationFormula)
+            {
+                return DisjunctionWith(relationFormula);
             }
 
             return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
@@ -221,6 +233,125 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                    LeftAndRightRearrangementEquals(first, second) ||
                    RightAndLeftRearrangementEquals(first, second) ||
                    RightAndRightRearrangementEquals(first, second);
+        }
+
+        protected BinaryRelationFormula<IntegerType> RelationSubtraction(
+            BinaryRelationFormula<IntegerType> first, BinaryRelationFormula<IntegerType> second)
+        {
+            BinaryRelationFormula<IntegerType> subtractionResult = first.DeepCopy();
+
+            subtractionResult.leftComponent 
+                = new Subtraction(subtractionResult.leftComponent , second.leftComponent.DeepCopy());
+            
+            subtractionResult.rightComponent
+                = new Subtraction(subtractionResult.rightComponent, second.rightComponent.DeepCopy());
+
+            return subtractionResult;
+        }
+
+        protected BinaryRelationFormula<IntegerType>? SubtractionBasedConjunctionWith(
+            BinaryRelationFormula<IntegerType> first, BinaryRelationFormula<IntegerType> second)
+        {
+            var firstMinusSecond = RelationSubtraction(first, second);
+
+            if (firstMinusSecond.CompletelyEvaluated() is TRUE)
+            {
+                return second.DeepCopy();
+            }
+
+            var secondMinusFirst = RelationSubtraction(second, first);
+
+            if (secondMinusFirst.CompletelyEvaluated() is TRUE)
+            {
+                return first.DeepCopy();
+            }
+
+            return null;
+        }
+
+        protected Formula ConjunctionWith(
+            BinaryRelationFormula<IntegerType> current, BinaryRelationFormula<IntegerType> other,
+            Func<BinaryRelationFormula<IntegerType>, BinaryRelationFormula<IntegerType>, Formula> AnyRearrangementEqualsConjuctionWith,
+            Func<Formula, Formula, Formula?> IdenticalComponentsEquivalentConjunctionWith,
+            Func<Formula, Formula, Formula?> OppositeComponentsEquivalentConjunctionWith)
+        {
+            if (current.Equivalent(other))
+            {
+                return current.DeepCopy();
+            }
+
+            if (current.Complements(other))
+            {
+                return FALSE.Instance();
+            }
+
+            bool currentIsEquality = current is IntegerTypeEqual or IntegerTypeNotEqual;
+            bool currentIsOrdering = current is LessThan    or LessThanOrEqualTo
+                                             or GreaterThan or GreaterThanOrEqualTo;
+
+            bool otherIsEquality = other is IntegerTypeEqual or IntegerTypeNotEqual;
+            bool otherIsOrdering = other is LessThan    or LessThanOrEqualTo
+                                         or GreaterThan or GreaterThanOrEqualTo;
+
+            bool currentIsOrderingOrEquality = currentIsOrdering || currentIsEquality;
+            bool otherIsOrderingOrEquality   = otherIsOrdering   || otherIsEquality;
+
+            if (currentIsOrderingOrEquality && otherIsOrderingOrEquality && AnyRearrangementEquals(current, other))
+            {
+                return AnyRearrangementEqualsConjuctionWith(current, other);
+            }
+
+            Formula? result = null;
+
+            if (currentIsOrdering && otherIsOrdering)
+            {
+                GreaterThan currentAsGreaterThan = new GreaterThan((dynamic) current);
+                GreaterThan otherAsGreaterThan   = new GreaterThan((dynamic) other);
+
+                result = SubtractionBasedConjunctionWith(currentAsGreaterThan, otherAsGreaterThan);
+            }
+
+            if (current is IntegerTypeEqual || other is IntegerTypeEqual)
+            {
+                IntegerTypeEqual equal;
+                BinaryRelationFormula<IntegerType> that;
+
+                if (current is IntegerTypeEqual)
+                {
+                    equal = (IntegerTypeEqual) current;
+                    that  = other;
+                }
+                else
+                {
+                    equal = (IntegerTypeEqual) other;
+                    that  = current;
+                }
+
+                result = equal.SubstituteVariable(that)?.CompletelyEvaluated();
+
+                if (result is TRUE)
+                {
+                    result = equal.DeepCopy();
+                }
+                else if (result is not FALSE or NotEvaluable)
+                {
+                    result = null;
+                }
+            }
+
+            if (result is null && IdenticalComponentsEquivalent(current, other))
+            {
+                result = IdenticalComponentsEquivalentConjunctionWith(current, other);
+            }
+
+            if (result is null && OppositeComponentsEquivalent(current, other))
+            {
+                result = OppositeComponentsEquivalentConjunctionWith(current, other);
+            }
+
+            result ??= new ConjunctionFormula(current.DeepCopy(), other.DeepCopy());
+
+            return result;
         }
 
         #endregion

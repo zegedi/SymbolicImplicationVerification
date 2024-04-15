@@ -89,29 +89,38 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        public override Formula Evaluated()
+        public override Formula Evaluated() => (leftComponent, rightComponent) switch
         {
-            LogicalTerm left =
-                leftComponent is FormulaTerm leftFormula ?
-                leftFormula.Evaluated() : leftComponent.DeepCopy();
+            (FormulaTerm { Formula: NotEvaluable }, _) => NotEvaluable.Instance(),
+            (_, FormulaTerm { Formula: NotEvaluable }) => NotEvaluable.Instance(),
 
-            LogicalTerm right =
-                rightComponent is FormulaTerm rightFormula ?
-                rightFormula.Evaluated() : rightComponent.DeepCopy();
-
-            return (left, right) switch
-            {
-                (FormulaTerm { Formula: NotEvaluable }, _) => NotEvaluable.Instance(),
-                (_, FormulaTerm { Formula: NotEvaluable }) => NotEvaluable.Instance(),
-
-                (LogicalConstant leftConstant, LogicalConstant rightConstant) =>
+            (LogicalConstant leftConstant, LogicalConstant rightConstant) =>
                 leftConstant.Value == rightConstant.Value ? TRUE.Instance() : FALSE.Instance(),
 
-                (_, _) => left.Equals(right) ? TRUE.Instance() :
-                          left.Equals(leftComponent) && right.Equals(rightComponent) ?
-                          DeepCopy() : new LogicalEqual(left, right)
-            };
-        }
+            (_, _) => leftComponent.Equals(rightComponent) ? TRUE.Instance() :
+                      ReturnOrDeepCopy(new LogicalEqual(leftComponent.Evaluated(), rightComponent.Evaluated()))
+
+            //LogicalTerm left =
+            //    leftComponent is FormulaTerm leftFormula ?
+            //    leftFormula.Evaluated() : leftComponent.DeepCopy();
+
+            //LogicalTerm right =
+            //    rightComponent is FormulaTerm rightFormula ?
+            //    rightFormula.Evaluated() : rightComponent.DeepCopy();
+
+            //return (left, right) switch
+            //{
+            //    (FormulaTerm { Formula: NotEvaluable }, _) => NotEvaluable.Instance(),
+            //    (_, FormulaTerm { Formula: NotEvaluable }) => NotEvaluable.Instance(),
+
+            //    (LogicalConstant leftConstant, LogicalConstant rightConstant) =>
+            //    leftConstant.Value == rightConstant.Value ? TRUE.Instance() : FALSE.Instance(),
+
+            //    (_, _) => left.Equals(right) ? TRUE.Instance() :
+            //              left.Equals(leftComponent) && right.Equals(rightComponent) ?
+            //              DeepCopy() : new LogicalEqual(left, right)
+            //};
+        };
 
         /// <summary>
         /// Negates the given expression, without modifying the original.

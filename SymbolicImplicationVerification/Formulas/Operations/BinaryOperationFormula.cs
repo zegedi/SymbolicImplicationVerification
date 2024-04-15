@@ -1,6 +1,7 @@
 ﻿using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Types;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SymbolicImplicationVerification.Formulas.Operations
 {
@@ -114,8 +115,8 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         }
 
         protected LinkedList<Formula> SimplifiedLinearOperands<T>(
-            Func<BinaryRelationFormula<T>, BinaryRelationFormula<T>, Formula> simplify,
-            Func<Formula, bool> resultPredicate) where T : Type
+            Func<Formula, Formula, Formula> simplify,
+            Func<Formula, Formula, Formula, bool> resultPredicate) where T : Type
         {
             LinkedList<Formula> operands = LinearOperands();
 
@@ -154,26 +155,50 @@ namespace SymbolicImplicationVerification.Formulas.Operations
             //    nextNode    = currentNode?.Next;
             //}
 
+            //while (currentNode is not null)
+            //{
+            //    while (nextNode is not null)
+            //    {
+            //        if (currentNode!.Value is BinaryRelationFormula<T> current &&
+            //            nextNode.Value     is BinaryRelationFormula<T> next)
+            //        {
+            //            Formula result = simplify(current, next);
+
+            //            if (resultPredicate(result))
+            //            {
+            //                LinkedListNode<Formula> resultNode
+            //                    = operands.AddAfter(currentNode, result);
+
+            //                operands.Remove(currentNode);
+            //                operands.Remove(nextNode);
+
+            //                currentNode = resultNode;
+            //                nextNode    = resultNode;
+            //            }
+            //        }
+
+            //        nextNode = nextNode.Next;
+            //    }
+
+            //    currentNode = currentNode.Next;
+            //    nextNode    = currentNode?.Next;
+            //}
+
             while (currentNode is not null)
             {
                 while (nextNode is not null)
                 {
-                    if (currentNode!.Value is BinaryRelationFormula<T> current &&
-                        nextNode.Value     is BinaryRelationFormula<T> next)
+                    Formula result = simplify(currentNode.Value, nextNode.Value);
+
+                    if (resultPredicate(currentNode.Value, nextNode.Value, result))
                     {
-                        Formula result = simplify(current, next);
+                        LinkedListNode<Formula> resultNode = operands.AddAfter(currentNode, result);
 
-                        if (resultPredicate(result))
-                        {
-                            LinkedListNode<Formula> resultNode
-                                = operands.AddAfter(currentNode, result);
+                        operands.Remove(currentNode);
+                        operands.Remove(nextNode);
 
-                            operands.Remove(currentNode);
-                            operands.Remove(nextNode);
-
-                            currentNode = resultNode;
-                            nextNode    = resultNode;
-                        }
+                        currentNode = resultNode;
+                        nextNode    = resultNode;
                     }
 
                     nextNode = nextNode.Next;

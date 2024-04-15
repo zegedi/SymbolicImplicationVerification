@@ -49,6 +49,15 @@ namespace SymbolicImplicationVerification.Types
         }
 
         /// <summary>
+        /// Evaluated the given expression, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override TermBoundedInteger Evaluated()
+        {
+            return new TermBoundedInteger(lowerBound.Evaluated(), upperBound.Evaluated());
+        }
+
+        /// <summary>
         /// Determines wheter the given <see cref="int"/> value is out of range 
         /// for the <see cref="TermBoundedInteger"/> type.
         /// </summary>
@@ -116,12 +125,6 @@ namespace SymbolicImplicationVerification.Types
         /// </returns>
         public override bool Equals(object? obj)
         {
-            bool asd = obj is TermBoundedInteger otherTerm;
-
-            bool result = obj is TermBoundedInteger otherasd &&
-                   lowerBound.Equals(otherasd.lowerBound) &&
-                   upperBound.Equals(otherasd.upperBound);
-
             return obj is TermBoundedInteger other &&
                    lowerBound.Equals(other.lowerBound) &&
                    upperBound.Equals(other.upperBound);

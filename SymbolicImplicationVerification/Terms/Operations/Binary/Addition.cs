@@ -244,6 +244,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
                 _ => left
             },
 
+            (Summation sum, _) => sum.AdditionWith(right),
+            (_, Summation sum) => sum.AdditionWith(left),
+
             (_, _) => new Addition(left, right)
         };
 

@@ -36,16 +36,16 @@ namespace SymbolicImplicationVerification.Formulas
         /// Evaluated the given expression, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        public override Formula Evaluated() => (leftOperand.Evaluated(), rightOperand.Evaluated()) switch
+        public override Formula Evaluated() => (leftOperand, rightOperand) switch
         {
             (NotEvaluable, _            ) => NotEvaluable.Instance(),
             (_           , NotEvaluable ) => NotEvaluable.Instance(),
-            (Formula left, FALSE        ) => left.Negated(),
-            (TRUE        , Formula right) => right,
-            (_           , TRUE         ) => TRUE.Instance(),
             (FALSE       , _            ) => TRUE.Instance(),
-            (Formula left, Formula right) => left.Equals(leftOperand) && right.Equals(rightOperand) ?
-                                             DeepCopy() : new ImplicationFormula(left, right)
+            (_           , TRUE         ) => TRUE.Instance(),
+            (Formula left, FALSE        ) => ~left.DeepCopy(),
+            (TRUE        , Formula right) => right.Evaluated(),
+            (Formula left, Formula right) => 
+                ReturnOrDeepCopy(new ImplicationFormula(left.DeepCopy(), right.DeepCopy())) 
         };
 
         public override LinkedList<Formula> LinearOperands()
@@ -106,7 +106,7 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Negated()
         {
-            return new DisjunctionFormula(leftOperand.DeepCopy(), rightOperand.Negated());
+            return new DisjunctionFormula(leftOperand.DeepCopy(), ~rightOperand.DeepCopy());
         }
 
         /// <summary>

@@ -1,8 +1,10 @@
 ﻿using SymbolicImplicationVerification.Evaluations;
+using SymbolicImplicationVerification.Formulas.Quantified;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Terms.Variables;
+using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
 {

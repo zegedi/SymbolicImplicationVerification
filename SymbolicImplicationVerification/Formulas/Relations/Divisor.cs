@@ -85,10 +85,35 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                 rightConstant.Value % leftConstant.Value == 0 ? TRUE.Instance() : FALSE.Instance(),
 
             (IntegerTypeTerm left, IntegerTypeTerm right) => 
-                left.Equals(right) ? TRUE.Instance() :
-                left.Equals(leftComponent) && right.Equals(rightComponent) ? 
-                DeepCopy() : new Divisor(left, right)
+                left.Equals(right) ? TRUE.Instance() : ReturnOrDeepCopy(new Divisor(left, right))
         };
+
+        public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
+        {
+            Func<BinaryRelationFormula<IntegerType>, BinaryRelationFormula<IntegerType>, Formula> AnyRearrangementEqualsConjuctionWith
+                = (divisor, other) => NotEvaluable.Instance();
+
+            Func<Formula, Formula, Formula?> IdenticalComponentsEquivalentConjunctionWith
+                = (divisor, other) => other switch
+                {
+                    GreaterThan => FALSE.Instance(),
+                    GreaterThanOrEqualTo geq => new IntegerTypeEqual(geq.LeftComponent .DeepCopy(),
+                                                                     geq.RightComponent.DeepCopy()),
+                    _ => null,
+                };
+
+            Func<Formula, Formula, Formula?> OppositeComponentsEquivalentConjunctionWith
+                = (divisor, other) => other switch
+                {
+                    LessThan => FALSE.Instance(),
+                    LessThanOrEqualTo leq => new IntegerTypeEqual(leq.LeftComponent .DeepCopy(),
+                                                                  leq.RightComponent.DeepCopy()),
+                    _ => null,
+                };
+
+            return ConjunctionWith(this, other, AnyRearrangementEqualsConjuctionWith,
+                IdenticalComponentsEquivalentConjunctionWith, OppositeComponentsEquivalentConjunctionWith);
+        }
 
         /// <summary>
         /// Negates the given expression, without modifying the original.
