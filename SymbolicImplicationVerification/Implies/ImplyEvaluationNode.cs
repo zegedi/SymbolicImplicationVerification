@@ -13,6 +13,8 @@ namespace SymbolicImplicationVerification.Implies
 
         protected List<ImplyEvaluation> evaluations;
 
+        protected bool evaluateAll;
+
         #endregion
 
         #region Constructors
@@ -62,6 +64,32 @@ namespace SymbolicImplicationVerification.Implies
         {
             get { return evaluations; }
             set { evaluations = value; }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        public override ImplyEvaluationResult EvaluationResult()
+        {
+            ImplyEvaluationResult result = ImplyEvaluationResult.Unverifiable;
+
+            Func<ImplyEvaluation, bool> IsTrue =
+                imply => imply.EvaluationResult() == ImplyEvaluationResult.True;
+
+            Func<ImplyEvaluation, bool> IsFalse =
+                imply => imply.EvaluationResult() == ImplyEvaluationResult.False;
+
+            if (evaluateAll ? evaluations.All(IsTrue) : evaluations.Any(IsFalse))
+            {
+                result = ImplyEvaluationResult.True;
+            }
+            else if (evaluateAll ? evaluations.Any(IsFalse) : evaluations.All(IsFalse))
+            {
+                result = ImplyEvaluationResult.False;
+            }
+
+            return result;
         }
 
         #endregion

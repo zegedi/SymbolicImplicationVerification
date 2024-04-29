@@ -48,9 +48,9 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         #region Public abstract methods
 
         /// <summary>
-        /// Creates a deep copy of the current quantified formula.
+        /// Creates a deep copy of the current quantified program.
         /// </summary>
-        /// <returns>The created deep copy of the quantified formula.</returns>
+        /// <returns>The created deep copy of the quantified program.</returns>
         public override abstract QuantifiedFormula<T> DeepCopy();
 
         #endregion

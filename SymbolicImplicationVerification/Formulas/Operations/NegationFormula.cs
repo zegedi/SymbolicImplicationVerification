@@ -82,9 +82,9 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         }
 
         /// <summary>
-        /// Creates a deep copy of the current negation formula.
+        /// Creates a deep copy of the current negation program.
         /// </summary>
-        /// <returns>The created deep copy of the negation formula.</returns>
+        /// <returns>The created deep copy of the negation program.</returns>
         public override NegationFormula DeepCopy()
         {
             return new NegationFormula(this);

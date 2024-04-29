@@ -37,6 +37,13 @@ namespace SymbolicImplicationVerification.Terms
         }
 
         public Summation(
+            string indexVariable, IntegerTypeTerm lowerBound, IntegerTypeTerm upperBound,
+            IntegerTypeTerm argument) 
+            : this(new IntegerTypeVariable(indexVariable, Integer.Instance()), 
+                  lowerBound, upperBound, argument, Integer.Instance()) { }
+        
+
+        public Summation(
             IntegerTypeVariable indexVariable, IntegerTypeTerm lowerBound, IntegerTypeTerm upperBound, 
             IntegerTypeTerm argument, IntegerType termType) : base(termType)
         {

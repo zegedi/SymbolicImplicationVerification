@@ -51,9 +51,9 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         #region Public abstract methods
 
         /// <summary>
-        /// Creates a deep copy of the current binary relation formula.
+        /// Creates a deep copy of the current binary relation program.
         /// </summary>
-        /// <returns>The created deep copy of the binary relation formula.</returns>
+        /// <returns>The created deep copy of the binary relation program.</returns>
         public override abstract BinaryRelationFormula<T> DeepCopy();
 
         public override Formula ConjunctionWith(Formula other)

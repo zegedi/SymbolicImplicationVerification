@@ -110,9 +110,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Creates a deep copy of the current implication formula.
+        /// Creates a deep copy of the current implication program.
         /// </summary>
-        /// <returns>The created deep copy of the implication formula.</returns>
+        /// <returns>The created deep copy of the implication program.</returns>
         public override ImplicationFormula DeepCopy()
         {
             return new ImplicationFormula(this);

@@ -129,9 +129,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Creates a deep copy of the current disjunction formula.
+        /// Creates a deep copy of the current disjunction program.
         /// </summary>
-        /// <returns>The created deep copy of the disjunction formula.</returns>
+        /// <returns>The created deep copy of the disjunction program.</returns>
         public override DisjunctionFormula DeepCopy()
         {
             return new DisjunctionFormula(this);

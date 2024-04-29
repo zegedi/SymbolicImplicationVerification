@@ -135,9 +135,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Creates a deep copy of the current conjunction formula.
+        /// Creates a deep copy of the current conjunction program.
         /// </summary>
-        /// <returns>The created deep copy of the conjunction formula.</returns>
+        /// <returns>The created deep copy of the conjunction program.</returns>
         public override ConjunctionFormula DeepCopy()
         {
             return new ConjunctionFormula(this);

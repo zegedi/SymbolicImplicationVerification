@@ -84,7 +84,7 @@ namespace SymbolicImplicationVerification.Types
         public abstract bool IsValueValid(object? value);
 
         /// <summary>
-        /// Creates a formula, that represents the type constraint on the given term.
+        /// Creates a program, that represents the type constraint on the given term.
         /// </summary>
         /// <param name="term">The term to formulate on.</param>
         /// <returns>The formulated constraint on the term.</returns>

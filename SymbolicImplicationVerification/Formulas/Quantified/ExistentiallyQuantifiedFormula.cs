@@ -135,9 +135,9 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         }
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified program is equivalent to the current program.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="other">The program to compare with the current program.</param>
         /// <returns>
         ///   <list type="bullet">
         ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
@@ -159,9 +159,9 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         }
 
         /// <summary>
-        /// Creates a deep copy of the current existentially quantified formula.
+        /// Creates a deep copy of the current existentially quantified program.
         /// </summary>
-        /// <returns>The created deep copy of the existentially quantified formula.</returns>
+        /// <returns>The created deep copy of the existentially quantified program.</returns>
         public override ExistentiallyQuantifiedFormula<T> DeepCopy()
         {
             return new ExistentiallyQuantifiedFormula<T>(this);

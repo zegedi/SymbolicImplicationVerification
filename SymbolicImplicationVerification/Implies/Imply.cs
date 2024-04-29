@@ -209,7 +209,7 @@ namespace SymbolicImplicationVerification.Implies
             //    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
             //}
 
-            // Tovább nem egyszerűsíthető a formula.
+            // Tovább nem egyszerűsíthető a program.
 
             if (hypothesis.Equivalent(consequence))
             {
@@ -609,7 +609,7 @@ namespace SymbolicImplicationVerification.Implies
 
             if (eval is ImplyEvaluationLeaf leaf)
             {
-                sw.WriteLine(string.Format("Result: {0}", leaf.Result.ToString()));
+                sw.WriteLine(string.Format("EvaluationResult: {0}", leaf.Result.ToString()));
             }
         }
 

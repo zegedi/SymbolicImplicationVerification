@@ -3,11 +3,11 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.FunctionValues
 {
-    public class BetaFunction : FunctionValue<Integer, Logical>
+    public class BetaFunction : FunctionValue<IntegerType, Logical>
     {
         #region Constructors
 
-        public BetaFunction(Term<Integer> argument) : base(argument, Logical.Instance()) { }
+        public BetaFunction(IntegerTypeTerm argument) : base(argument, Logical.Instance()) { }
 
         public BetaFunction(BetaFunction betaFunctionValue)
             : base(betaFunctionValue.argument.DeepCopy(), Logical.Instance()) { }

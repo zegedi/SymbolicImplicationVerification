@@ -35,9 +35,9 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public abstract methods
 
         /// <summary>
-        /// Creates a deep copy of the current unary operation formula.
+        /// Creates a deep copy of the current unary operation program.
         /// </summary>
-        /// <returns>The created deep copy of the unary operation formula.</returns>
+        /// <returns>The created deep copy of the unary operation program.</returns>
         public override abstract UnaryOperationFormula DeepCopy();
 
         #endregion
@@ -45,9 +45,9 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified program is equivalent to the current program.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="other">The program to compare with the current program.</param>
         /// <returns>
         ///   <list type="bullet">
         ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>

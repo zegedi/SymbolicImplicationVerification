@@ -64,9 +64,9 @@ namespace SymbolicImplicationVerification.Formulas
         };
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified program is equivalent to the current program.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="other">The program to compare with the current program.</param>
         /// <returns>
         ///   <list type="bullet">
         ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
@@ -281,9 +281,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Creates a deep copy of the current less than or equal to formula.
+        /// Creates a deep copy of the current less than or equal to program.
         /// </summary>
-        /// <returns>The created deep copy of the less than or equal to formula.</returns>
+        /// <returns>The created deep copy of the less than or equal to program.</returns>
         public override LessThanOrEqualTo DeepCopy()
         {
             return new LessThanOrEqualTo(this);

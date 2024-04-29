@@ -67,9 +67,9 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         };
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified program is equivalent to the current program.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="other">The program to compare with the current program.</param>
         /// <returns>
         ///   <list type="bullet">
         ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
@@ -415,9 +415,9 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         }
 
         /// <summary>
-        /// Creates a deep copy of the current greater than formula.
+        /// Creates a deep copy of the current greater than program.
         /// </summary>
-        /// <returns>The created deep copy of the greater than formula.</returns>
+        /// <returns>The created deep copy of the greater than program.</returns>
         public override GreaterThan DeepCopy()
         {
             return new GreaterThan(this);

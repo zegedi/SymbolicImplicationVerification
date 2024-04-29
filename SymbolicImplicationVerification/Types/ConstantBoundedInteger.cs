@@ -139,7 +139,7 @@ namespace SymbolicImplicationVerification.Types
         };
 
         /// <summary>
-        /// Creates a formula, that represents the type constraint on the given term.
+        /// Creates a program, that represents the type constraint on the given term.
         /// </summary>
         /// <param name="term">The term to formulate the constraint on.</param>
         /// <returns>The formulated constraint on the term.</returns>

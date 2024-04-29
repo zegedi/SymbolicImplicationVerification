@@ -1,11 +1,4 @@
-﻿using SymbolicImplicationVerification.Formulas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SymbolicImplicationVerification.Implies
+﻿namespace SymbolicImplicationVerification.Implies
 {
     internal class ImplyEvaluationLeaf : ImplyEvaluation
     {
@@ -33,6 +26,15 @@ namespace SymbolicImplicationVerification.Implies
         {
             get { return result; }
             set { result = value; }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        public override ImplyEvaluationResult EvaluationResult()
+        {
+            return result;
         }
 
         #endregion

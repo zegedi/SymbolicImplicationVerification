@@ -73,9 +73,9 @@ namespace SymbolicImplicationVerification.Terms
         }
 
         /// <summary>
-        /// Creates a deep copy of the current formula term.
+        /// Creates a deep copy of the current program term.
         /// </summary>
-        /// <returns>The created deep copy of the formula term.</returns>
+        /// <returns>The created deep copy of the program term.</returns>
         public override FormulaTerm DeepCopy()
         {
             return new FormulaTerm(this);

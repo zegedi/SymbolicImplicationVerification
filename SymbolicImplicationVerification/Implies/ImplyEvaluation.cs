@@ -3,7 +3,7 @@ using SymbolicImplicationVerification.Formulas;
 
 namespace SymbolicImplicationVerification.Implies
 {
-    public class ImplyEvaluation
+    public abstract class ImplyEvaluation
     {
         #region Fields
 
@@ -38,6 +38,12 @@ namespace SymbolicImplicationVerification.Implies
             get { return message; }
             set { message = value; }
         }
+
+        #endregion
+
+        #region Public abstract methods
+
+        public abstract ImplyEvaluationResult EvaluationResult();
 
         #endregion
     }

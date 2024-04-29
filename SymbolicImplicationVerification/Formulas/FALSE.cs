@@ -83,9 +83,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified program is equivalent to the current program.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="other">The program to compare with the current program.</param>
         /// <returns>
         ///   <list type="bullet">
         ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
@@ -108,9 +108,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Creates a deep copy of the current formula.
+        /// Creates a deep copy of the current program.
         /// </summary>
-        /// <returns>The created deep copy of the formula.</returns>
+        /// <returns>The created deep copy of the program.</returns>
         public override FALSE DeepCopy()
         {
             return FALSE.Instance();

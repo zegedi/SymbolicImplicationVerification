@@ -84,9 +84,9 @@ namespace SymbolicImplicationVerification.Formulas
         public abstract Formula Evaluated();
 
         /// <summary>
-        /// Determines whether the specified formula is equivalent to the current formula.
+        /// Determines whether the specified program is equivalent to the current program.
         /// </summary>
-        /// <param name="other">The formula to compare with the current formula.</param>
+        /// <param name="other">The program to compare with the current program.</param>
         /// <returns>
         ///   <list type="bullet">
         ///     <item><see langword="true"/> - if the formulas are the equivalent.</item>
@@ -96,12 +96,12 @@ namespace SymbolicImplicationVerification.Formulas
         public abstract bool Equivalent(Formula other);
 
         /// <summary>
-        /// Determines whether the current formula implies the specified formula.
+        /// Determines whether the current program implies the specified program.
         /// </summary>
         /// <param name="other">The consequence of the implication.</param>
         /// <returns>
         ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the current formula implies the consequence formula.</item>
+        ///     <item><see langword="true"/> - if the current program implies the consequence program.</item>
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
@@ -120,9 +120,9 @@ namespace SymbolicImplicationVerification.Formulas
         }
 
         /// <summary>
-        /// Creates a deep copy of the current formula.
+        /// Creates a deep copy of the current program.
         /// </summary>
-        /// <returns>The created deep copy of the formula.</returns>
+        /// <returns>The created deep copy of the program.</returns>
         public abstract Formula DeepCopy();
 
         /// <summary>
@@ -159,9 +159,9 @@ namespace SymbolicImplicationVerification.Formulas
         #region Public methods
 
         /// <summary>
-        /// Completely evaluates the given formula, without modifying the original.
+        /// Completely evaluates the given program, without modifying the original.
         /// </summary>
-        /// <returns>The completely evaluated instance of the formula.</returns>
+        /// <returns>The completely evaluated instance of the program.</returns>
         public Formula CompletelyEvaluated()
         {
             Formula result    = DeepCopy();
@@ -181,12 +181,12 @@ namespace SymbolicImplicationVerification.Formulas
         #region Protected methods
 
         /// <summary>
-        /// Determines whether the specified formula complements the current formula.
+        /// Determines whether the specified program complements the current program.
         /// </summary>
-        /// <param name="other">The other formula.</param>
+        /// <param name="other">The other program.</param>
         /// <returns>
         ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the specified formula is equivalent to the negated current formula.</item>
+        ///     <item><see langword="true"/> - if the specified program is equivalent to the negated current program.</item>
         ///     <item><see langword="false"/> - otherwise.</item>
         ///   </list>
         /// </returns>
