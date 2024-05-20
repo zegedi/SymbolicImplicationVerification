@@ -13,6 +13,13 @@ namespace SymbolicImplicationVerification.Evaluations
 {
     public static class PatternReplacer<T> where T : Type
     {
+        /// <summary>
+        /// Match the pattern terms with the given entry terms.
+        /// </summary>
+        /// <param name="entryPoint">The entry point of the pattern.</param>
+        /// <param name="matchedPattern">The matched pattern.</param>
+        /// <param name="patternTerms">The dictionary of matched terms.</param>
+        /// <returns><see langword="true"/> if the match is successful, otherwise <see langword="false"/>.</returns>
         private static bool MatchPatternTerms(
             Term<T> entryPoint, Term<T> matchedPattern, Dictionary<int, Term<T>> patternTerms)
         {
@@ -84,6 +91,12 @@ namespace SymbolicImplicationVerification.Evaluations
             return true;
         }
 
+        /// <summary>
+        /// Builds the new term given the matched pattern and it's terms.
+        /// </summary>
+        /// <param name="newPattern">The matched pattern.</param>
+        /// <param name="matchedPatternTerms">The matched pattern term.</param>
+        /// <returns>The newly built term.</returns>
         private static Term<T> BuildNewTerm(
             Term<T> newPattern, Dictionary<int, Term<T>> matchedPatternTerms) => newPattern switch
             {
@@ -98,6 +111,13 @@ namespace SymbolicImplicationVerification.Evaluations
             };
 
 
+        /// <summary>
+        /// Replaces the given pattern inside the source term.
+        /// </summary>
+        /// <param name="source">The root of the term.</param>
+        /// <param name="entryPoint">The entry point info for the pattern.</param>
+        /// <param name="matchedPattern">The matched pattern.</param>
+        /// <param name="replacePattern">The replace pattern.</param>
         private static void ReplacePattern(
             ref Term<T> source, EntryPoint<T> entryPoint, Term<T> matchedPattern, Term<T> replacePattern)
         {
@@ -115,6 +135,12 @@ namespace SymbolicImplicationVerification.Evaluations
             ReplacePattern(ref source, entryPoint, replaceTerm);
         }
 
+        /// <summary>
+        /// Replaces the given pattern inside the source term.
+        /// </summary>
+        /// <param name="source">The root of the term.</param>
+        /// <param name="entryPoint">The entry point info for the pattern.</param>
+        /// <param name="replaceTerm">The replace term.</param>
         private static void ReplacePattern(
             ref Term<T> source, EntryPoint<T> entryPoint, Term<T> replaceTerm)
         {
@@ -128,6 +154,11 @@ namespace SymbolicImplicationVerification.Evaluations
             }
         }
 
+        /// <summary>
+        /// Replaces the given pattern based on the entry point.
+        /// </summary>
+        /// <param name="entryPoint">The entry point info for the pattern.</param>
+        /// <param name="replaceTerm">The replace term.</param>
         private static void ReplacePattern(EntryPoint<T> entryPoint, Term<T> replaceTerm)
         {
             if (entryPoint.HasParent)
@@ -136,6 +167,12 @@ namespace SymbolicImplicationVerification.Evaluations
             }
         }
 
+        /// <summary>
+        /// Find the first entry point inside the source term.
+        /// </summary>
+        /// <param name="source">The source term.</param>
+        /// <param name="pattern">The replace to search for.</param>
+        /// <returns>The found entry point.</returns>
         private static EntryPoint<T>? FindEntryPoint(Term<T> source, Term<T> pattern)
         {
             if (pattern.Matches(source))
@@ -163,6 +200,14 @@ namespace SymbolicImplicationVerification.Evaluations
             return null;
         }
 
+        /// <summary>
+        /// Find the first entry point inside the source term.
+        /// </summary>
+        /// <param name="parent">The parent of the entry point.</param>
+        /// <param name="property">The name of the parent property.</param>
+        /// <param name="source">The source term.</param>
+        /// <param name="pattern">The replace to search for.</param>
+        /// <returns>The found entry point.</returns>
         private static EntryPoint<T>? FindEntryPoint<U>(
             U parent, string property, Term<T> source, Term<T> pattern) where U : notnull
         {
@@ -184,6 +229,12 @@ namespace SymbolicImplicationVerification.Evaluations
             return entryPointInfo;
         }
 
+        /// <summary>
+        /// Find all the entry points inside the source term.
+        /// </summary>
+        /// <param name="source">The source term.</param>
+        /// <param name="pattern">The replace to search for.</param>
+        /// <returns>The list of found entry points.</returns>
         private static LinkedList<EntryPoint<T>> FindEntryPoints(Term<T> source, Term<T> pattern)
         {
             LinkedList<EntryPoint<T>> entryPoints = new LinkedList<EntryPoint<T>>();
@@ -193,6 +244,12 @@ namespace SymbolicImplicationVerification.Evaluations
             return entryPoints;
         }
 
+        /// <summary>
+        /// Find all the entry points inside the source term.
+        /// </summary>
+        /// <param name="entryPoints">The list of found entry points.</param>
+        /// <param name="source">The source term.</param>
+        /// <param name="pattern">The replace to search for.</param>
         private static void FindEntryPoints(
             LinkedList<EntryPoint<T>> entryPoints, Term<T> source, Term<T> pattern)
         {
@@ -243,6 +300,12 @@ namespace SymbolicImplicationVerification.Evaluations
             }
         }
 
+        /// <summary>
+        /// Find all the entry points inside the source formula.
+        /// </summary>
+        /// <param name="formula">The source formula.</param>
+        /// <param name="pattern">The replace to search for.</param>
+        /// <returns>The list of found entry points.</returns>
         public static LinkedList<EntryPoint<T>> FindEntryPoints(Formula formula, Term<T> pattern)
         {
             LinkedList<EntryPoint<T>> entryPoints = new LinkedList<EntryPoint<T>>();
@@ -252,6 +315,13 @@ namespace SymbolicImplicationVerification.Evaluations
             return entryPoints;
         }
 
+
+        /// <summary>
+        /// Find all the entry points inside the source formula.
+        /// </summary>
+        /// <param name="entryPoints">The list of found entry points.</param>
+        /// <param name="formula">The source formula.</param>
+        /// <param name="pattern">The replace to search for.</param>
         public static void FindEntryPoints(
             LinkedList<EntryPoint<T>> entryPoints, Formula formula, Term<T> pattern)
         {
@@ -300,11 +370,19 @@ namespace SymbolicImplicationVerification.Evaluations
             }
             else if (formula is LogicalTermFormula logicalTerm && typeof(T) == typeof(Logical))
             {
-                FindEntryPoints(entryPoints, logicalTerm, "Argumentum", 
-                               (Term<T>)(object) logicalTerm.Argumentum, pattern);
+                FindEntryPoints(entryPoints, logicalTerm, "Argument", 
+                               (Term<T>)(object) logicalTerm.Argument, pattern);
             }
         }
 
+        /// <summary>
+        /// Find all the entry points inside the source term.
+        /// </summary>
+        /// <param name="entryPoints">The list of found entry points.</param>
+        /// <param name="parent">The parent of the entry point.</param>
+        /// <param name="property">The name of the parent property.</param>
+        /// <param name="source">The source term.</param>
+        /// <param name="pattern">The replace to search for.</param>
         private static void FindEntryPoints<U>(
             LinkedList<EntryPoint<T>> entryPoints, U parent, string property, Term<T> source, Term<T> pattern)
             where U : notnull
@@ -328,7 +406,12 @@ namespace SymbolicImplicationVerification.Evaluations
             }
         }
 
-
+        /// <summary>
+        /// Apply all the patterns onto the given source term.
+        /// </summary>
+        /// <param name="source">The source term.</param>
+        /// <param name="patternMatches">The patterns to apply.</param>
+        /// <returns>The result of the operation.</returns>
         public static Term<T> PatternsApplied(Term<T> source, Dictionary<Term<T>, Term<T>> patternMatches)
         {
             Term<T> result = source.DeepCopy();
@@ -351,6 +434,11 @@ namespace SymbolicImplicationVerification.Evaluations
             return result;
         }
 
+        /// <summary>
+        /// Replace all the variable entry points with the given replace term.
+        /// </summary>
+        /// <param name="entryPoints">The list of variable entry points.</param>
+        /// <param name="replaceTerm">The term to replace the variable with.</param>
         public static void VariableReplaced(LinkedList<EntryPoint<T>> entryPoints, Term<T> replaceTerm)
         {
             foreach (EntryPoint<T> entryPoint in entryPoints)
@@ -372,6 +460,13 @@ namespace SymbolicImplicationVerification.Evaluations
             }
         }
 
+        /// <summary>
+        /// Replace all occurrences of the given variable inside the source formula.
+        /// </summary>
+        /// <param name="source">The source formula.</param>
+        /// <param name="variable">The variable to replace.</param>
+        /// <param name="replaceTerm">The term to replace the variable with.</param>
+        /// <returns>The result of the replacement.</returns>
         public static Formula VariableReplaced(Formula source, Variable<T> variable, Term<T> replaceTerm)
         {
             Formula result = source.DeepCopy();
@@ -383,6 +478,13 @@ namespace SymbolicImplicationVerification.Evaluations
             return result;
         }
 
+        /// <summary>
+        /// Replace all occurrences of the given variable inside the source term.
+        /// </summary>
+        /// <param name="source">The source term.</param>
+        /// <param name="variable">The variable to replace.</param>
+        /// <param name="replaceTerm">The term to replace the variable with.</param>
+        /// <returns>The result of the replacement.</returns>
         public static Term<T> VariableReplaced(Term<T> source, Variable<T> variable, Term<T> replaceTerm)
         {
             Term<T> result = source.DeepCopy();
@@ -397,6 +499,13 @@ namespace SymbolicImplicationVerification.Evaluations
             return result;
         }
 
+        /// <summary>
+        /// Match the pattern terms with the given entry terms.
+        /// </summary>
+        /// <param name="patternStatement">The pattern formula.</param>
+        /// <param name="statement">The source formula.</param>
+        /// <param name="patternTerms">The dictionary of matched terms.</param>
+        /// <returns><see langword="true"/> if the match is successful, otherwise <see langword="false"/>.</returns>
         private static bool MatchPatternTerms(
             Formula patternStatement, Formula statement, Dictionary<int, Term<T>> patternTerms)
         {
@@ -450,6 +559,11 @@ namespace SymbolicImplicationVerification.Evaluations
             return false;
         }
 
+        /// <summary>
+        /// Replace the quantified variable inside a quantified formula.
+        /// </summary>
+        /// <param name="quantified">The source quantified formula.</param>
+        /// <param name="statement">The replace statement of the new formula.</param>
         public static Term<T>? QuantifiedVariableReplaced(QuantifiedFormula<T> quantified, Formula statement)
         {
             const int anythingPatternIdentifier = 1;
@@ -471,6 +585,12 @@ namespace SymbolicImplicationVerification.Evaluations
             return successfull ? patternTerms[anythingPatternIdentifier].DeepCopy() : null;
         }
 
+        /// <summary>
+        /// Match the variables inside the source term.
+        /// </summary>
+        /// <param name="source">The source statement.</param>
+        /// <param name="variable">The variable to find.</param>
+        /// <param name="other">The replace term.</param>
         public static Term<T>? MatchVariable(Term<T> source, Variable<T> variable, Term<T> other)
         {
             const int anythingPatternIdentifier = 1;

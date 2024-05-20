@@ -13,6 +13,9 @@ namespace SymbolicImplicationVerification.Terms.Patterns
     {
         #region Fields
 
+        /// <summary>
+        /// The indentifier or the pattern.
+        /// </summary>
         protected readonly int identifier;
 
         #endregion
@@ -28,6 +31,9 @@ namespace SymbolicImplicationVerification.Terms.Patterns
 
         #region Public properties
 
+        /// <summary>
+        /// Gets the indentifier of the pattern.
+        /// </summary>
         public int Identifier
         {
             get { return identifier; }
@@ -75,6 +81,11 @@ namespace SymbolicImplicationVerification.Terms.Patterns
             return base.GetHashCode();
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return Convert.ToString(identifier);

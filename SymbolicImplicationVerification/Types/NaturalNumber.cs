@@ -5,7 +5,7 @@ using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class NaturalNumber : IntegerType, ISingleton<NaturalNumber>
+    public class NaturalNumber : IntegerType, IValueValidator<int>
     {
         #region Fields
 
@@ -62,7 +62,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>A string that represents the current object.</returns>
         public override string? ToString()
         {
-            return "\\mathbb{N}";
+            return @"\N";
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>The formulated constraint on the term.</returns>
         public override Formula TypeConstraintOn(IntegerTypeTerm term)
         {
-            IntegerConstant naturalNumberLowerBound = new IntegerConstant(0);
+            IntegerTypeConstant naturalNumberLowerBound = new IntegerTypeConstant(0);
             IntegerTypeTerm copyTerm = term.DeepCopy();
 
             return new GreaterThanOrEqualTo(copyTerm, naturalNumberLowerBound);
@@ -177,7 +177,7 @@ namespace SymbolicImplicationVerification.Types
                 return IntersectionBounds(
                     bounded.LowerBound.DeepCopy(),
                     bounded.UpperBound.DeepCopy(),
-                    new IntegerConstant(naturalNumberLowerBound)
+                    new IntegerTypeConstant(naturalNumberLowerBound)
                 );
 
                 //IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
@@ -233,7 +233,7 @@ namespace SymbolicImplicationVerification.Types
             if (other is BoundedIntegerType bounded)
             {
                 Formula subsetCondition = new LessThanOrEqualTo(
-                    new IntegerConstant(naturalNumberLowerBound), bounded.LowerBound.DeepCopy()).Evaluated();
+                    new IntegerTypeConstant(naturalNumberLowerBound), bounded.LowerBound.DeepCopy()).Evaluated();
 
                 return subsetCondition is TRUE ? NaturalNumber.Instance() : null;
             }

@@ -1,4 +1,4 @@
-﻿using SymbolicImplicationVerification.Terms.Patterns;
+﻿global using IntegerTypeVariable = SymbolicImplicationVerification.Terms.Variables.Variable<SymbolicImplicationVerification.Types.IntegerType>;
 
 namespace SymbolicImplicationVerification.Terms.Variables
 {
@@ -6,6 +6,9 @@ namespace SymbolicImplicationVerification.Terms.Variables
     {
         #region Fields
 
+        /// <summary>
+        /// The indentifier of the variable.
+        /// </summary>
         protected string identifier;
 
         #endregion
@@ -23,6 +26,9 @@ namespace SymbolicImplicationVerification.Terms.Variables
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the indentifier of the variable.
+        /// </summary>
         public string Identifier
         {
             get { return identifier; }
@@ -51,6 +57,11 @@ namespace SymbolicImplicationVerification.Terms.Variables
             return new Variable<T>(this);
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return Convert.ToString(identifier);

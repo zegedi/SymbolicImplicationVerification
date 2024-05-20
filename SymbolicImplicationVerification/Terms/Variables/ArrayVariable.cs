@@ -1,7 +1,5 @@
 ﻿using SymbolicImplicationVerification.Terms.Constants;
-using SymbolicImplicationVerification.Terms.Patterns;
 using SymbolicImplicationVerification.Types;
-using System.Text;
 
 namespace SymbolicImplicationVerification.Terms.Variables
 {
@@ -9,14 +7,23 @@ namespace SymbolicImplicationVerification.Terms.Variables
     {
         #region Fields
 
+        /// <summary>
+        /// The index term of the variable.
+        /// </summary>
         protected IntegerTypeTerm? indexTerm;
 
+        /// <summary>
+        /// The index bounds of the variable.
+        /// </summary>
         protected BoundedIntegerType indexBounds;
 
         #endregion
 
         #region Constant values
 
+        /// <summary>
+        /// The index of the first element.
+        /// </summary>
         const int firstElementIndex = 1;
 
         #endregion
@@ -48,12 +55,18 @@ namespace SymbolicImplicationVerification.Terms.Variables
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the index term of the variable.
+        /// </summary>
         public IntegerTypeTerm? IndexTerm
         {
             get { return indexTerm; }
             set { indexTerm = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the index bounds of the variable.
+        /// </summary>
         protected BoundedIntegerType IndexBounds
         {
             get { return indexBounds; }
@@ -73,6 +86,11 @@ namespace SymbolicImplicationVerification.Terms.Variables
             return new ArrayVariable<T>(this);
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return string.Format("a_{0}_{1}", identifier, indexTerm);
@@ -100,12 +118,22 @@ namespace SymbolicImplicationVerification.Terms.Variables
 
             if (indexTerm is not null)
             {
-                result = string.Format("{0}[{1}]", identifier, indexTerm);
+                result = @$"\arrayvar{{{identifier}}}{{{indexTerm}}}";
             }
 
             return result;
         }
 
+        /// <summary>
+        /// Determines wheter the given <see cref="object"/> matches the pattern.
+        /// </summary>
+        /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the <see cref="object"/> matches the pattern.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
         public override bool Matches(object? obj)
         {
             bool result = false;

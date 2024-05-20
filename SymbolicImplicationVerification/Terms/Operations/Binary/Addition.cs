@@ -134,6 +134,12 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             return new Addition(this);
         }
 
+        /// <summary>
+        /// Creates a new addition instance.
+        /// </summary>
+        /// <param name="leftOperand">The left operand of the addition.</param>
+        /// <param name="rightOperand">The right operand of the addition.</param>
+        /// <returns>The newly created addition.</returns>
         public override Addition CreateInstance(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
         {
             return new Addition(leftOperand, rightOperand);
@@ -202,6 +208,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
                    rightOperand.Matches(addition.rightOperand);
         }
 
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
         public override IntegerTypeTerm Evaluated()
         {
             return Evaluated(
@@ -214,14 +224,20 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #region Protected methods
 
+        /// <summary>
+        /// Creates a simplified version of the addition.
+        /// </summary>
+        /// <param name="left">The left operand of the addition.</param>
+        /// <param name="right">The right operand of the addition.</param>
+        /// <returns>The simplified verion of the addition.</returns>
         protected override IntegerTypeTerm Simplified(IntegerTypeTerm left, IntegerTypeTerm right) => (left, right) switch
         {
             (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant)
-                => new IntegerConstant(leftConstant.Value + rightConstant.Value),
+                => new IntegerTypeConstant(leftConstant.Value + rightConstant.Value),
 
             (IntegerTypeConstant constant, _) => constant.Value switch
             {
-                < additiveNeutralElement => new Subtraction(right, new IntegerConstant(-1 * constant.Value)),
+                < additiveNeutralElement => new Subtraction(right, new IntegerTypeConstant(-1 * constant.Value)),
                 > additiveNeutralElement => new Addition(right, constant),
                 _ => right
             },
@@ -232,14 +248,14 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
                     new Subtraction(left, multip.RightOperand),
 
                 IntegerTypeConstant { Value: < additiveInverseOfOne } constant =>
-                        new Subtraction(left, (IntegerConstant)(-1 * constant.Value) * multip.RightOperand),
+                        new Subtraction(left, new IntegerTypeConstant(-1 * constant.Value) * multip.RightOperand),
 
                 _ => new Addition(left, multip)
             },
 
             (_, IntegerTypeConstant constant) => constant.Value switch
             {
-                < additiveNeutralElement => new Subtraction(left, new IntegerConstant(-1 * constant.Value)),
+                < additiveNeutralElement => new Subtraction(left, new IntegerTypeConstant(-1 * constant.Value)),
                 > additiveNeutralElement => new Addition(left, constant),
                 _ => left
             },
@@ -250,6 +266,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             (_, _) => new Addition(left, right)
         };
 
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
         protected override IntegerTypeLinearOperationTerm Linearized()
         {
             return Linearized(

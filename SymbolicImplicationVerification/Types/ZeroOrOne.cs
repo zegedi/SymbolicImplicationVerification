@@ -6,7 +6,7 @@ using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class ZeroOrOne : IntegerType, ISingleton<ZeroOrOne>
+    public class ZeroOrOne : IntegerType, IValueValidator<int>
     {
         #region Fields
 
@@ -63,7 +63,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>A string that represents the current object.</returns>
         public override string? ToString()
         {
-            return "\\{0, 1\\}";
+            return @"\zeroone";
         }
 
         /// <summary>
@@ -130,8 +130,8 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>The formulated constraint on the term.</returns>
         public override Formula TypeConstraintOn(IntegerTypeTerm term)
         {
-            IntegerConstant zero = new IntegerConstant(0);
-            IntegerConstant one  = new IntegerConstant(1);
+            IntegerTypeConstant zero = new IntegerTypeConstant(0);
+            IntegerTypeConstant one  = new IntegerTypeConstant(1);
             
             IntegerTypeTerm firstCopy  = term.DeepCopy();
             IntegerTypeTerm secondCopy = term.DeepCopy();
@@ -196,8 +196,8 @@ namespace SymbolicImplicationVerification.Types
                 return IntersectionBounds(
                     bounded.LowerBound.DeepCopy(),
                     bounded.UpperBound.DeepCopy(),
-                    new IntegerConstant(zeroOrOneLowerBound),
-                    new IntegerConstant(zeroOrOneUpperBound)
+                    new IntegerTypeConstant(zeroOrOneLowerBound),
+                    new IntegerTypeConstant(zeroOrOneUpperBound)
                 );
             }
 
@@ -223,8 +223,8 @@ namespace SymbolicImplicationVerification.Types
             {
                 IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
                 IntegerTypeTerm otherUpperBound = bounded.UpperBound.DeepCopy();
-                IntegerTypeTerm thisLowerBound  = new IntegerConstant(zeroOrOneLowerBound);
-                IntegerTypeTerm thisUpperBound  = new IntegerConstant(zeroOrOneUpperBound);
+                IntegerTypeTerm thisLowerBound  = new IntegerTypeConstant(zeroOrOneLowerBound);
+                IntegerTypeTerm thisUpperBound  = new IntegerTypeConstant(zeroOrOneUpperBound);
 
                 return UnionBounds(thisLowerBound, thisUpperBound, otherLowerBound, otherUpperBound);
             }

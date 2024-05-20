@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace SymbolicImplicationVerification.Terms.Patterns
 {
-    public class IntegerTypeConstantPattern : ConstantPattern<int, IntegerType>
+    public class IntegerTypeConstantPattern : ConstantPattern<IntegerType>
     {
         #region Constructors
 

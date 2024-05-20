@@ -22,7 +22,7 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
         /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            return string.Format("\\beta({0})", argument);
+            return @$"\betafunc{{{argument}}}";
         }
 
         /// <summary>

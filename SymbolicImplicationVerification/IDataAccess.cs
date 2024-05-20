@@ -1,4 +1,4 @@
-﻿namespace SymbolicImplicationVerification.Persistence
+﻿namespace SymbolicImplicationVerification
 {
     public interface IDataAccess
     {

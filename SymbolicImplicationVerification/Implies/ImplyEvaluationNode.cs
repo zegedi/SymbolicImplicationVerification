@@ -1,9 +1,4 @@
 ﻿using SymbolicImplicationVerification.Formulas;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SymbolicImplicationVerification.Implies
 {
@@ -11,9 +6,10 @@ namespace SymbolicImplicationVerification.Implies
     {
         #region Fields
 
+        /// <summary>
+        /// The list of evaluations.
+        /// </summary>
         protected List<ImplyEvaluation> evaluations;
-
-        protected bool evaluateAll;
 
         #endregion
 
@@ -39,7 +35,8 @@ namespace SymbolicImplicationVerification.Implies
             this.evaluations = evaluations;
         }
 
-        public ImplyEvaluationNode(Imply imply, Formula hypothesis, ICollection<Formula> consequences)
+        public ImplyEvaluationNode(
+            Imply imply, Formula hypothesis, ICollection<Formula> consequences)
             : this(imply, null, hypothesis, consequences) { }
 
         public ImplyEvaluationNode(
@@ -60,16 +57,24 @@ namespace SymbolicImplicationVerification.Implies
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the list of evaluations.
+        /// </summary>
         public List<ImplyEvaluation> Evaluations
         {
             get { return evaluations; }
             set { evaluations = value; }
         }
 
+
         #endregion
 
         #region Public methods
 
+        /// <summary>
+        /// Determines the result of the evaluation.
+        /// </summary>
+        /// <returns>The result of the evaluation.</returns>
         public override ImplyEvaluationResult EvaluationResult()
         {
             ImplyEvaluationResult result = ImplyEvaluationResult.Unverifiable;
@@ -80,11 +85,11 @@ namespace SymbolicImplicationVerification.Implies
             Func<ImplyEvaluation, bool> IsFalse =
                 imply => imply.EvaluationResult() == ImplyEvaluationResult.False;
 
-            if (evaluateAll ? evaluations.All(IsTrue) : evaluations.Any(IsFalse))
+            if (evaluations.All(IsTrue))
             {
                 result = ImplyEvaluationResult.True;
             }
-            else if (evaluateAll ? evaluations.Any(IsFalse) : evaluations.All(IsFalse))
+            else if (evaluations.Any(IsFalse))
             {
                 result = ImplyEvaluationResult.False;
             }

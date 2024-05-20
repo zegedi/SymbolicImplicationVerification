@@ -17,6 +17,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
     {
         #region Fields
 
+        /// <summary>
+        /// The list of operands.
+        /// </summary>
         protected LinkedList<OTerm> operandList;
 
         #endregion
@@ -37,12 +40,18 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the value of the constant term.
+        /// </summary>
         public virtual int Constant
         {
             get { return AccumulateConstants(); }
             set { }
         }
 
+        /// <summary>
+        /// Gets or sets the operand list.
+        /// </summary>
         public LinkedList<OTerm> OperandList
         {
             get { return operandList; }
@@ -53,6 +62,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Protected static methods
 
+        /// <summary>
+        /// Creates a deep copy of the operand list.
+        /// </summary>
+        /// <param name="operandList">The operand list to copy.</param>
+        /// <returns>The copy of the operand list.</returns>
         protected static LinkedList<OTerm> OperandListDeepCopy(LinkedList<OTerm> operandList)
         {
             LinkedList<OTerm> copyOperandList = new LinkedList<OTerm>();
@@ -94,6 +108,19 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                    operandList.All(other.operandList.Contains);
         }
 
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
         public override Term<OType> Evaluated()
         {
             OrderOperands();
@@ -105,6 +132,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return AccumulateGroups(processedGroups);
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             OrderOperands();
@@ -128,12 +160,31 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Protected abstract methods
 
+        /// <summary>
+        /// Accumulates the constansts.
+        /// </summary>
+        /// <returns>The value of the accumulation.</returns>
         protected abstract int AccumulateConstants();
 
+        /// <summary>
+        /// Orders the operands.
+        /// </summary>
         protected abstract void OrderOperands();
 
+        /// <summary>
+        /// Processes the next operand, than adds it to the group.
+        /// </summary>
+        /// <param name="processedGroup">The processed operand group.</param>
+        /// <param name="nextOperand">The next operand to process.</param>
+        /// <returns>The result of the process.</returns>
         protected abstract Term<OType>? ProcessNextOperand(Term<OType>? processedGroup, OTerm? nextOperand);
 
+        /// <summary>
+        /// Processes the next group, than adds it to the group.
+        /// </summary>
+        /// <param name="accumulated">The accumulated groups.</param>
+        /// <param name="nextGroup">The next group to process.</param>
+        /// <returns>The accumulated groups.</returns>
         protected abstract Term<OType> ProcessNextGroup(Term<OType> accumulated, Term<OType> nextGroup);
 
         #endregion
@@ -163,6 +214,12 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Accumulates the constansts.
+        /// </summary>
+        /// <param name="neutralValue">The neutral value of the operation.</param>
+        /// <param name="accumulate">The function to accumulate with.</param>
+        /// <returns>The value of the accumulation.</returns>
         protected int AccumulateConstants(int neutralValue, Func<int, int, int> accumulate)
         {
             int resultValue = neutralValue;
@@ -205,6 +262,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return resultValue;
         }
 
+        /// <summary>
+        /// Orders the operands.
+        /// </summary>
+        /// <param name="keySelector">The function which is used for the ordering.</param>
         protected void OrderOperands(Func<OTerm, int> keySelector)
         {
             AccumulateConstants();
@@ -220,6 +281,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             operandList = sortedOperandList;
         }
 
+        /// <summary>
+        /// Groups the operands.
+        /// </summary>
+        /// <returns>The list of operand groups.</returns>
         protected LinkedList<LinkedList<OTerm>> GroupOperands()
         {
             Dictionary<string, LinkedList<OTerm>> equalHashes = new Dictionary<string, LinkedList<OTerm>>();
@@ -246,6 +311,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return operandGroups;
         }
 
+        /// <summary>
+        /// Processes each group inside the list of groups.
+        /// </summary>
+        /// <param name="groups">The list of operand groups.</param>
+        /// <returns>The list of processed groups.</returns>
         protected LinkedList<Term<OType>> ProcessEachGroup(LinkedList<LinkedList<OTerm>> groups)
         {
             LinkedList<Term<OType>> processedGroups = new LinkedList<Term<OType>>();
@@ -268,6 +338,11 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
             return processedGroups;
         }
 
+        /// <summary>
+        /// Accumulates the groups.
+        /// </summary>
+        /// <param name="processedGroups">The list of processed groups.</param>
+        /// <returns>The accumulated groups.</returns>
         protected Term<OType> AccumulateGroups(LinkedList<Term<OType>> processedGroups)
         {
             Term<OType> accumulated = processedGroups.First();

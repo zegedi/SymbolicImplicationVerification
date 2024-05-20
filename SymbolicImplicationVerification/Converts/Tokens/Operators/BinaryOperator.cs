@@ -5,10 +5,6 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
 {
     internal abstract class BinaryOperator : Operator
     {
-        #region Fields
-
-        #endregion
-
         #region Public abstract methods
 
         /// <summary>
@@ -35,7 +31,7 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
                 return new TermOperand(createTerm(left, right));
             }
 
-            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\"");
+            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\".");
         }
 
         protected FormulaOperand FormulaEvaluated(
@@ -50,7 +46,7 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
                 return new FormulaOperand(createFormula(left, right));
             }
 
-            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\"");
+            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\".");
         }
 
         protected FormulaOperand FormulaEvaluated(
@@ -64,7 +60,7 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
                 return new FormulaOperand(createFormula(left, right));
             }
 
-            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\"");
+            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\".");
         }
 
         protected FormulaOperand FormulaEvaluated(
@@ -78,7 +74,7 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
                 return new FormulaOperand(createFormula(left, right));
             }
 
-            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\"");
+            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\".");
         }
 
         protected FormulaOperand FormulaEvaluated(
@@ -102,7 +98,7 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
                 return new FormulaOperand(createLogicalFormula(logicalLeft, logicalRight));
             }
 
-            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\"");
+            throw new ConvertException($"Nem elvégezhető művelet: \"{leftOperand} {ToString()} {rightOperand}\".");
         }
 
         #endregion

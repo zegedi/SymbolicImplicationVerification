@@ -25,6 +25,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the accumulated constants.
+        /// </summary>
         public override int Constant
         {
             get { return AccumulateConstants(); }
@@ -41,7 +44,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                 }
                 else if (value != additionNeutralValue)
                 {
-                    operandList.AddLast(new IntegerConstant(value));
+                    operandList.AddLast(new IntegerTypeConstant(value));
                 }
             }
         }
@@ -98,6 +101,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Protected methods
 
+        /// <summary>
+        /// Orders the operands.
+        /// </summary>
         protected override void OrderOperands()
         {
             OrderOperands((IntegerTypeTerm term) =>
@@ -106,13 +112,17 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                 {
                     ChiFunction                        => int.MaxValue,
                     Summation                          => int.MaxValue - 1,
-                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerConstant),
+                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerTypeConstant),
                     Variable<IntegerType>              => 1,
                     _                                  => 0,
                 };
             });
         }
 
+        /// <summary>
+        /// Accumulates the constansts.
+        /// </summary>
+        /// <returns>The value of the accumulation.</returns>
         protected override int AccumulateConstants()
         {
             const int additionNeutralValue = 0;
@@ -124,12 +134,18 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
             if (result != additionNeutralValue || operandList.Count == 0)
             {
-                operandList.AddLast(new IntegerConstant(result));
+                operandList.AddLast(new IntegerTypeConstant(result));
             }
 
             return result;
         }
 
+        /// <summary>
+        /// Processes the next operand, than adds it to the group.
+        /// </summary>
+        /// <param name="processedGroup">The processed operand group.</param>
+        /// <param name="nextOperand">The next operand to process.</param>
+        /// <returns>The result of the process.</returns>
         protected override IntegerTypeTerm? 
             ProcessNextOperand(IntegerTypeTerm? processedGroup, IntegerTypeTerm? nextOperand)
         {
@@ -158,7 +174,12 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                    new Addition(processedGroup, processedOperand) : processedOperand;
         }
 
-
+        /// <summary>
+        /// Processes the next group, than adds it to the group.
+        /// </summary>
+        /// <param name="accumulated">The accumulated groups.</param>
+        /// <param name="nextGroup">The next group to process.</param>
+        /// <returns>The accumulated groups.</returns>
         protected override Addition ProcessNextGroup(IntegerTypeTerm accumulated, IntegerTypeTerm nextGroup)
         {
             return new Addition(accumulated, nextGroup);

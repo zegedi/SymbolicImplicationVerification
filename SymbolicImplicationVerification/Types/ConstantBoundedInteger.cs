@@ -6,54 +6,69 @@ using SymbolicImplicationVerification.Terms.Constants;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class ConstantBoundedInteger : BoundedInteger<IntegerConstant, IntegerType, IntegerConstant, IntegerType>
+    public class ConstantBoundedInteger : BoundedInteger<IntegerTypeConstant, IntegerType, IntegerTypeConstant, IntegerType>, IValueValidator<int>
     {
         #region Constructors
 
-        public ConstantBoundedInteger(IntegerConstant lowerBound, IntegerConstant upperBound)
-            : base(new IntegerConstant(lowerBound), new IntegerConstant(upperBound)) { }
+        public ConstantBoundedInteger(IntegerTypeConstant lowerBound, IntegerTypeConstant upperBound)
+            : base(new IntegerTypeConstant(lowerBound), new IntegerTypeConstant(upperBound)) { }
 
         public ConstantBoundedInteger(int lowerBound, int upperBound)
-            : base(new IntegerConstant(lowerBound), new IntegerConstant(upperBound)) { }
+            : base(new IntegerTypeConstant(lowerBound), new IntegerTypeConstant(upperBound)) { }
 
-        public ConstantBoundedInteger(IntegerConstant lowerBound, int upperBound)
-            : base(new IntegerConstant(lowerBound), new IntegerConstant(upperBound)) { }
+        public ConstantBoundedInteger(IntegerTypeConstant lowerBound, int upperBound)
+            : base(new IntegerTypeConstant(lowerBound), new IntegerTypeConstant(upperBound)) { }
 
-        public ConstantBoundedInteger(int lowerBound, IntegerConstant upperBound)
-            : base(new IntegerConstant(lowerBound), new IntegerConstant(upperBound)) { }
+        public ConstantBoundedInteger(int lowerBound, IntegerTypeConstant upperBound)
+            : base(new IntegerTypeConstant(lowerBound), new IntegerTypeConstant(upperBound)) { }
 
         public ConstantBoundedInteger(ConstantBoundedInteger constantBoundend)
-            : base(new IntegerConstant(constantBoundend.lowerBound), 
-                   new IntegerConstant(constantBoundend.upperBound)) { }
+            : base(new IntegerTypeConstant(constantBoundend.lowerBound), 
+                   new IntegerTypeConstant(constantBoundend.upperBound)) { }
 
         #endregion
 
         #region Public properties
 
-        public override IntegerConstant LowerBound
+        /// <summary>
+        /// The lower bound of the interval.
+        /// </summary>
+        public override IntegerTypeConstant LowerBound
         {
-            get { return new IntegerConstant(lowerBound); }
-            set { lowerBound = new IntegerConstant(value); }
+            get { return new IntegerTypeConstant(lowerBound); }
+            set { lowerBound = new IntegerTypeConstant(value); }
         }
 
-        public override IntegerConstant UpperBound
+        /// <summary>
+        /// The upper bound of the interval.
+        /// </summary>
+        public override IntegerTypeConstant UpperBound
         {
-            get { return new IntegerConstant(upperBound); }
-            set { upperBound = new IntegerConstant(value); }
+            get { return new IntegerTypeConstant(upperBound); }
+            set { upperBound = new IntegerTypeConstant(value); }
         }
 
+        /// <summary>
+        /// The integer value of the lower bound.
+        /// </summary>
         public int LowerBoundValue
         {
             get { return lowerBound.Value; }
             set { lowerBound.Value =  value; }
         }
 
+        /// <summary>
+        /// The integer value of the upper bound.
+        /// </summary>
         public int UpperBoundValue
         {
             get { return upperBound.Value; }
             set { upperBound.Value =  value; }
         }
 
+        /// <summary>
+        /// Determines if the interval is empty or not.
+        /// </summary>
         public override bool IsEmpty
         {
             get { return lowerBound.Value > upperBound.Value; }
@@ -145,8 +160,8 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>The formulated constraint on the term.</returns>
         public override Formula TypeConstraintOn(IntegerTypeTerm term)
         {
-            IntegerConstant lower = new IntegerConstant(lowerBound);
-            IntegerConstant upper = new IntegerConstant(upperBound);
+            IntegerTypeConstant lower = new IntegerTypeConstant(lowerBound);
+            IntegerTypeConstant upper = new IntegerTypeConstant(upperBound);
 
             IntegerTypeTerm firstCopy  = term.DeepCopy();
             IntegerTypeTerm secondCopy = term.DeepCopy();
@@ -272,8 +287,8 @@ namespace SymbolicImplicationVerification.Types
             }
             else if (other is ZeroOrOne)
             {
-                otherLowerBound = new IntegerConstant(naturalNumberLowerBound);
-                otherUpperBound = new IntegerConstant(positiveIntegerLowerBound);
+                otherLowerBound = new IntegerTypeConstant(naturalNumberLowerBound);
+                otherUpperBound = new IntegerTypeConstant(positiveIntegerLowerBound);
             }
             else
             {

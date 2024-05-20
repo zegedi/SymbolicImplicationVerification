@@ -10,6 +10,9 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
     {
         #region Fields
 
+        /// <summary>
+        /// The agurment of the function value.
+        /// </summary>
         protected Term<D> argument;
 
         #endregion
@@ -28,6 +31,9 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the argument of the function value.
+        /// </summary>
         public Term<D> Argument
         {
             get { return argument; }
@@ -48,6 +54,11 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
 
         #region Public methods
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return argument.Hash(level);

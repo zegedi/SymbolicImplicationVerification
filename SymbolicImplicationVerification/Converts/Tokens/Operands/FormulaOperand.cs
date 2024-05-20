@@ -37,24 +37,32 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operands
             return formula.ToLatex();
         }
 
-        public override void TryGetOperand(out IntegerTypeTerm? result)
+        public override bool TryGetOperand(out IntegerTypeTerm? result)
         {
             result = null;
+
+            return false;
         }
 
-        public override void TryGetOperand(out LogicalTerm? result)
+        public override bool TryGetOperand(out LogicalTerm? result)
         {
             result = new FormulaTerm(formula.DeepCopy());
+
+            return true;
         }
 
-        public override void TryGetOperand(out Formula? result)
+        public override bool TryGetOperand(out Formula? result)
         {
             result = formula.DeepCopy();
+
+            return true;
         }
 
-        public override void TryGetOperand(out Program? result)
+        public override bool TryGetOperand(out Program? result)
         {
             result = null;
+
+            return false;
         }
 
         #endregion

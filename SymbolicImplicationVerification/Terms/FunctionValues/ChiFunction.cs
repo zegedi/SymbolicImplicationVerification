@@ -22,7 +22,7 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
         /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            return string.Format("\\chi({0})", argument);
+            return @$"\chifunc{{{argument}}}";
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace SymbolicImplicationVerification.Terms.FunctionValues
         /// <returns>The newly created instance of the result.</returns>
         public override IntegerTypeTerm Evaluated() => argument.Evaluated() switch
         {
-            LogicalConstant constant => new ZeroOrOneConstant(constant.Value ? 1 : 0),
+            LogicalConstant constant => new IntegerTypeConstant(constant.Value ? 1 : 0),
             LogicalTerm     argument => new ChiFunction(argument)
         };
 

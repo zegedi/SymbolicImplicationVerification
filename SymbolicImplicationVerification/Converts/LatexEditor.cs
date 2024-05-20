@@ -8,12 +8,24 @@ namespace SymbolicImplicationVerification.Converts
     {
         #region Fields
 
+        /// <summary>
+        /// The list of latex tokens.
+        /// </summary>
         private LinkedList<string> latexTokens;
 
+        /// <summary>
+        /// The current position inside the <see cref="latexTokens"/>.
+        /// </summary>
         private LinkedListNode<string>? pointer;
 
+        /// <summary>
+        /// The current latex command inside the <see cref="latexTokens"/>.
+        /// </summary>
         private LatexCommand? currentCommand;
 
+        /// <summary>
+        /// The current argument counter inside the <see cref="latexTokens"/>.
+        /// </summary>
         private int currentArgumentIndex;
 
         #endregion
@@ -62,6 +74,9 @@ namespace SymbolicImplicationVerification.Converts
 
         #region Public properties
 
+        /// <summary>
+        /// The minimum value of the availabel integer constants.
+        /// </summary>
         public int? MinimumValue
         {
             get
@@ -77,21 +92,33 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// The name of the unremoveable latex command.
+        /// </summary>
         public LatexCommand Unremoveable
         {
             get; set;
         }
 
+        /// <summary>
+        /// Determines wheter the main command is a formula or not.
+        /// </summary>
         public bool FormulaEdition
         {
             get; set;
         }
 
+        /// <summary>
+        /// Gets the current latex command inside the <see cref="latexTokens"/>.
+        /// </summary>
         public LatexCommand? CurrentCommand
         {
             get { return currentCommand; }
         }
 
+        /// <summary>
+        /// The current argument counter inside the <see cref="latexTokens"/>.
+        /// </summary>
         public int CurrentArgumentIndex
         {
             get { return currentArgumentIndex; }
@@ -131,26 +158,47 @@ namespace SymbolicImplicationVerification.Converts
 
         #region Public methods
 
+        /// <summary>
+        /// Determines wheter the given latex command is available.
+        /// </summary>
+        /// <param name="command">The latex command to check.</param>
+        /// <returns><see langword="true"/> if the given command is available, otherwise <see langword="false"/>.</returns>
         public bool Enabled(LatexCommand command)
         {
             return AddEnabled(command) && !AddDisabled(command);
         }
 
+        /// <summary>
+        /// Determines wheter the add indentifer is enabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if the add indentifer is enabled, otherwise <see langword="false"/>.</returns>
         public bool IdentifierEnabled()
         {
             return AddIdentifierEnabled() && !AddIdentifierDisabled();
         }
 
+        /// <summary>
+        /// Determines wheter the add new indentifer is enabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if the add new indentifer is enabled, otherwise <see langword="false"/>.</returns>
         public bool NewIdentifierEnabled()
         {
-            return AddNewIdentifierEnabled();
+            return AddNewIdentifierEnabled() || IdentifierEnabled();
         }
 
+        /// <summary>
+        /// Determines wheter the add constant is enabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if the add constant is enabled, otherwise <see langword="false"/>.</returns>
         public bool ConstantEnabled()
         {
             return AddConstantEnabled() && !AddConstantDisabled();
         }
 
+        /// <summary>
+        /// Adds the given latex command to the input.
+        /// </summary>
+        /// <param name="command">The latex command to add.</param>
         public void Add(LatexCommand command)
         {
             string[] commandParts = CommandParts(command);
@@ -172,11 +220,19 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Adds the given integer constant to the input.
+        /// </summary>
+        /// <param name="value">The integer constant to add.</param>
         public void Add(int value)
         {
             Add(value.ToString());
         }
 
+        /// <summary>
+        /// Adds the given identifer to the input.
+        /// </summary>
+        /// <param name="identifier">The identifier to add.</param>
         public void Add(string identifier)
         {
             if (pointer is null)
@@ -189,6 +245,10 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Joins the input commands with the given separator.
+        /// </summary>
+        /// <param name="separator">The input separator.</param>
         public string Join(char separator)
         {
             return string.Join(separator, latexTokens);
@@ -253,6 +313,10 @@ namespace SymbolicImplicationVerification.Converts
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Returns the current index of the pointer.
+        /// </summary>
+        /// <returns>The current index of the pointer.</returns>
         public int PointerIndex()
         {
             const int separatorCharLength = 1;
@@ -284,6 +348,10 @@ namespace SymbolicImplicationVerification.Converts
             return pointerIndex;
         }
 
+        /// <summary>
+        /// Moves the current position to the left.
+        /// </summary>
+        /// <returns><see langword="true"/> if the action was successful, otherwise <see langword="false"/>.</returns>
         public bool MoveLeft()
         {
             bool moveLeft = pointer is not null;
@@ -313,6 +381,10 @@ namespace SymbolicImplicationVerification.Converts
             return moveLeft;
         }
 
+        /// <summary>
+        /// Moves the current position to the right.
+        /// </summary>
+        /// <returns><see langword="true"/> if the action was successful, otherwise <see langword="false"/>.</returns>
         public bool MoveRight()
         {
             bool moveRight   = pointer is not null && pointer.Next      is not null;
@@ -357,6 +429,9 @@ namespace SymbolicImplicationVerification.Converts
             return moved;
         }
 
+        /// <summary>
+        /// Removes the current command from the input.
+        /// </summary>
         public void Remove()
         {
             if (pointer is null)
@@ -413,31 +488,6 @@ namespace SymbolicImplicationVerification.Converts
             {
                 latexTokens.Remove(pointer!.Next!);
             }
-        }
-
-        public string? GetCurrentCommandArgument(int argumentIndex)
-        {
-            if (currentCommand is null || argumentIndex < 0 || 
-                CommandArgumentCount(currentCommand.Value) <= argumentIndex)
-            {
-                return null;
-            }
-
-            LinkedListNode<string>? current = FindCommandStart(pointer);
-
-            int currentArgumentIndex = -1;
-
-            while (current is not null && currentArgumentIndex != argumentIndex)
-            {
-                if (PartOfParameterisedCommand(current))
-                {
-                    ++currentArgumentIndex;
-                }
-
-                current = current.Next;
-            }
-
-            return current?.Value;
         }
 
         #endregion
@@ -513,6 +563,11 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Finds the start position of the command.
+        /// </summary>
+        /// <param name="current">The current position.</param>
+        /// <returns>The start position of the current command.</returns>
         private LinkedListNode<string>? FindCommandStart(LinkedListNode<string>? current)
         {
             bool notFoundStart = true;
@@ -530,6 +585,12 @@ namespace SymbolicImplicationVerification.Converts
             return current;
         }
 
+        /// <summary>
+        /// Determines whether the current command's parameters are all empty or not.
+        /// </summary>
+        /// <param name="current">The current position.</param>
+        /// <param name="commandStart">The start position of the command.</param>
+        /// <returns><see langword="true"/> if all the parameters are empty, otherwise <see langword="false"/>.</returns>
         private bool AllParametersEmpty(LinkedListNode<string>? current, out LinkedListNode<string>? commandStart)
         {
             commandStart = FindCommandStart(current);
@@ -544,11 +605,21 @@ namespace SymbolicImplicationVerification.Converts
             return current?.Next?.Value == "}";
         }
 
+        /// <summary>
+        /// Determines whether the current position is part of a parameterised command or not.
+        /// </summary>
+        /// <param name="current">The current position.</param>
+        /// <returns><see langword="true"/> if the current position is part of a parameterised command, otherwise <see langword="false"/>.</returns>
         private bool PartOfParameterisedCommand(LinkedListNode<string>? current)
         {
             return PartOfParameterisedCommand(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is part of a parameterised command or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is part of a parameterised command, otherwise <see langword="false"/>.</returns>
         private bool PartOfParameterisedCommand(string? currentValue)
         {
             const string partOfParameterisedCommandPattern = @"\}|\}\{|\\[a-zA-Z]+\{";
@@ -557,11 +628,21 @@ namespace SymbolicImplicationVerification.Converts
                    currentValue, partOfParameterisedCommandPattern);
         }
 
+        /// <summary>
+        /// Determines whether the current position is a start of a parameterised command or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is a start of a parameterised command, otherwise <see langword="false"/>.</returns>
         private bool StartOfParameterisedCommand(LinkedListNode<string>? current)
         {
             return StartOfParameterisedCommand(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command part is a start of a parameterised command or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command part is a start of a parameterised command, otherwise <see langword="false"/>.</returns>
         private bool StartOfParameterisedCommand(string? currentValue)
         {
             const string startOfParameterisedCommandPattern = @"\\[a-zA-Z]+\{";
@@ -570,11 +651,21 @@ namespace SymbolicImplicationVerification.Converts
                    currentValue, startOfParameterisedCommandPattern);
         }
 
+        /// <summary>
+        /// Determines whether the current position is a command or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is a command, otherwise <see langword="false"/>.</returns>
         private bool IsCommand(LinkedListNode<string>? current)
         {
             return IsCommand(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command part is a command or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command part is a command, otherwise <see langword="false"/>.</returns>
         private bool IsCommand(string? currentValue)
         {
             const string isCommandPattern = @"\\[a-zA-Z]+";
@@ -582,11 +673,21 @@ namespace SymbolicImplicationVerification.Converts
             return currentValue is not null && Regex.IsMatch(currentValue, isCommandPattern);
         }
 
+        /// <summary>
+        /// Determines whether the current position is an identifier or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is an identifier, otherwise <see langword="false"/>.</returns>
         private bool IsIdentifier(LinkedListNode<string>? current)
         {
             return IsIdentifier(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is an identifier or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is an identifier, otherwise <see langword="false"/>.</returns>
         private bool IsIdentifier(string? currentValue)
         {
             const string isIdentifierPattern = @"\A[a-zA-Z]+";
@@ -594,43 +695,83 @@ namespace SymbolicImplicationVerification.Converts
             return currentValue is not null && Regex.IsMatch(currentValue, isIdentifierPattern);
         }
 
+        /// <summary>
+        /// Determines whether the current position is a constant or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is a constant, otherwise <see langword="false"/>.</returns>
         private bool IsConstant(LinkedListNode<string>? current)
         {
             return IsConstant(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is a constant or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is a constant, otherwise <see langword="false"/>.</returns>
         private bool IsConstant(string? currentValue)
         {
-            const string constantPattern = @"-[0-9]*|[0-9]+|\\false|\\true";
+            const string constantPattern = @"-?[0-9]+|\\false|\\true";
 
             return currentValue is not null && Regex.IsMatch(currentValue, constantPattern);
         }
 
+        /// <summary>
+        /// Determines whether the current position is a numeric constant or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is a numeric constant, otherwise <see langword="false"/>.</returns>
         private bool IsNumberConstant(LinkedListNode<string>? current)
         {
             return IsNumberConstant(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is a numeric constant or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is a numeric constant, otherwise <see langword="false"/>.</returns>
         private bool IsNumberConstant(string? currentValue)
         {
             return currentValue is not null && int.TryParse(currentValue, out int result);
         }
 
+        /// <summary>
+        /// Determines whether the current position is a parameter end or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is a parameter end, otherwise <see langword="false"/>.</returns>
         private bool IsParameterEnd(LinkedListNode<string>? current)
         {
             return IsParameterEnd(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is a parameter end or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is a parameter end, otherwise <see langword="false"/>.</returns>
         private bool IsParameterEnd(string? currentValue)
         {
             return currentValue == "}";
         }
 
+        /// <summary>
+        /// Determines whether the current position is a type end or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is a type, otherwise <see langword="false"/>.</returns>
         private bool IsType(LinkedListNode<string>? current)
         {
             return IsType(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is a type end or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is a type, otherwise <see langword="false"/>.</returns>
         private bool IsType(string? currentValue)
         {
             if (currentValue is null)
@@ -651,11 +792,21 @@ namespace SymbolicImplicationVerification.Converts
             return types.Any(type => CommandPrefixMatch(currentValue, type));
         }
 
+        /// <summary>
+        /// Determines whether the current position is a program end or not.
+        /// </summary>
+        /// <param name="current">The current command part.</param>
+        /// <returns><see langword="true"/> if the current position is a program, otherwise <see langword="false"/>.</returns>
         private bool IsProgram(LinkedListNode<string>? current)
         {
             return IsProgram(current?.Value);
         }
 
+        /// <summary>
+        /// Determines whether the current command is a program end or not.
+        /// </summary>
+        /// <param name="currentValue">The current command part.</param>
+        /// <returns><see langword="true"/> if the current command is a program, otherwise <see langword="false"/>.</returns>
         private bool IsProgram(string? currentValue)
         {
             if (currentValue is null)
@@ -673,11 +824,24 @@ namespace SymbolicImplicationVerification.Converts
             return programs.Any(program => CommandPrefixMatch(currentValue, program));
         }
 
+
+        /// <summary>
+        /// Determines whether the command prefixes match or not.
+        /// </summary>
+        /// <param name="current">The current position.</param>
+        /// <param name="command">The command to check for.</param>
+        /// <returns><see langword="true"/> if the command prefixes match, otherwise <see langword="false"/></returns>
         private bool CommandPrefixMatch(LinkedListNode<string>? current, LatexCommand command)
         {
             return CommandPrefixMatch(current?.Value, command);
         }
 
+        /// <summary>
+        /// Determines whether the command prefixes match or not.
+        /// </summary>
+        /// <param name="current">The current command value.</param>
+        /// <param name="command">The command to check for.</param>
+        /// <returns><see langword="true"/> if the command prefixes match, otherwise <see langword="false"/></returns>
         private bool CommandPrefixMatch(string? current, LatexCommand command)
         {
             if (current is null)
@@ -690,6 +854,11 @@ namespace SymbolicImplicationVerification.Converts
             return current == commandPrefix;
         }
 
+        /// <summary>
+        /// Gets the parts of the command's latex representation.
+        /// </summary>
+        /// <param name="command">The given latex command.</param>
+        /// <returns></returns>
         private string[] CommandParts(LatexCommand command)
         {
             const char separatorChar = ';';
@@ -697,21 +866,9 @@ namespace SymbolicImplicationVerification.Converts
             return ToLatex(command).Split(separatorChar, bothSplitOptions);
         }
 
-        private int CommandArgumentCount(LatexCommand command)
-        {
-            return CommandParts(command).Length - 1;
-        }
-
-        //private bool EndOfParameterisedCommand(LinkedListNode<string>? current)
-        //{
-        //    if (current is null)
-        //    {
-        //        return false;
-        //    }
-
-        //    return current.Value == "}";
-        //}
-
+        /// <summary>
+        /// Updates the current <see cref="currentCommand"/> and the <see cref="currentArgumentIndex"/> fields.
+        /// </summary>
         private void UpdateCurrentCommandAndArgumentCounter()
         {
             LinkedListNode<string>? current      = pointer;
@@ -761,6 +918,11 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Returns the associated <see cref="LatexCommand"/> of the given command string.
+        /// </summary>
+        /// <param name="commandStart">The start of the command.</param>
+        /// <returns>The associated <see cref="LatexCommand"/> of the given command string.</returns>
         private LatexCommand? FindCommand(string commandStart)
         {
             LatexCommand[] commands = Enum.GetValues<LatexCommand>();
@@ -780,6 +942,11 @@ namespace SymbolicImplicationVerification.Converts
             return result;
         }
 
+        /// <summary>
+        /// Determines wheter the add command is enabled.
+        /// </summary>
+        /// <param name="command">The latex command to add.</param>
+        /// <returns><see langword="true"/> if it's enabled, otherwise <see langword="false"/>.</returns>
         private bool AddEnabled(LatexCommand command)
         {
             switch (command)
@@ -819,6 +986,11 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Determines wheter the add command is disabled.
+        /// </summary>
+        /// <param name="command">The latex command to add.</param>
+        /// <returns><see langword="true"/> if it's disabled, otherwise <see langword="false"/>.</returns>
         private bool AddDisabled(LatexCommand command)
         {
             switch (command)
@@ -845,7 +1017,9 @@ namespace SymbolicImplicationVerification.Converts
 
                 default:
 
-                    if (currentCommand is LatexCommand.IntegerInterval or LatexCommand.Summation)
+                    if (currentCommand is LatexCommand.IntegerInterval or 
+                                          LatexCommand.Summation       or
+                                          LatexCommand.ArrayVariable)
                     {
                         return !(command is LatexCommand.LeftParentheses  or 
                                             LatexCommand.RightParentheses or
@@ -868,6 +1042,10 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Determines wheter the add new identifier is enabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if it's enabled, otherwise <see langword="false"/>.</returns>
         private bool AddNewIdentifierEnabled()
         {
             return (currentCommand == LatexCommand.Summation && (currentArgumentIndex == firstArgument || currentArgumentIndex == fourthArgument)) ||
@@ -876,11 +1054,19 @@ namespace SymbolicImplicationVerification.Converts
                    (currentCommand == LatexCommand.UniversallyQuantifiedFormula && (currentArgumentIndex == firstArgument || currentArgumentIndex == thirdArgument));
         }
 
+        /// <summary>
+        /// Determines wheter the add identifier is enabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if it's enabled, otherwise <see langword="false"/>.</returns>
         private bool AddIdentifierEnabled()
         {
             return currentCommand is not null;
         }
 
+        /// <summary>
+        /// Determines wheter the add identifier is disabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if it's disabled, otherwise <see langword="false"/>.</returns>
         private bool AddIdentifierDisabled()
         {
             bool result = false;
@@ -924,11 +1110,19 @@ namespace SymbolicImplicationVerification.Converts
             return result;
         }
 
+        /// <summary>
+        /// Determines wheter the add constant is enabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if it's enabled, otherwise <see langword="false"/>.</returns>
         private bool AddConstantEnabled()
         {
             return currentCommand is not null;
         }
 
+        /// <summary>
+        /// Determines wheter the add constant is disabled.
+        /// </summary>
+        /// <returns><see langword="true"/> if it's disabled, otherwise <see langword="false"/>.</returns>
         private bool AddConstantDisabled()
         {
             bool result = false;

@@ -139,6 +139,12 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             return new Multiplication(this);
         }
 
+        /// <summary>
+        /// Creates an instance of the current binary operation.
+        /// </summary>
+        /// <param name="leftOperand">The left operand of the binary operation.</param>
+        /// <param name="rightOperand">The right operand of the binary operation.</param>
+        /// <returns>The newly created binary operatin.</returns>
         public override Multiplication CreateInstance(IntegerTypeTerm leftOperand, IntegerTypeTerm rightOperand)
         {
             return new Multiplication(leftOperand, rightOperand);
@@ -216,6 +222,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
                    rightOperand.Matches(multiplication.rightOperand);
         }
 
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
         public override IntegerTypeTerm Evaluated()
         {
             return Evaluated(
@@ -228,28 +238,38 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #region Protected methods
 
+        /// <summary>
+        /// Creates a simplified version of the multiplication.
+        /// </summary>
+        /// <param name="left">The left operand of the multiplication.</param>
+        /// <param name="right">The right operand of the multiplication.</param>
+        /// <returns>The simplified verion of the multiplication.</returns>
         protected override IntegerTypeTerm Simplified(IntegerTypeTerm left, IntegerTypeTerm right) => (left, right) switch
         {
             (IntegerTypeConstant leftConstant, IntegerTypeConstant rightConstant)
-                => new IntegerConstant(leftConstant.Value * rightConstant.Value),
+                => new IntegerTypeConstant(leftConstant.Value * rightConstant.Value),
 
             (IntegerTypeConstant constant, _) => constant.Value switch
             {
                 multiplicativeNeutralElement => right,
-                additiveNeutralElement => new IntegerConstant(additiveNeutralElement),
+                additiveNeutralElement => new IntegerTypeConstant(additiveNeutralElement),
                 _ => new Multiplication(constant, right)
             },
 
             (_, IntegerTypeConstant constant) => constant.Value switch
             {
                 multiplicativeNeutralElement => left,
-                additiveNeutralElement => new IntegerConstant(additiveNeutralElement),
+                additiveNeutralElement => new IntegerTypeConstant(additiveNeutralElement),
                 _ => new Multiplication(constant, left)
             },
 
             (_, _) => new Multiplication(left, right)
         };
 
+        /// <summary>
+        /// Creates a linearized version of the binary operation.
+        /// </summary>
+        /// <returns>The linearized version of the binary operation.</returns>
         protected override IntegerTypeLinearOperationTerm Linearized()
         {
             return Linearized(

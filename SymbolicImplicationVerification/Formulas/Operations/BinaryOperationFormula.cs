@@ -1,16 +1,17 @@
-﻿using SymbolicImplicationVerification.Formulas.Relations;
-using SymbolicImplicationVerification.Terms;
-using SymbolicImplicationVerification.Types;
-using static System.Net.Mime.MediaTypeNames;
-
-namespace SymbolicImplicationVerification.Formulas.Operations
+﻿namespace SymbolicImplicationVerification.Formulas.Operations
 {
     public abstract class BinaryOperationFormula : Formula
     {
         #region Fields
 
+        /// <summary>
+        /// The left operand of the binary operation.
+        /// </summary>
         protected Formula leftOperand;
 
+        /// <summary>
+        /// The right operand of the binary operation.
+        /// </summary>
         protected Formula rightOperand;
 
         #endregion
@@ -31,12 +32,18 @@ namespace SymbolicImplicationVerification.Formulas.Operations
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the left operand of the binary operation.
+        /// </summary>
         public Formula LeftOperand
         {
             get { return leftOperand; }
             set { leftOperand = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the right operand of the binary operation.
+        /// </summary>
         public Formula RightOperand
         {
             get { return rightOperand; }
@@ -53,12 +60,29 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         /// <returns>The created deep copy of the binary operation program.</returns>
         public override abstract BinaryOperationFormula DeepCopy();
 
+        /// <summary>
+        /// Gets the linear operands of the given operation.
+        /// </summary>
+        /// <returns>The linear operands of the given operation.</returns>
         public abstract LinkedList<Formula> LinearOperands();
 
+        /// <summary>
+        /// Gets the recursive linear operands of the given operation.
+        /// </summary>
+        /// <returns>The recursive linear operands of the given operation.</returns>
         public abstract LinkedList<Formula> RecursiveLinearOperands();
 
+        /// <summary>
+        /// Gets the simplified linear operands of the given operation.
+        /// </summary>
+        /// <returns>The simplified linear operands of the given operation.</returns>
         public abstract LinkedList<Formula> SimplifiedLinearOperands();
 
+        /// <summary>
+        /// Binarize the given formulas.
+        /// </summary>
+        /// <param name="formulas">The list of formulas.</param>
+        /// <returns>The result of the operation.</returns>
         public abstract BinaryOperationFormula Binarize(LinkedList<Formula> formulas);
 
         #endregion
@@ -84,6 +108,12 @@ namespace SymbolicImplicationVerification.Formulas.Operations
 
         #region Protected methods
 
+        /// <summary>
+        /// Gets the linear operands of the given operation.
+        /// </summary>
+        /// <param name="predicate">Which operands to select.</param>
+        /// <param name="recursive">Determines whether the operation is recursive or not.</param>
+        /// <returns>The linear operands of the given operation.</returns>
         protected LinkedList<Formula> LinearOperands(
             Func<BinaryOperationFormula, bool> predicate, bool recursive = false)
         {
@@ -114,6 +144,12 @@ namespace SymbolicImplicationVerification.Formulas.Operations
             return operands;
         }
 
+        /// <summary>
+        /// Returns the simplified linear operands.
+        /// </summary>
+        /// <param name="simplify">How to simplify the operands.</param>
+        /// <param name="resultPredicate">Which operands to select.</param>
+        /// <returns>The result of the operation.</returns>
         protected LinkedList<Formula> SimplifiedLinearOperands<T>(
             Func<Formula, Formula, Formula> simplify,
             Func<Formula, Formula, Formula, bool> resultPredicate) where T : Type
@@ -122,67 +158,6 @@ namespace SymbolicImplicationVerification.Formulas.Operations
 
             LinkedListNode<Formula>? currentNode = operands.First;
             LinkedListNode<Formula>? nextNode = currentNode?.Next;
-
-            //while (currentNode is not null)
-            //{
-            //    if (currentNode.Value is BinaryRelationFormula<T> current)
-            //    {
-            //        while (nextNode is not null)
-            //        {
-            //            if (nextNode.Value is BinaryRelationFormula<T> next)
-            //            {
-            //                Formula result = simplify(current, next);
-
-            //                if (resultPredicate(result) && currentNode is not null)
-            //                {
-            //                    operands.AddAfter(currentNode, result);
-
-            //                    operands.Remove(currentNode);
-            //                    operands.Remove(nextNode);
-
-            //                    operands.AddFirst(result);
-
-            //                    currentNode = operands.First;
-            //                    nextNode    = currentNode;
-            //                }
-            //            }
-
-            //            nextNode = nextNode?.Next;
-            //        }
-            //    }
-
-            //    currentNode = currentNode?.Next;
-            //    nextNode    = currentNode?.Next;
-            //}
-
-            //while (currentNode is not null)
-            //{
-            //    while (nextNode is not null)
-            //    {
-            //        if (currentNode!.Value is BinaryRelationFormula<T> current &&
-            //            nextNode.Value     is BinaryRelationFormula<T> next)
-            //        {
-            //            Formula result = simplify(current, next);
-
-            //            if (resultPredicate(result))
-            //            {
-            //                LinkedListNode<Formula> resultNode
-            //                    = operands.AddAfter(currentNode, result);
-
-            //                operands.Remove(currentNode);
-            //                operands.Remove(nextNode);
-
-            //                currentNode = resultNode;
-            //                nextNode    = resultNode;
-            //            }
-            //        }
-
-            //        nextNode = nextNode.Next;
-            //    }
-
-            //    currentNode = currentNode.Next;
-            //    nextNode    = currentNode?.Next;
-            //}
 
             while (currentNode is not null)
             {
@@ -211,6 +186,12 @@ namespace SymbolicImplicationVerification.Formulas.Operations
             return operands;
         }
 
+        /// <summary>
+        /// How to binarize the given linear formulas.
+        /// </summary>
+        /// <param name="formulas">The list of linear formulas.</param>
+        /// <param name="binarize">How to binarize the formulas.</param>
+        /// <returns>The result of the operation.</returns>
         protected T? Binarize<T>(
             LinkedList<Formula> formulas, Func<Formula, Formula, T> binarize) where T : BinaryOperationFormula
         {

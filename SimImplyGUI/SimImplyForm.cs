@@ -1,4 +1,5 @@
 using SymbolicImplicationVerification.Converts;
+using SymbolicImplicationVerification.Implies;
 using SymbolicImplicationVerification.Model;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -10,16 +11,6 @@ namespace SimImplyGUI
     {
         #region Fields
 
-        //private LatexEditor stateSpaceEditor;
-
-        //private LinkedList<LatexEditor> formulaEditors;
-
-        //private LinkedList<LatexEditor> implyEditors;
-
-        //private LinkedListNode<LatexEditor>? currentEditorNode;
-
-        //private LatexEditor currentEditor;
-
         private SimImplyModel model;
 
         private Action? modificationAction;
@@ -30,18 +21,10 @@ namespace SimImplyGUI
         {
             InitializeComponent();
 
-            //stateSpaceEditor = new LatexEditor();
-
-            //formulaEditors = new LinkedList<LatexEditor>();
-            //implyEditors   = new LinkedList<LatexEditor>();
-
             model = new SimImplyModel();
 
             StateSpaceView();
             SetupMenus();
-
-            //StateSpaceView();
-            //FormulaView();
         }
 
         public void StateSpaceView()
@@ -629,10 +612,10 @@ namespace SimImplyGUI
             };
 
             identifierTextBox.TextChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
-            variableListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
-            formulaListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
-            arrayVariableListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
             numericUpDown.ValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
+            //variableListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
+            //formulaListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
+            //arrayVariableListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, symbolAdditionFocusChange);
 
             identifierTextBox.MouseEnter += (sender, e) => ChangeStatusLabel(sender, e, "Formula azonosító, index változó, vagy kvantor által kötött változó megadása.");
             variableListBox.MouseEnter += (sender, e) => ChangeStatusLabel(sender, e, "Az állapottérben bevezetett egyik változó megadása.");
@@ -697,6 +680,12 @@ namespace SimImplyGUI
                 formulaListBox.Enabled = IndentifierEnabled;
                 arrayVariableListBox.Enabled = IndentifierEnabled;
                 numericUpDown.Enabled = model.ConstantEnabled();
+
+                int currentEditorIndex = model.CurrentEditorIndex;
+                int? currentEditorCount = model.CurrentEditorListCount;
+
+                nextFormulaButton.Enabled = currentEditorIndex + 1 != currentEditorCount;
+                prevFormulaButton.Enabled = currentEditorIndex != 0;
             };
 
             Action nonModificationAction = delegate ()
@@ -741,7 +730,7 @@ namespace SimImplyGUI
                 // Run the modification action.
                 modificationAction();
 
-                int  currentEditorIndex = model.CurrentEditorIndex;
+                int currentEditorIndex = model.CurrentEditorIndex;
                 int? currentEditorCount = model.CurrentEditorListCount;
 
                 if (currentEditorCount is null)
@@ -765,13 +754,29 @@ namespace SimImplyGUI
                 counterLabel.Text = $"{model.CurrentEditorIndex + 1} / {model.CurrentEditorListCount}";
             };
 
-            Action addSymbolAction = delegate ()
+            Action addNewVariableOrNumber = delegate ()
             {
                 if (identifierTextBox.Text.Length > 0)
                 {
                     model.Add(identifierTextBox.Text);
                 }
-                else if (variableListBox.SelectedItem is string variableName)
+                else
+                {
+                    model.Add(Convert.ToInt32(numericUpDown.Value));
+
+                    numericUpDown.Value = 0;
+                }
+
+                // Do the modification action.
+                modificationAction();
+
+                // Refresh the controls.
+                controlsEnabledRefresh();
+            };
+
+            Action addSymbolAction = delegate ()
+            {
+                if (variableListBox.SelectedItem is string variableName)
                 {
                     model.Add(variableName);
 
@@ -790,12 +795,6 @@ namespace SimImplyGUI
                     model.MoveRight();
 
                     arrayVariableListBox.SelectedItem = null;
-                }
-                else
-                {
-                    model.Add(Convert.ToInt32(numericUpDown.Value));
-
-                    numericUpDown.Value = 0;
                 }
 
                 // Do the modification action.
@@ -968,13 +967,206 @@ namespace SimImplyGUI
             subtractionButton.Click += (sender, e) => LatexCommand_Click(sender, e, LatexCommand.Subtraction, modificationAction);
             multiplicationButton.Click += (sender, e) => LatexCommand_Click(sender, e, LatexCommand.Multiplication, modificationAction);
 
-            addSymbolButton.Click += (sender, e) => RunAction_Click(sender, e, addSymbolAction);
+            addSymbolButton.Click += (sender, e) => RunAction_Click(sender, e, addNewVariableOrNumber);
+
+            variableListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, addSymbolAction);
+            formulaListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, addSymbolAction);
+            arrayVariableListBox.SelectedValueChanged += (sender, e) => RunAction_Click(sender, e, addSymbolAction);
 
             // Change the current editor.
             editorChanged();
 
             // Change to the basic controls.
             changeBetweenControls();
+        }
+
+        private void SetupResult()
+        {
+            const int firstLayoutColumnCount = 2;
+
+            Text = "Implikációs állítások - Kiértékelés";
+
+            counterLabel.Text = "1 / 1";
+
+            // Change to formula editior mode.
+            model.EditorMode = CurrentEditorMode.None;
+
+            // Remove all previous controls.
+            tableLayoutPanel.Controls.Clear();
+
+            // Get the list of evaluations and errors from the model.
+            LinkedList<ImplyEvaluation> evaluations = model.Evaluate(out LinkedList<string> errors);
+
+            bool hasErrors = errors.Count != 0;
+
+            int firstLayoutRowCount = evaluations.Count + errors.Count + 6;
+            //int firstLayoutRowCount = evaluations.Count + (hasErrors ? errors.Count + 1 : 0);
+
+            // Set the number of rows and columns.
+            tableLayoutPanel.RowCount    = firstLayoutRowCount;
+            tableLayoutPanel.ColumnCount = firstLayoutColumnCount;
+
+            // Clear the previous styles.
+            tableLayoutPanel.RowStyles.Clear();
+            tableLayoutPanel.ColumnStyles.Clear();
+
+            // Add the column styles.
+            tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 30));
+            tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+            // Add the row styles.
+            for (int i = 0; i < firstLayoutRowCount - 1; ++i)
+            {
+                tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            }
+
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 1));
+
+            if (errors.Count > 0)
+            {
+                Label errorTitle = new Label();
+
+                errorTitle.Text = "Hibaüzenetek:";
+                errorTitle.Dock = DockStyle.Fill;
+
+                tableLayoutPanel.Controls.Add(errorTitle);
+                tableLayoutPanel.SetColumnSpan(errorTitle, 2);
+            }
+
+            foreach (string error in errors)
+            {
+                Label errorLabel = new Label();
+                Label messageLabel = new Label();
+
+                errorLabel.Text = "\u274E";
+                errorLabel.Dock = DockStyle.Fill;
+                errorLabel.ForeColor = Color.Red;
+                errorLabel.TextAlign = ContentAlignment.TopCenter;
+                messageLabel.Text = error;
+                messageLabel.Dock = DockStyle.Fill;
+
+                tableLayoutPanel.Controls.Add(errorLabel);
+                tableLayoutPanel.Controls.Add(messageLabel);
+            }
+
+            if (errors.Count > 0)
+            {
+                Label lineLabel1 = new Label();
+
+                lineLabel1.BorderStyle = BorderStyle.Fixed3D;
+                lineLabel1.Height = 2;
+                lineLabel1.Dock   = DockStyle.Fill;
+
+                tableLayoutPanel.Controls.Add(lineLabel1);
+                tableLayoutPanel.SetColumnSpan(lineLabel1, 2);
+            }
+
+            if (evaluations.Count > 0)
+            {
+                Label evalTitle = new Label();
+
+                evalTitle.Text = "A következtetések kiértékelése:";
+                evalTitle.Dock = DockStyle.Fill;
+
+                tableLayoutPanel.Controls.Add(evalTitle);
+                tableLayoutPanel.SetColumnSpan(evalTitle, 2);
+            }
+
+            int index = 1;
+
+            foreach (ImplyEvaluation eval in evaluations)
+            {
+                ImplyEvaluationResult result = eval.EvaluationResult();
+
+                Label resultLabel = new Label();
+                Label messageLabel = new Label();
+
+                string resultMessage;
+
+                switch (result)
+                {
+                    case ImplyEvaluationResult.True:
+                        resultLabel.Text = "\u2705";
+                        resultLabel.ForeColor = Color.Green;
+                        resultMessage = "Teljesül.";
+                        break;
+
+                    case ImplyEvaluationResult.False:
+                        resultLabel.Text = "\u274E";
+                        resultLabel.ForeColor = Color.Red;
+                        resultMessage = "Nem teljesül.";
+                        break;
+
+                    default:
+                        resultLabel.Text = "\uFFFD";
+                        resultLabel.ForeColor = Color.Black;
+                        resultMessage = "Nem eldönthetõ a program jelenlegi tudása szerint.";
+                        break;
+                };
+
+                messageLabel.Text = $"Implikáció kiértékelése (Sorszám: {index} / {evaluations.Count}): {resultMessage}";
+                messageLabel.Dock = DockStyle.Fill;
+                resultLabel.Dock = DockStyle.Fill;
+                resultLabel.TextAlign = ContentAlignment.TopCenter;
+
+                tableLayoutPanel.Controls.Add(resultLabel);
+                tableLayoutPanel.Controls.Add(messageLabel);
+
+                ++index;
+            }
+
+            Label lineLabel2 = new Label();
+
+            lineLabel2.BorderStyle = BorderStyle.Fixed3D;
+            lineLabel2.Height = 2;
+            lineLabel2.Dock   = DockStyle.Fill;
+
+            tableLayoutPanel.Controls.Add(lineLabel2);
+            tableLayoutPanel.SetColumnSpan(lineLabel2, 2);
+
+            if (evaluations.Count > 0)
+            {
+                Label resLabel = new Label();
+                Button resultButton = new Button();
+
+                resLabel.Text = "Levezetés megtekintése: Az állítások igazolása lementhetõ .tex és .pdf formátumban.";
+                resLabel.Dock = DockStyle.Fill;
+
+                resultButton.Text = "Levezetések exportálása fájlba";
+                resultButton.Dock = DockStyle.Top;
+                resultButton.Height = 40;
+
+                tableLayoutPanel.Controls.Add(resLabel);
+                tableLayoutPanel.SetColumnSpan(resLabel, 2);
+
+                tableLayoutPanel.Controls.Add(resultButton);
+                tableLayoutPanel.SetColumnSpan(resultButton, 2);
+
+                resultButton.Click += ExportAction;
+            }
+        }
+
+        private async void ExportAction(object? sender, EventArgs e)
+        {
+            saveFileDialog.Filter = "Tex fájl (*.tex)|*.tex|Tex és pdf fájl (*.tex;*.pdf)|*.tex;*.pdf";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    bool saveBothFormats = saveFileDialog.FilterIndex == 2;
+
+                    await model.WriteEvaluationsAsync(saveFileDialog.FileName, saveBothFormats);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(
+                        "Mentése sikertelen!" + Environment.NewLine +
+                        "Hibás az elérési út, vagy a könyvtár nem írható.",
+                        "Hiba!", MessageBoxButtons.OK, MessageBoxIcon.Error
+                    );
+                }
+            }
         }
 
         private void SetupMenus()
@@ -984,8 +1176,6 @@ namespace SimImplyGUI
             implyMenu.Checked = model.EditorMode == CurrentEditorMode.ImplyEditors;
             resultMenu.Checked = model.EditorMode == CurrentEditorMode.None;
         }
-
-
 
         private void ResetMenuItem_Click(object? sender, EventArgs e)
         {
@@ -1008,11 +1198,16 @@ namespace SimImplyGUI
 
         private async void LoadMenuItem_Click(object? sender, EventArgs e)
         {
+            openFileDialog.Filter = "Implikációs fájl (*.stl)|*.stl|Szöveges (*.txt)|*.txt";
+
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
                     await model.LoadAsync(openFileDialog.FileName);
+
+                    StateSpaceView();
+                    SetupMenus();
                 }
                 catch (Exception)
                 {
@@ -1029,6 +1224,8 @@ namespace SimImplyGUI
 
         private async void SaveMenuItem_Click(object? sender, EventArgs e)
         {
+            saveFileDialog.Filter = "Implikációs fájl (*.stl)|*.stl|Szöveges (*.txt)|*.txt";
+
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 try
@@ -1132,6 +1329,12 @@ namespace SimImplyGUI
             }
         }
 
+        private void ResultMenu_Clikc(object? sender, EventArgs e)
+        {
+            SetupResult();
+            SetupMenus();
+        }
+
         private void EditorCreateNew_Click(object? sender, EventArgs e, Action action)
         {
             if (model.EditorMode is CurrentEditorMode.FormulaEditors or CurrentEditorMode.ImplyEditors)
@@ -1213,258 +1416,6 @@ namespace SimImplyGUI
             action();
         }
 
-        //private void LeftParentheses_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.LeftParentheses);
-        //    action();
-        //}
-
-        //private void RightParentheses_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.RightParentheses);
-        //    action();
-        //}
-
-        //private void Addition_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Addition);
-        //    action();
-        //}
-
-        //private void Subtraction_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Subtraction);
-        //    action();
-        //}
-
-        //private void Multiplication_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Multiplication);
-        //    action();
-        //}
-
-        //private void Equal_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Equal);
-        //    action();
-        //}
-
-        //private void NotEqual_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.NotEqual);
-        //    action();
-        //}
-
-        //private void LessThan_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.LessThan);
-        //    action();
-        //}
-
-        //private void GreaterThan_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.GreaterThan);
-        //    action();
-        //}
-
-        //private void LessThanOrEqual_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.LessThanOrEqual);
-        //    action();
-        //}
-
-        //private void GreaterThanOrEqual_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.GreaterThanOrEqual);
-        //    action();
-        //}
-
-        //private void Divisor_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Divisor);
-        //    action();
-        //}
-
-        //private void NotDivisor_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.NotDivisor);
-        //    action();
-        //}
-
-        //private void Conjunction_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Conjunction);
-        //    action();
-        //}
-
-        //private void Disjunction_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Disjunction);
-        //    action();
-        //}
-
-        //private void Implication_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Implication);
-        //    action();
-        //}
-
-        //private void TrueConstant_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.TrueConstant);
-        //    action();
-        //}
-
-        //private void FalseConstant_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.FalseConstant);
-        //    action();
-        //}
-
-        //private void TrueFormula_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.TrueFormula);
-        //    action();
-        //}
-
-        //private void FalseFormula_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.FalseFormula);
-        //    action();
-        //}
-
-        //private void NotEvaluableFormula_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.NotEvaluableFormula);
-        //    action();
-        //}
-
-        //private void Abort_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Abort);
-        //    action();
-        //}
-
-        //private void Skip_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Skip);
-        //    action();
-        //}
-
-        //private void Boolean_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Boolean);
-        //    action();
-        //}
-
-        //private void Integer_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Integer);
-        //    action();
-        //}
-
-        //private void NaturalNumber_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.NaturalNumber);
-        //    action();
-        //}
-
-        //private void PositiveInteger_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.PositiveInteger);
-        //    action();
-        //}
-
-        //private void Negation_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Negation);
-        //    action();
-        //}
-
-        //private void ZeroOrOne_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.ZeroOrOne);
-        //    action();
-        //}
-
-        //private void Assignment_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Assignment);
-        //    action();
-        //}
-
-        //private void IntegerInterval_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.IntegerInterval);
-        //    action();
-        //}
-
-        //private void VariableDeclaration_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.VariableDeclaration);
-        //    action();
-        //}
-
-        //private void ArrayVariable_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.ArrayVariable);
-        //    action();
-        //}
-
-        //private void ArrayVariableDeclaration_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.ArrayVariableDeclaration);
-        //    action();
-        //}
-
-        //private void SymbolDeclaration_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.SymbolDeclaration);
-        //    action();
-        //}
-
-        //private void ChiFunction_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.ChiFunction);
-        //    action();
-        //}
-
-        //private void BetaFunction_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.BetaFunction);
-        //    action();
-        //}
-
-        //private void Imply_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Imply);
-        //    action();
-        //}
-
-        //private void UniversallyQuantifiedFormula_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.UniversallyQuantifiedFormula);
-        //    action();
-        //}
-
-        //private void ExistentiallyQuantifiedFormula_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.ExistentiallyQuantifiedFormula);
-        //    action();
-        //}
-
-        //private void Summation_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.Summation);
-        //    action();
-        //}
-
-        //private void WeakestPrecondition_Click(object? sender, EventArgs e, Action action)
-        //{
-        //    currentEditor.Add(LatexCommand.WeakestPrecondition);
-        //    action();
-        //}
-
         private void RunAction_Click(object? sender, EventArgs e, Action action)
         {
             action();
@@ -1497,6 +1448,16 @@ namespace SimImplyGUI
 
             latexLabel.Visible = false;
             latexCodeLabel.Visible = false;
+        }
+
+        private void SimImplyForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            DialogResult result = MessageBox.Show(
+                "Biztosan ki szeretne lépni?", "Implikációs állítások belátása",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question
+            );
+
+            e.Cancel = result == DialogResult.No;
         }
     }
 }

@@ -4,7 +4,7 @@ using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class Integer : IntegerType, IValueValidator<int>, ISingleton<Integer>
+    public class Integer : IntegerType, IValueValidator<int>
     {
         #region Fields
 
@@ -61,7 +61,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>A string that represents the current object.</returns>
         public override string? ToString()
         {
-            return "\\mathbb{Z}";
+            return @"\Z";
         }
 
         /// <summary>

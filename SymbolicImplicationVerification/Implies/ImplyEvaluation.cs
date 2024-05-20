@@ -7,8 +7,14 @@ namespace SymbolicImplicationVerification.Implies
     {
         #region Fields
 
+        /// <summary>
+        /// The imply to evaluate.
+        /// </summary>
         protected Imply imply;
 
+        /// <summary>
+        /// The message of the evaluation.
+        /// </summary>
         protected string? message;
 
         #endregion
@@ -27,12 +33,18 @@ namespace SymbolicImplicationVerification.Implies
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the imply to evaluate.
+        /// </summary>
         public Imply Imply
         {
             get { return imply; }
             set { imply = value; }
         }
 
+        /// <summary>
+        /// Gets or sets message of the evaluation.
+        /// </summary>
         public string? Message
         {
             get { return message; }
@@ -43,6 +55,10 @@ namespace SymbolicImplicationVerification.Implies
 
         #region Public abstract methods
 
+        /// <summary>
+        /// Determines the result of the evaluation.
+        /// </summary>
+        /// <returns>The result of the evaluation.</returns>
         public abstract ImplyEvaluationResult EvaluationResult();
 
         #endregion

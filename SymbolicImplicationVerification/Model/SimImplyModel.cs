@@ -1,7 +1,8 @@
-﻿using SymbolicImplicationVerification.Converts;
+﻿using Aspose.Pdf;
+using SymbolicImplicationVerification.Converts;
 using SymbolicImplicationVerification.Implies;
-using SymbolicImplicationVerification.Persistence;
-using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SymbolicImplicationVerification.Model
@@ -320,10 +321,10 @@ namespace SymbolicImplicationVerification.Model
         public void StateSpaceVariables(out LinkedList<string> allVariables, out LinkedList<string> arrayVariables)
         {
             const string variableDeclaration
-                = @"\\declare\{(?<identifier>[a-zA-Z']+)\}";
+                = @"\\declare\{(?<identifier>[a-zA-Z'_0-9]+)\}";
 
             const string arrayVariableDeclaration
-                = @"\\declare\{(?<identifier>[a-zA-Z']+)\}\{\\arraytype\{.+\}\{(?<length>[a-zA-Z'0-9]+)\}\}";
+                = @"\\declare{(?<identifier>[a-zA-Z'_0-9]+)}{\\arraytype{(?>{(?<c>)|[^{}]+|}(?<-c>))*(?(c)(?!))}{(?<length>(?>{(?<c>)|[^{}]+|}(?<-c>))*(?(c)(?!)))}";
 
             string stateSpaceString = stateSpaceEditor.ToString();
 
@@ -354,7 +355,7 @@ namespace SymbolicImplicationVerification.Model
         public LinkedList<string> FormulaIndetifiers()
         {
             const string formulaDeclaration
-                = @"\\symboldeclare\{(?<identifier>[a-zA-Z']+)\}";
+                = @"\\symboldeclare\{(?<identifier>[a-zA-Z'_0-9]+)\}";
 
             LinkedList<string> result = new LinkedList<string>();
 
@@ -387,9 +388,9 @@ namespace SymbolicImplicationVerification.Model
             {
                 converter.DeclareStateSpace(stateSpaceEditor.ToString());
             }
-            catch (ConvertException exc)
+            catch (Exception exc)
             {
-                errors.AddLast($"Állapottér hiba: {exc.Message}");
+                errors.AddLast($"Hiba az állapottérbe: {exc.Message}");
             }
 
             int index = 1;
@@ -400,9 +401,9 @@ namespace SymbolicImplicationVerification.Model
                 {
                     converter.DeclareFormula(formulaEditor.ToString());
                 }
-                catch (ConvertException exc)
+                catch (Exception exc)
                 {
-                    errors.AddLast($"Formula hiba ({index} / {formulaEditors.Count}): {exc.Message}");
+                    errors.AddLast($"Formula hiba (Sorszáma: {index} / {formulaEditors.Count}): {exc.Message}");
                 }
 
                 ++index;
@@ -418,15 +419,62 @@ namespace SymbolicImplicationVerification.Model
 
                     evaluations.AddLast(imply.Evaluated());
                 }
-                catch (ConvertException exc)
+                catch (Exception exc)
                 {
-                    errors.AddLast($"Következtetés hiba ({index} / {implyEditors.Count}): {exc.Message}");
+                    errors.AddLast($"Implikációs hiba (Sorszáma: {index} / {implyEditors.Count}): {exc.Message}");
                 }
 
                 ++index;
             }
 
             return evaluations;
+        }
+
+        public async Task WriteEvaluationsAsync(string path, bool saveBothFormats)
+        {
+            const string documentBegin = @"\begin{document}";
+            const string documentEnd   = @"\end{document}";
+
+            string texFilePath = Path.ChangeExtension(path, ".tex");
+
+            using (StreamWriter writer = new StreamWriter(texFilePath, false, Encoding.Default))
+            {
+                await WritePreambleAsync(writer);
+
+                await writer.WriteLineAsync(documentBegin);
+                await writer.WriteLineAsync();
+
+                int counter = 1;
+
+                foreach (ImplyEvaluation evaluation in evaluations)
+                {
+                    await writer.WriteLineAsync($@"\textbf{{{counter}. Állítás igazolása}}");
+                    await writer.WriteLineAsync();
+                    await WriteEvaluationAsync(writer, evaluation);
+                    await writer.WriteLineAsync();
+
+                    ++counter;
+                }
+
+                await writer.WriteLineAsync(documentEnd);
+            }
+
+            if (saveBothFormats)
+            {
+                // The path to output PDF File.
+                string pdfFilePath = Path.ChangeExtension(path, ".pdf");
+
+                // Initialize TeXLoadOptions	
+                TeXLoadOptions texLoadOptions = new TeXLoadOptions();
+
+                using (Document pdfDocument = new Document(texFilePath, texLoadOptions))
+                {
+                    // Save PDF file
+                    // pdfDocument.Save(pdfFilePath);
+
+                    await pdfDocument.SaveAsync(pdfFilePath, CancellationToken.None);
+                }
+            }
         }
 
         #endregion
@@ -440,7 +488,7 @@ namespace SymbolicImplicationVerification.Model
         /// <returns>The loaded object.</returns>
         public async Task LoadAsync(string path)
         {
-            using (StreamReader reader = new StreamReader(path))
+            using (StreamReader reader = new StreamReader(path, Encoding.Default))
             {
                 string input = await reader.ReadLineAsync() ?? string.Empty;
 
@@ -511,7 +559,7 @@ namespace SymbolicImplicationVerification.Model
 
         #region Private methods
 
-        public LatexEditor CreateStateSpaceEditor()
+        private LatexEditor CreateStateSpaceEditor()
         {
             // Create the new state space editor.
             LatexEditor stateSpaceEditor = new LatexEditor();
@@ -530,7 +578,7 @@ namespace SymbolicImplicationVerification.Model
             return stateSpaceEditor;
         }
 
-        public LatexEditor CreateFormulaEditor()
+        private LatexEditor CreateFormulaEditor()
         {
             // Create the new formula editor.
             LatexEditor formulaEditor = new LatexEditor();
@@ -547,7 +595,7 @@ namespace SymbolicImplicationVerification.Model
             return formulaEditor;
         }
 
-        public LatexEditor CreateImplyEditor()
+        private LatexEditor CreateImplyEditor()
         {
             // Create the new formula editor.
             LatexEditor implyEditor = new LatexEditor();
@@ -562,6 +610,40 @@ namespace SymbolicImplicationVerification.Model
             implyEditor.Add(LatexCommand.Imply);
 
             return implyEditor;
+        }
+
+        private async Task WritePreambleAsync(StreamWriter writer, [CallerFilePath] string filePath = "")
+        {
+            const string preambleFile = "preamble.txt";
+
+            string? directoryPath = Path.GetDirectoryName(filePath);
+
+            if (directoryPath is not null)
+            {
+                using (StreamReader reader = new StreamReader(Path.Combine(directoryPath, preambleFile), Encoding.Default))
+                {
+                    string? line;
+
+                    while ((line = reader.ReadLine()) is not null)
+                    {
+                        await writer.WriteLineAsync(line);
+                    }
+                }
+            }
+        }
+
+        private async Task WriteEvaluationAsync(StreamWriter writer, ImplyEvaluation evaluation)
+        {
+            await writer.WriteLineAsync($@"\[ {evaluation.Imply} \]");
+            await writer.WriteLineAsync(evaluation.Message);
+
+            if (evaluation is ImplyEvaluationNode node)
+            {
+                foreach (ImplyEvaluation child in node.Evaluations)
+                {
+                    await WriteEvaluationAsync(writer, child);
+                }
+            }
         }
 
         #endregion

@@ -18,6 +18,9 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the value of the constant term.
+        /// </summary>
         public override int Constant
         {
             get { return AccumulateConstants(); }
@@ -34,7 +37,7 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                 }
                 else if (value != multiplicationNeutralValue)
                 {
-                    operandList.AddFirst(new IntegerConstant(value));
+                    operandList.AddFirst(new IntegerTypeConstant(value));
                 }
             }
         }
@@ -91,22 +94,29 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
 
         #region Protected methods
 
+        /// <summary>
+        /// Orders the operands.
+        /// </summary>
         protected override void OrderOperands()
         {
             OrderOperands((IntegerTypeTerm term) =>
             {
                 return term switch
                 {
-                    IntegerConstant                    => int.MaxValue,
+                    IntegerTypeConstant                => int.MaxValue,
                     ChiFunction                        => int.MaxValue - 1,
                     Summation                          => int.MaxValue - 2,
-                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerConstant),
+                    IntegerTypeLinearOperationTerm lin => lin.OperandList.Count(term => term is not IntegerTypeConstant),
                     Variable<IntegerType>              => 1,
                     _                                  => 0,
                 };
             });
         }
 
+        /// <summary>
+        /// Accumulates the constansts.
+        /// </summary>
+        /// <returns>The value of the accumulation.</returns>
         protected override int AccumulateConstants()
         {
             const int multiplicationNeutralValue = 1;
@@ -116,11 +126,17 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                 (accumulated, currentValue) => accumulated * currentValue
             );
 
-            operandList.AddFirst(new IntegerConstant(result));
+            operandList.AddFirst(new IntegerTypeConstant(result));
 
             return result;
         }
 
+        /// <summary>
+        /// Processes the next operand, than adds it to the group.
+        /// </summary>
+        /// <param name="processedGroup">The processed operand group.</param>
+        /// <param name="nextOperand">The next operand to process.</param>
+        /// <returns>The result of the process.</returns>
         protected override IntegerTypeTerm?
             ProcessNextOperand(IntegerTypeTerm? processedGroup, IntegerTypeTerm? nextOperand)
         {
@@ -137,7 +153,12 @@ namespace SymbolicImplicationVerification.Terms.Operations.Linear
                    new Multiplication(processedGroup, processedOperand) : processedOperand;
         }
 
-
+        /// <summary>
+        /// Processes the next group, than adds it to the group.
+        /// </summary>
+        /// <param name="accumulated">The accumulated groups.</param>
+        /// <param name="nextGroup">The next group to process.</param>
+        /// <returns>The accumulated groups.</returns>
         protected override IntegerTypeTerm
             ProcessNextGroup(IntegerTypeTerm accumulated, IntegerTypeTerm nextGroup)
         {

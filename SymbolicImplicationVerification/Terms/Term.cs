@@ -1,13 +1,6 @@
-﻿global using TypeTerm = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.Type>;
-global using IntegerTypeTerm = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>;
+﻿global using IntegerTypeTerm = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>;
 global using LogicalTerm = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.Logical>;
-
-using SymbolicImplicationVerification.Terms.Constants;
-using SymbolicImplicationVerification.Types;
-using SymbolicImplicationVerification.Terms.FunctionValues;
-using SymbolicImplicationVerification.Terms.Operations.Binary;
-using SymbolicImplicationVerification.Terms.Operations;
-using SymbolicImplicationVerification.Terms.Variables;
+global using TypeTerm = SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.Type>;
 
 namespace SymbolicImplicationVerification.Terms
 {
@@ -15,6 +8,9 @@ namespace SymbolicImplicationVerification.Terms
     {
         #region Fields
 
+        /// <summary>
+        /// The type of the term.
+        /// </summary>
         protected T termType;
 
         #endregion
@@ -30,6 +26,9 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the term type.
+        /// </summary>
         public T TermType
         {
             get { return termType; }
@@ -40,6 +39,11 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public abstract methods
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public abstract string Hash(HashLevel level);
 
         /// <summary>
@@ -58,18 +62,19 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public virtual methods
 
+        /// <summary>
+        /// Determines wheter the given <see cref="object"/> matches the pattern.
+        /// </summary>
+        /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
+        /// <returns>
+        ///   <list type="bullet">
+        ///     <item><see langword="true"/> - if the <see cref="object"/> matches the pattern.</item>
+        ///     <item><see langword="false"/> - otherwise.</item>
+        ///   </list>
+        /// </returns>
         public virtual bool Matches(object? obj)
         {
             return Equals(obj);
-        }
-
-        #endregion
-
-        #region Implicit conversions 
-
-        public static implicit operator TypeTerm(Term<T> term)
-        {
-            return term;
         }
 
         #endregion

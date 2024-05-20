@@ -12,7 +12,14 @@ namespace SymbolicImplicationVerification.Formulas
     {
         #region Fields
 
+        /// <summary>
+        /// The program of the weakest precondition.
+        /// </summary>
         private Program program;
+
+        /// <summary>
+        /// The statement of the weakest precondition.
+        /// </summary>
         private Formula statement;
 
         #endregion
@@ -36,12 +43,18 @@ namespace SymbolicImplicationVerification.Formulas
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the program of the weakest precondition.
+        /// </summary>
         public Program Program
         {
             get { return program; }
             set { program = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the statement of the weakest precondition.
+        /// </summary>
         public Formula Statement
         {
             get { return statement; }
@@ -58,7 +71,7 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
-            return string.Format("\\weakestprec{{{0}}}{{{1}}}", program, statement);
+            return @$"\weakestprec{{{program}}}{{{statement}}}";
         }
 
         /// <summary>

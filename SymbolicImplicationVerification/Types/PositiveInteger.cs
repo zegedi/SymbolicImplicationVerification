@@ -5,7 +5,7 @@ using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class PositiveInteger : IntegerType, IValueValidator<int>, ISingleton<PositiveInteger>
+    public class PositiveInteger : IntegerType, IValueValidator<int>
     {
         #region Fields
 
@@ -62,7 +62,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>A string that represents the current object.</returns>
         public override string? ToString()
         {
-            return "\\mathbb{N}^+";
+            return @"\posN";
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>The formulated constraint on the term.</returns>
         public override Formula TypeConstraintOn(IntegerTypeTerm term)
         {
-            IntegerConstant positiveIntegerLowerBound = new IntegerConstant(1);
+            IntegerTypeConstant positiveIntegerLowerBound = new IntegerTypeConstant(1);
             IntegerTypeTerm copyTerm = term.DeepCopy();
 
             return new GreaterThanOrEqualTo(copyTerm, positiveIntegerLowerBound);
@@ -200,7 +200,7 @@ namespace SymbolicImplicationVerification.Types
                 return IntersectionBounds(
                     bounded.LowerBound.DeepCopy(), 
                     bounded.UpperBound.DeepCopy(), 
-                    new IntegerConstant(positiveIntegerLowerBound)
+                    new IntegerTypeConstant(positiveIntegerLowerBound)
                 );
 
                 //IntegerTypeTerm otherLowerBound = bounded.LowerBound.DeepCopy();
@@ -256,7 +256,7 @@ namespace SymbolicImplicationVerification.Types
             if (other is BoundedIntegerType bounded)
             {
                 Formula subsetCondition = new LessThanOrEqualTo(
-                    new IntegerConstant(positiveIntegerLowerBound), bounded.LowerBound.DeepCopy()).Evaluated();
+                    new IntegerTypeConstant(positiveIntegerLowerBound), bounded.LowerBound.DeepCopy()).Evaluated();
 
                 return subsetCondition is TRUE ? NaturalNumber.Instance() : null;
             }

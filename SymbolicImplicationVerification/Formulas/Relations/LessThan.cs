@@ -22,12 +22,12 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         public LessThan(LessThanOrEqualTo lessThanOrEqualTo) : base(
             lessThanOrEqualTo.Identifier,
             lessThanOrEqualTo.LeftComponent.DeepCopy(),
-            (IntegerConstant)1 + lessThanOrEqualTo.RightComponent.DeepCopy()) { }
+            new IntegerTypeConstant(1) + lessThanOrEqualTo.RightComponent.DeepCopy()) { }
 
         public LessThan(GreaterThanOrEqualTo greaterThanOrEqualTo) : base(
             greaterThanOrEqualTo.Identifier,
             greaterThanOrEqualTo.RightComponent.DeepCopy(),
-            (IntegerConstant)1 + greaterThanOrEqualTo.LeftComponent.DeepCopy()) { }
+            new IntegerTypeConstant(1) + greaterThanOrEqualTo.LeftComponent.DeepCopy()) { }
 
         public LessThan(IntegerTypeTerm leftComponent, IntegerTypeTerm rightComponent)
             : base(null, leftComponent, rightComponent) { }
@@ -91,66 +91,11 @@ namespace SymbolicImplicationVerification.Formulas.Relations
             (Formula thisEval, Formula otherEval) => thisEval.Equals(otherEval)
         };
 
-        //public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
-        //{
-        //    bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
-        //                                 or LessThan         or LessThanOrEqualTo
-        //                                 or GreaterThan      or GreaterThanOrEqualTo;
-
-        //    //if (otherIsOrdering && AnyRearrangementEquals(this, other))
-        //    //{
-        //    //    bool allowesLessThan =
-        //    //        other is IntegerTypeNotEqual ||
-        //    //        other is LessThan or LessThanOrEqualTo && IdenticalSideRearrangementEquals(this, other) ||
-        //    //        other is GreaterThan or GreaterThanOrEqualTo && OppositeSideRearrangementEquals(this, other);
-
-        //    //    return allowesLessThan ? DeepCopy() : FALSE.Instance();
-        //    //}
-
-        //    if (otherIsOrdering)
-        //    {
-        //        if (Equivalent(other))
-        //        {
-        //            return DeepCopy();
-        //        }
-
-        //        if (AnyRearrangementEquals(this, other))
-        //        {
-        //            bool allowesLessThan =
-        //                other is IntegerTypeNotEqual ||
-        //                other is LessThan or LessThanOrEqualTo && IdenticalSideRearrangementEquals(this, other) ||
-        //                other is GreaterThan or GreaterThanOrEqualTo && OppositeSideRearrangementEquals(this, other);
-
-        //            return allowesLessThan ? DeepCopy() : FALSE.Instance();
-        //        }
-
-        //        if (other is LessThan or GreaterThan or LessThanOrEqualTo or GreaterThanOrEqualTo)
-        //        {
-        //            LessThan otherLessThan = new LessThan((dynamic) other);
-
-        //            var result = SubtractionBasedConjunctionWith(this, other);
-
-        //            if (result is not null)
-        //            {
-        //                return result;
-        //            }
-        //        }
-
-
-        //    }
-
-        //    bool otherIsDivisor = other is NotDivisor or Divisor;
-
-        //    if (otherIsDivisor && OppositeComponentsEquivalent(this, other))
-        //    {
-        //        bool divisorFormulaTrue = other is NotDivisor;
-
-        //        return divisorFormulaTrue ? TRUE.Instance() : FALSE.Instance();
-        //    }
-
-        //    return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
-        //}
-
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
         {
             Func<BinaryRelationFormula<IntegerType>, BinaryRelationFormula<IntegerType>, Formula> AnyRearrangementEqualsConjuctionWith
@@ -179,6 +124,11 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                 IdenticalComponentsEquivalentConjunctionWith, OppositeComponentsEquivalentConjunctionWith);
         }
 
+        /// <summary>
+        /// Calculate the disjunction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the disjunction.</param>
+        /// <returns>The result of the disjunction.</returns>
         public override Formula DisjunctionWith(BinaryRelationFormula<IntegerType> other)
         {
             bool otherIsOrdering = other is IntegerTypeEqual or IntegerTypeNotEqual
@@ -241,18 +191,6 @@ namespace SymbolicImplicationVerification.Formulas.Relations
         {
             IntegerTypeTerm left  = leftComponent .Evaluated();
             IntegerTypeTerm right = rightComponent.Evaluated();
-
-            if (left is IntegerTypeBinaryOperationTerm leftOperation &&
-                leftOperation.RearrangementEquals(leftComponent))
-            {
-                left = leftComponent;
-            }
-
-            if (right is IntegerTypeBinaryOperationTerm rightOperation &&
-                rightOperation.RearrangementEquals(rightComponent))
-            {
-                right = rightComponent;
-            }
 
             Subtraction leftMinusRight = new Subtraction(left, right);
 

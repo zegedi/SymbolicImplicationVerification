@@ -3,7 +3,7 @@ using System;
 
 namespace SymbolicImplicationVerification.Programs
 {
-    public class ABORT : Program, ISingleton<ABORT>
+    public class ABORT : Program
     {
         #region Fields
 

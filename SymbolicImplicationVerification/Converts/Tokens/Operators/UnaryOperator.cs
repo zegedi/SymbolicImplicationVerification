@@ -27,7 +27,7 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operators
                 return new FormulaOperand(createFormula(formula));
             }
 
-            throw new ConvertException($"Nem elvégezhető művelet: \"{ToString()} {operand}\"");
+            throw new ConvertException($"Nem elvégezhető művelet: \"{ToString()} {operand}\".");
         }
 
         #endregion

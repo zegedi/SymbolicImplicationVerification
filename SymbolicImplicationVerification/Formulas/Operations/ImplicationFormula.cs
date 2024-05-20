@@ -48,21 +48,38 @@ namespace SymbolicImplicationVerification.Formulas
                 ReturnOrDeepCopy(new ImplicationFormula(left.DeepCopy(), right.DeepCopy())) 
         };
 
+        /// <summary>
+        /// Gets the linear operands of the given operation.
+        /// </summary>
+        /// <returns>The linear operands of the given operation.</returns>
         public override LinkedList<Formula> LinearOperands()
         {
             return LinearOperands(binary => binary is ImplicationFormula);
         }
 
+        /// <summary>
+        /// Gets the recursive linear operands of the given operation.
+        /// </summary>
+        /// <returns>The recursive linear operands of the given operation.</returns>
         public override LinkedList<Formula> RecursiveLinearOperands()
         {
             return LinearOperands(binary => binary is ImplicationFormula, true);
         }
 
+        /// <summary>
+        /// Gets the simplified linear operands of the given operation.
+        /// </summary>
+        /// <returns>The simplified linear operands of the given operation.</returns>
         public override LinkedList<Formula> SimplifiedLinearOperands()
         {
             return LinearOperands();
         }
 
+        /// <summary>
+        /// Binarize the given formulas.
+        /// </summary>
+        /// <param name="formulas">The list of formulas.</param>
+        /// <returns>The result of the operation.</returns>
         public override ImplicationFormula Binarize(LinkedList<Formula> formulas)
         {
             ImplicationFormula? result = Binarize(

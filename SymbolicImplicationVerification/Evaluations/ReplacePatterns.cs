@@ -2,12 +2,8 @@
     SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>,
     SymbolicImplicationVerification.Terms.Term<SymbolicImplicationVerification.Types.IntegerType>>;
 
-using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Patterns;
-using SymbolicImplicationVerification.Types;
-using System;
-using System.Collections.ObjectModel;
 
 namespace SymbolicImplicationVerification.Evaluations
 {
@@ -15,10 +11,10 @@ namespace SymbolicImplicationVerification.Evaluations
     {
         #region Static fields
 
-        private static readonly IntegerConstant one  = new IntegerConstant(1);
-        private static readonly IntegerConstant two  = new IntegerConstant(2);
-        private static readonly IntegerConstant zero = new IntegerConstant(0);
-        private static readonly IntegerConstant minusOne = new IntegerConstant(-1);
+        private static readonly IntegerTypeConstant one  = new IntegerTypeConstant(1);
+        private static readonly IntegerTypeConstant two  = new IntegerTypeConstant(2);
+        private static readonly IntegerTypeConstant zero = new IntegerTypeConstant(0);
+        private static readonly IntegerTypeConstant minusOne = new IntegerTypeConstant(-1);
 
         private static readonly IntegerTypeAnythingPattern any1 = new IntegerTypeAnythingPattern(101);
         private static readonly IntegerTypeAnythingPattern any2 = new IntegerTypeAnythingPattern(102);
@@ -119,33 +115,6 @@ namespace SymbolicImplicationVerification.Evaluations
             {  (any1 - const1) - (const2 + any2),    any1 - (const1 + (const2 + any2)) },
             {  (any1 - const1) - (const2 - any2),    any1 - (const1 + (const2 + any2)) },
         };
-
-        /*
-        private static readonly Dictionary<Term<IntegerType>, Term<IntegerType>> OrderingRules = new Dictionary<Term<IntegerType>, Term<IntegerType>>
-        {
-            //=========================//
-            //   Commutative property  //
-            //=========================//
-            { const1 + var1  ,   var1 + const1 },
-            {   var1 * const1, const1 * var1   },
-
-            //===========================//
-            //   Asssociative property   //
-            //===========================//
-            {  (var1 + const1) + const2,    var1 + (const1 + const2) },
-            {  (var1 + const1) - const2,    var1 + (const1 - const2) },
-            {  (var1 - const1) + const2,    var1 - (const1 - const2) },
-            {  (var1 - const1) - const2,    var1 - (const1 + const2) },
-            { const1 * (const2 * var1) , (const1 * const2) * var1    },
-
-            //===========================================//
-            //   Commutative and asssociative property   //
-            //===========================================//
-            { (const1 + var1) + const2,              var1 + (const1 + const2) },
-            { (const1 - var1) + const2, (const1 + const2) - var1              },
-            { (const1 + var1) - const2,              var1 + (const1 - const2) },
-            { (const1 - var1) - const2, (const1 - const2) - var1              }
-        };*/
 
         public static readonly PatternMatches ConvertSubtractions = new PatternMatches
         {

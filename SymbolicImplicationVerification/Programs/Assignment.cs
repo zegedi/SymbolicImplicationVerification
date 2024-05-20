@@ -15,8 +15,15 @@ namespace SymbolicImplicationVerification.Programs
     {
         #region Fields
 
+        /// <summary>
+        /// The list of integer assignments.
+        /// </summary>
         private List<(Variable<IntegerType>, IntegerTypeTerm)> integerAssignments;
-        private List<(Variable<Logical>    , LogicalTerm)>     logicalAssignments;
+
+        /// <summary>
+        /// The list of logical assignments.
+        /// </summary>
+        private List<(Variable<Logical>, LogicalTerm)> logicalAssignments;
 
         #endregion
 
@@ -60,12 +67,18 @@ namespace SymbolicImplicationVerification.Programs
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the list of logical assignments.
+        /// </summary>
         public List<(Variable<IntegerType>, IntegerTypeTerm)> IntegerAssingments
         {
             get { return integerAssignments; }
             set { integerAssignments = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the list of logical assignments.
+        /// </summary>
         public List<(Variable<Logical>, LogicalTerm)> LogicalAssignments
         {
             get { return logicalAssignments; }
@@ -170,6 +183,11 @@ namespace SymbolicImplicationVerification.Programs
             return base.GetHashCode();
         }
 
+        /// <summary>
+        /// Substitute the assignments into the given formula.
+        /// </summary>
+        /// <param name="formula">The formula to substitute into.</param>
+        /// <returns>The result of the substitution.</returns>
         public Formula SubstituteAssignments(Formula formula)
         {
             if (formula is FALSE or NotEvaluable)

@@ -8,10 +8,13 @@ using System.Security.Cryptography;
 
 namespace SymbolicImplicationVerification.Formulas
 {
-    public abstract class Formula : INegatable<Formula>, IEvaluable<Formula>, IDeepCopy<Formula>
+    public abstract class Formula : IEvaluable<Formula>, IDeepCopy<Formula>
     {
         #region Fields
 
+        /// <summary>
+        /// The identifier of the formula.
+        /// </summary>
         protected string? identifier;
 
         #endregion
@@ -27,11 +30,17 @@ namespace SymbolicImplicationVerification.Formulas
 
         #region Public properties
 
+        /// <summary>
+        /// Determines if the formula has an indentifier or not.
+        /// </summary>
         public bool HasIdentifier
         {
             get { return identifier is not null; }
         }
 
+        /// <summary>
+        /// Gets or sets the identifier of the formula.
+        /// </summary>
         public string? Identifier
         {
             get { return identifier; }
@@ -144,11 +153,43 @@ namespace SymbolicImplicationVerification.Formulas
             return identifier is not null ? identifier : ToLatex();
         }
 
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public virtual Formula ConjunctionWith(Formula other)
         {
             return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
         }
 
+        /// <summary>
+        /// Calculate the disjunction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the disjunction.</param>
+        /// <returns>The result of the disjunction.</returns>
         public virtual Formula DisjunctionWith(Formula other)
         {
             return new DisjunctionFormula(DeepCopy(), other.DeepCopy());
@@ -198,6 +239,12 @@ namespace SymbolicImplicationVerification.Formulas
             return evaluation.Equivalent(negatedEvaluation);
         }
 
+        /// <summary>
+        /// Returns the other formula if it doesn't equal to the current formula,
+        /// otherwise the copy of the current formula.
+        /// </summary>
+        /// <param name="other">The other formula to compare with.</param>
+        /// <returns>The result of the compare.</returns>
         protected Formula ReturnOrDeepCopy(Formula other)
         {
             return other == this ? DeepCopy() : other;

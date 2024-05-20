@@ -54,24 +54,32 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operands
             return integerTypeTerm?.ToString() ?? logicalTerm?.ToString();
         }
 
-        public override void TryGetOperand(out IntegerTypeTerm? result)
+        public override bool TryGetOperand(out IntegerTypeTerm? result)
         {
             result = integerTypeTerm?.DeepCopy();
+
+            return result is not null;
         }
 
-        public override void TryGetOperand(out LogicalTerm? result)
+        public override bool TryGetOperand(out LogicalTerm? result)
         {
             result = logicalTerm?.DeepCopy();
+
+            return result is not null;
         }
 
-        public override void TryGetOperand(out Formula? result)
+        public override bool TryGetOperand(out Formula? result)
         {
             result = logicalTerm is not null ? new LogicalTermFormula(logicalTerm.DeepCopy()) : null;
+
+            return result is not null;
         }
 
-        public override void TryGetOperand(out Program? result)
+        public override bool TryGetOperand(out Program? result)
         {
             result = null;
+
+            return false;
         }
 
         #endregion

@@ -7,6 +7,9 @@ namespace SymbolicImplicationVerification.Formulas
     {
         #region Fields
 
+        /// <summary>
+        /// The operand of the unary operation.
+        /// </summary>
         protected Formula operand;
 
         #endregion
@@ -24,6 +27,9 @@ namespace SymbolicImplicationVerification.Formulas
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the operand of the unary operation.
+        /// </summary>
         public Formula Operand
         {
             get { return operand; }

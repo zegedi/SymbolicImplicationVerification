@@ -12,25 +12,29 @@ using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SymbolicImplicationVerification.Converts
 {
-    internal class Converter
+    public class Converter
     {
         #region Fields
 
+        /// <summary>
+        /// The list of converted formulas.
+        /// </summary>
         private List<Formula> formulas;
 
-        private List<Variable<IntegerType>> integerTypeVariables;
+        /// <summary>
+        /// The list of converted integer type variables.
+        /// </summary>
+        private List<IntegerTypeVariable> integerTypeVariables;
 
+        /// <summary>
+        /// The list of converted logical variables.
+        /// </summary>
         private List<Variable<Logical>> logicalVariables;
-
-        #endregion
-
-        #region Constant values
-
-        //private const string latexParameterRegex = "\\{(?>\\{(?<c>)|[^{}]+|\\}(?<-c>))*(?(c)(?!))\\}";
 
         #endregion
 
@@ -40,7 +44,7 @@ namespace SymbolicImplicationVerification.Converts
         {
             formulas = new List<Formula>();
 
-            integerTypeVariables = new List<Variable<IntegerType>>();
+            integerTypeVariables = new List<IntegerTypeVariable>();
 
             logicalVariables = new List<Variable<Logical>>();
         }
@@ -49,10 +53,15 @@ namespace SymbolicImplicationVerification.Converts
 
         #region Public methods
 
+        /// <summary>
+        /// Used to initialize all the variables.
+        /// </summary>
+        /// <param name="input">The input of the state space.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
         public void DeclareStateSpace(string input)
         {
             string stateSpacePattern =
-                $"\\symboldeclare{LatexParameterRegex()}{LatexParameterRegex("declarations")}";
+                $"\\A\\\\symboldeclare{LatexParameterRegex()}{LatexParameterRegex("declarations")}";
 
             Match stateSpacMatch = Regex.Match(input, stateSpacePattern);
 
@@ -66,10 +75,15 @@ namespace SymbolicImplicationVerification.Converts
             throw new ConvertException($"Nem található állapottér deklaráció a következő bemenet: \"{input}\"");
         }
 
+        /// <summary>
+        /// Used to initialize the given named formula.
+        /// </summary>
+        /// <param name="input">The input of the named formula.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
         public void DeclareFormula(string input)
         {
             string formulaDeclarationPattern =
-                $"\\symboldeclare{LatexParameterRegex("identifier")}{LatexParameterRegex("formula")}";
+                $"\\A\\\\symboldeclare{LatexParameterRegex("identifier")}{LatexParameterRegex("formula")}";
 
             Match formulaDeclarationMatch = Regex.Match(input, formulaDeclarationPattern);
 
@@ -78,14 +92,17 @@ namespace SymbolicImplicationVerification.Converts
                 string identifier   = formulaDeclarationMatch.Groups["identifier"].Value;
                 string formulaInput = formulaDeclarationMatch.Groups["formula"].Value;
 
-                Formula result = ConvertToFormula(formulaInput);
-
-                if (!(string.IsNullOrEmpty(identifier) || string.IsNullOrWhiteSpace(identifier)))
+                if (!(string.IsNullOrEmpty(formulaInput) && string.IsNullOrWhiteSpace(formulaInput)))
                 {
-                    result.Identifier = identifier;
-                }
+                    Formula result = ConvertToFormula(formulaInput);
 
-                formulas.Add(result);
+                    if (!(string.IsNullOrEmpty(identifier) && string.IsNullOrWhiteSpace(identifier)))
+                    {
+                        result.Identifier = identifier;
+                    }
+
+                    formulas.Add(result);
+                }
 
                 return;
             }
@@ -93,58 +110,88 @@ namespace SymbolicImplicationVerification.Converts
             throw new ConvertException($"Nem található formula deklaráció a következő bemenet: \"{input}\"");
         }
 
+        /// <summary>
+        /// Convert the given input string into an integer type term.
+        /// </summary>
+        /// <param name="input">The input of the term.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The result of the convertion.</returns>
         public IntegerTypeTerm ConvertToIntegerTypeTerm(string input)
         {
             Token result = ConvertInputString(input);
 
-            if (result is TermOperand termOperand && termOperand.IntegerTypeTerm is not null)
+            if (result is Operand operand && operand.TryGetOperand(out IntegerTypeTerm? term) && term is not null)
             {
-                return termOperand.IntegerTypeTerm.DeepCopy();
+                return term;
             }
 
             throw new ConvertException($"Nem konvertálható szám típusú kifejezéssé a token: \"{result}\"");
         }
 
+        /// <summary>
+        /// Convert the given input string into an logical term.
+        /// </summary>
+        /// <param name="input">The input of the term.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The result of the convertion.</returns>
         public LogicalTerm ConvertToLogicalTerm(string input)
         {
             Token result = ConvertInputString(input);
 
-            if (result is TermOperand termOperand && termOperand.LogicalTerm is not null)
+            if (result is Operand operand && operand.TryGetOperand(out LogicalTerm? term) && term is not null)
             {
-                return termOperand.LogicalTerm.DeepCopy();
+                return term;
             }
 
             throw new ConvertException($"Nem konvertálható logikai típusú kifejezéssé a következő token: \"{result}\"");
         }
 
+        /// <summary>
+        /// Convert the given input string into a formula.
+        /// </summary>
+        /// <param name="input">The input of the formula.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The result of the convertion.</returns>
         public Formula ConvertToFormula(string input)
         {
             Token result = ConvertInputString(input);
 
-            if (result is FormulaOperand formulaOperand)
+            if (result is Operand operand && operand.TryGetOperand(out Formula? formula) && formula is not null)
             {
-                return formulaOperand.Formula.DeepCopy();
+                return formula;
             }
 
             throw new ConvertException($"Nem konvertálható formulává a következő token: \"{result}\"");
         }
 
+        /// <summary>
+        /// Convert the given input string into a program.
+        /// </summary>
+        /// <param name="input">The input of the program.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The result of the convertion.</returns>
         public Program ConvertToProgram(string input)
         {
             Token result = ConvertInputString(input);
 
-            if (result is ProgramOperand programOperand)
+            if (result is Operand operand && operand.TryGetOperand(out Program? program) && program is not null)
             {
-                return programOperand.Program.DeepCopy();
+                return program;
             }
 
             throw new ConvertException($"Nem konvertálható programmá a következő bemenet: \"{input}\"");
         }
 
+        /// <summary>
+        /// Convert the given input string into an imply.
+        /// </summary>
+        /// <param name="input">The input of the imply.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The result of the convertion.</returns>
         public Imply ConvertToImply(string input)
         {
             string implyPattern =
-                $"\\imply{LatexParameterRegex("hypothesis")}{LatexParameterRegex("consequence")}";
+                $"\\A\\\\imply{LatexParameterRegex("hypothesis")}{LatexParameterRegex("consequence")}";
 
             Match implyMatch = Regex.Match(input, implyPattern);
 
@@ -163,6 +210,12 @@ namespace SymbolicImplicationVerification.Converts
 
         #region Private methods
 
+        /// <summary>
+        /// Converts the given input string into a <see cref="Token"/>.
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The result of the convertion.</returns>
         private Token ConvertInputString(string input)
         {
             LinkedList<Token> infixTokens = InfixTokens(input);
@@ -172,6 +225,12 @@ namespace SymbolicImplicationVerification.Converts
             return PostfixEvaluated(postfixTokens);
         }
 
+        /// <summary>
+        /// Converts the given input string into a list of infix tokens.
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The list of infix tokens.</returns>
         private LinkedList<Token> InfixTokens(string input)
         {
             LinkedList<Token> infixTokens = new LinkedList<Token>();
@@ -181,6 +240,12 @@ namespace SymbolicImplicationVerification.Converts
             return infixTokens;
         }
 
+        /// <summary>
+        /// Converts the given input string into a list of infix tokens.
+        /// </summary>
+        /// <param name="input">The input string.</param>
+        /// <param name="tokens">The list of infix tokens.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
         private void InfixTokens(string input, LinkedList<Token> tokens)
         {
             const char delimiterChar = ' ';
@@ -188,17 +253,62 @@ namespace SymbolicImplicationVerification.Converts
             const StringSplitOptions bothSplitOptions
                 = StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries;
 
+            string[] symbols = input.Split(delimiterChar, bothSplitOptions);
+
+            int openSymbolsCount = 0;
+
+            bool buildSymbols = false;
+
+            StringBuilder commandBuilder = new StringBuilder();
+
             foreach (string symbol in input.Split(delimiterChar, bothSplitOptions))
             {
-                foreach (string prefix in Prefixes(symbol))
+                const string parameterizedCommandBeginPattern  = @"\A\\[a-zA-Z]+{";
+                const string parameterizedCommandEndingPattern = @"}\z";
+
+                bool parameterizedCommandBegin = Regex.IsMatch(symbol, parameterizedCommandBeginPattern);
+                bool parameterizedCommandEnd   = Regex.IsMatch(symbol, parameterizedCommandEndingPattern);
+
+                bool notValidSymbol = parameterizedCommandBegin ^ parameterizedCommandEnd;
+
+                if (notValidSymbol || buildSymbols)
                 {
-                    Token token = ConvertToToken(prefix);
+                    commandBuilder.AppendFormat(buildSymbols ? " {0}" : "{0}", symbol);
+
+                    int  openBracketCount = symbol.Count(character => character == '{');
+                    int closeBracketCount = symbol.Count(character => character == '}');
+
+                    openSymbolsCount += openBracketCount - closeBracketCount;
+
+                    buildSymbols = openSymbolsCount != 0;
+                }
+
+                if (!buildSymbols)
+                {
+                    Token token;
+
+                    if (notValidSymbol)
+                    {
+                        token = ConvertToToken(commandBuilder.ToString());
+
+                        commandBuilder.Clear();
+                    }
+                    else
+                    {
+                        token = ConvertToToken(symbol);
+                    }
 
                     tokens.AddLast(token);
                 }
             }
         }
 
+        /// <summary>
+        /// Converts the symbol into a <see cref="Token"/>.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
+        /// <returns>The converted token.</returns>
         private Token ConvertToToken(string symbol)
         {
             switch (symbol)
@@ -294,16 +404,26 @@ namespace SymbolicImplicationVerification.Converts
             throw new ConvertException($"Ismeretlen szimbólum: \"{symbol}\"");
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into a number.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private TermOperand? TryConvertToNumber(string symbol)
         {
             if (int.TryParse(symbol, out int value))
             {
-                return new TermOperand(new IntegerConstant(value));
+                return new TermOperand(new IntegerTypeConstant(value));
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into a variable.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private TermOperand? TryConvertToVariable(string symbol)
         {
             Variable<IntegerType>? integerVariable = integerTypeVariables.Find(var => var.Identifier == symbol);
@@ -323,33 +443,14 @@ namespace SymbolicImplicationVerification.Converts
             return TryConvertToArrayVariable(symbol);
         }
 
-        //private TermOperand? TryConvertToNumberOrVariable(string symbol)
-        //{
-        //    if (int.TryParse(symbol, out int value))
-        //    {
-        //        return new TermOperand(new IntegerConstant(value));
-        //    }
-
-        //    Variable<IntegerType>? integerVariable = integerTypeVariables.Find(var => var.Identifier == symbol);
-
-        //    if (integerVariable is not null)
-        //    {
-        //        return new TermOperand(integerVariable.DeepCopy());
-        //    }
-
-        //    Variable<Logical>? logicalVariable = logicalVariables.Find(var => var.Identifier == symbol);
-
-        //    if (logicalVariable is not null)
-        //    {
-        //        return new TermOperand(logicalVariable.DeepCopy());
-        //    }
-
-        //    return null;
-        //}
-
+        /// <summary>
+        /// Tries to convert the input symbol into a function value.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private TermOperand? TryConvertToFunction(string symbol)
         {
-            string betaPattern = $"\\betafunc{LatexParameterRegex("argument")}";
+            string betaPattern = $"\\A\\\\betafunc{LatexParameterRegex("argument")}";
 
             Match betaMatch = Regex.Match(symbol, betaPattern);
             
@@ -360,7 +461,7 @@ namespace SymbolicImplicationVerification.Converts
                 return new TermOperand(new BetaFunction(argument));
             }
 
-            string chiPattern = $"\\chifunc{LatexParameterRegex("argument")}";
+            string chiPattern = $"\\A\\\\chifunc{LatexParameterRegex("argument")}";
 
             Match chiMatch = Regex.Match(symbol, chiPattern);
 
@@ -374,17 +475,24 @@ namespace SymbolicImplicationVerification.Converts
             return null;
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into a summation.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private TermOperand? TryConvertToSummation(string symbol)
         {
             string summationPattern = 
-                $"\\summation{LatexParameterRegex("currentFormula")}{LatexParameterRegex("lower")}" +
-                $"{LatexParameterRegex("upper")}{LatexParameterRegex("argument")}";
+                $"\\A\\\\summation{LatexParameterRegex("indexVariable")}{LatexParameterRegex("lower")}{LatexParameterRegex("upper")}{LatexParameterRegex("argument")}";
 
             Match summationMatch = Regex.Match(symbol, summationPattern);
 
             if (summationMatch.Success)
             {
-                string indexVariable  = summationMatch.Groups["currentFormula"].Value.Trim();
+                string indexVariable  = summationMatch.Groups["indexVariable"].Value.Trim();
+
+                integerTypeVariables.Add(new Variable<IntegerType>(indexVariable, Integer.Instance()));
+
                 IntegerTypeTerm lower = ConvertToIntegerTypeTerm(summationMatch.Groups["lower"].Value);
                 IntegerTypeTerm upper = ConvertToIntegerTypeTerm(summationMatch.Groups["upper"].Value);
                 IntegerTypeTerm argument = ConvertToIntegerTypeTerm(summationMatch.Groups["argument"].Value);
@@ -395,10 +503,15 @@ namespace SymbolicImplicationVerification.Converts
             return null;
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into an array variable.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private TermOperand? TryConvertToArrayVariable(string symbol)
         {
             string arrayVariablePattern =
-                $"\\arrayvar{LatexParameterRegex("identifier")}{LatexParameterRegex("index")}";
+                $"\\A\\\\arrayvar{LatexParameterRegex("identifier")}{LatexParameterRegex("index")}";
 
             Match arrayVariableMatch = Regex.Match(symbol, arrayVariablePattern);
 
@@ -435,10 +548,15 @@ namespace SymbolicImplicationVerification.Converts
             return null;
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into an assignment.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private ProgramOperand? TryConvertToAssignment(string symbol)
         {
             string assignmentPattern =
-                $"\\assign{LatexParameterRegex("variables")}{LatexParameterRegex("values")}";
+                $"\\A\\\\assign{LatexParameterRegex("variables")}{LatexParameterRegex("values")}";
 
             Match assignmentMatch = Regex.Match(symbol, assignmentPattern);
 
@@ -487,13 +605,18 @@ namespace SymbolicImplicationVerification.Converts
             return new ProgramOperand(new Assignment(integerVariables, logicalVariables));
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into a quantified formula.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private FormulaOperand? TryConvertToQuantifiedFormula(string symbol)
         {
             string universallyPattern =
-                $"\\universally{LatexParameterRegex("variable")}{LatexParameterRegex("type")}{LatexParameterRegex("statement")}";
+                $"\\A\\\\universally{LatexParameterRegex("variable")}{LatexParameterRegex("type")}{LatexParameterRegex("statement")}";
 
             string existentiallyPattern =
-                $"\\existentially{LatexParameterRegex("variable")}{LatexParameterRegex("type")}{LatexParameterRegex("statement")}";
+                $"\\A\\\\existentially{LatexParameterRegex("variable")}{LatexParameterRegex("type")}{LatexParameterRegex("statement")}";
 
             Match universallyMatch   = Regex.Match(symbol, universallyPattern);
             Match existentiallyMatch = Regex.Match(symbol, existentiallyPattern);
@@ -506,6 +629,15 @@ namespace SymbolicImplicationVerification.Converts
                     match.Groups["variable"].Value, match.Groups["type"].Value,
                     out Variable<IntegerType>? integerVariable, out Variable<Logical>? logicalVariable
                 );
+
+                if (integerVariable is not null)
+                {
+                    integerTypeVariables.Add(integerVariable);
+                }
+                else if (logicalVariable is not null)
+                {
+                    logicalVariables.Add(logicalVariable);
+                }
 
                 Formula statement = ConvertToFormula(match.Groups["statement"].Value);
 
@@ -530,6 +662,11 @@ namespace SymbolicImplicationVerification.Converts
             return null;
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into a formula.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private FormulaOperand? TryConvertToFormula(string symbol)
         {
             Formula? formula = formulas.Find(currentFormula => currentFormula.Identifier == symbol);
@@ -537,10 +674,15 @@ namespace SymbolicImplicationVerification.Converts
             return formula is not null ? new FormulaOperand(formula.DeepCopy()) : null;
         }
 
+        /// <summary>
+        /// Tries to convert the input symbol into a weakest precondition.
+        /// </summary>
+        /// <param name="symbol">The input symbol.</param>
+        /// <returns>The converted token.</returns>
         private FormulaOperand? TryConvertToWeakestPrecondition(string symbol)
         {
             string weakestPreconditionPattern =
-                $"\\weakestprec{LatexParameterRegex("program")}{LatexParameterRegex("formulaInput")}";
+                $"\\A\\\\weakestprec{LatexParameterRegex("program")}{LatexParameterRegex("formulaInput")}";
 
             Match weakestPreconditionMatch = Regex.Match(symbol, weakestPreconditionPattern);
 
@@ -555,6 +697,11 @@ namespace SymbolicImplicationVerification.Converts
             return null;
         }
 
+        /// <summary>
+        /// Converts the given infix token list into a postfix token list.
+        /// </summary>
+        /// <param name="symbol">The list of infix tokens.</param>
+        /// <returns>The list of postfix tokens.</returns>
         private LinkedList<Token> Postfix(LinkedList<Token> infixTokens)
         {
             LinkedList<Token> postfix = new LinkedList<Token>();
@@ -616,219 +763,60 @@ namespace SymbolicImplicationVerification.Converts
             return postfix;
         }
 
+        /// <summary>
+        /// Evaluates the given list of postfix tokens.
+        /// </summary>
+        /// <param name="postfix">The list of postfix tokens.</param>
+        /// <returns>The result of the evaluation.</returns>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
         private Operand PostfixEvaluated(LinkedList<Token> postfix)
         {
             Stack<Operand> stack = new Stack<Operand>();
 
-            foreach (Token token in postfix)
+            try
             {
-                if (token is UnaryOperator unary)
+                foreach (Token token in postfix)
                 {
-                    Operand operand = stack.Pop();
-
-                    stack.Push(unary.Evaluated(operand));
-                }
-                else if (token is BinaryOperator binary)
-                {
-                    Operand right = stack.Pop();
-                    Operand left  = stack.Pop();
-
-                    stack.Push(binary.Evaluated(left, right));
-                }
-                else if (token is Operand operand)
-                {
-                    stack.Push(operand);
-                }
-                else
-                {
-                    throw new ConvertException("Sikertelen kiértékelés!");
-                }
-            }
-
-            return stack.Pop();
-        }
-
-        //private string Prefix(string input, out string remainder)
-        //{
-        //    const string inputStartsWithConstantPattern =
-        //        @"\A(?<constant>(-[0-9]*|[0-9]+))(?<variable>[a-zA-Z]*)";
-
-        //    const string inputStartsWithCommandPattern =
-        //        @"\A(\\\P{Nd}+(\{(?>\{(?<c>)|[^{}]+|\}(?<-c>))*(?(c)(?!))\})+)";
-
-        //    Match startCommandMatch  = Regex.Match(input, inputStartsWithCommandPattern);
-        //    Match startConstantMatch = Regex.Match(input, inputStartsWithConstantPattern);
-
-        //    string prefix;
-
-        //    if (startCommandMatch.Success)
-        //    {
-        //        prefix    = startCommandMatch.Value;
-        //        remainder = input.Substring(startCommandMatch.Length);
-        //    }
-        //    else
-        //    {
-        //        const int firstCharIndex = 0;
-
-        //        int charLocation = input.IndexOfAny(new char[] { '\\', '+', '-', '<', '>', '=', '(', ')' });
-
-        //        bool foundChar = charLocation >= firstCharIndex;
-
-        //        prefix    = foundChar ? input.Substring(firstCharIndex, charLocation + 1) : input;
-        //        remainder = foundChar ? input.Substring(charLocation + 1) : string.Empty;
-        //    }
-
-        //    return prefix;
-        //}
-
-        private LinkedList<string> Prefixes(string input)
-        {
-            const string inputStartsWithConstantPattern =
-                @"\A(?<constant>(-[0-9]*|[0-9]+))(?<variable>[a-zA-Z(\\]*)";
-
-            const string inputStartsWithCommandPattern =
-                @"\A(\\\P{Nd}+(\{(?>\{(?<c>)|[^{}]+|\}(?<-c>))*(?(c)(?!))\})+)";
-
-            LinkedList<string> prefixes = new LinkedList<string>();
-
-            while (!string.IsNullOrEmpty(input))
-            {
-                Match startCommandMatch  = Regex.Match(input, inputStartsWithCommandPattern);
-                Match startConstantMatch = Regex.Match(input, inputStartsWithConstantPattern);
-
-                if (startCommandMatch.Success)
-                {
-                    prefixes.AddLast(startCommandMatch.Value);
-
-                    input = input.Substring(startCommandMatch.Length);
-                }
-                else if (startConstantMatch.Success)
-                {
-                    string constant = startConstantMatch.Groups["constant"].Value;
-                    string variable = startConstantMatch.Groups["variable"].Value;
-
-                    if (constant[0] != '-')
+                    if (token is UnaryOperator unary)
                     {
-                        prefixes.AddLast(constant);
+                        Operand operand = stack.Pop();
 
-                        string remainder = input.Substring(constant.Length);
+                        stack.Push(unary.Evaluated(operand));
+                    }
+                    else if (token is BinaryOperator binary)
+                    {
+                        Operand right = stack.Pop();
+                        Operand left = stack.Pop();
 
-                        input = string.IsNullOrEmpty(variable) ? remainder : $"*{remainder}";
+                        stack.Push(binary.Evaluated(left, right));
+                    }
+                    else if (token is Operand operand)
+                    {
+                        stack.Push(operand);
                     }
                     else
                     {
-                        string[] symbols = new string[] { "\\cdot", "-", "+", "*", "(" };
-
-                        bool isNegativeConstant = IsEmpty(prefixes) || symbols.Contains(prefixes.Last());
-
-                        if (isNegativeConstant)
-                        {
-                            prefixes.AddLast(constant == "-" ? "-1" : constant);
-
-                            string remainder = input.Substring(constant.Length);
-
-                            input = string.IsNullOrEmpty(variable) ? remainder : $"*{remainder}";
-                        }
-                        else
-                        {
-                            prefixes.AddLast("-");
-
-                            input = input.Substring(1);
-                        }
+                        throw new ConvertException("Sikertelen kiértékelés!");
                     }
                 }
-                else
-                {
-                    const int firstCharIndex = 0;
 
-                    int charLocation = input.IndexOfAny(new char[] { '\\', '+', '-', '*', '<', '>', '=', '(', ')' });
-
-                    bool foundChar = charLocation >= firstCharIndex;
-
-                    prefixes.AddLast(foundChar ? input.Substring(firstCharIndex, charLocation + 1) : input);
-
-                    input = foundChar ? input.Substring(charLocation + 1) : string.Empty;
-                }
+                return stack.Pop();
             }
-
-            return prefixes;
+            catch (InvalidOperationException)
+            {
+                throw new ConvertException("A konvertáláshoz szükséges adatok hiányosak!" );
+            }
+            catch (Exception exc)
+            {
+                throw new ConvertException(exc.Message);
+            }
         }
 
-        //private string Prefix(string input, out string remainder)
-        //{
-        //    char[] chars = new char[] { '\\', '+', '-', '<', '>', '=', '(', ')' };
-
-        //    const int firstCharIndex  = 0;
-        //    const int secondCharIndex = 1;
-
-        //    remainder = string.Empty;
-
-        //    if (!string.IsNullOrEmpty(input) && input.Length > secondCharIndex)
-        //    {
-        //        int charLocation = input.IndexOfAny(chars, secondCharIndex);
-
-        //        if (charLocation > firstCharIndex)
-        //        {
-        //            remainder = input.Substring(charLocation);
-
-        //            return input.Substring(firstCharIndex, charLocation);
-        //        }
-        //    }
-
-        //    return input;
-        //}
-
-
-        //private int OperatorPrecedence(string operatorString)
-        //{
-        //    switch (operatorString.Trim())
-        //    {
-        //        case "\\neg":
-        //            return 8;
-
-        //        case "\\cdot":
-        //            return 7;
-
-        //        case "+" or "-":
-        //            return 6;
-
-        //        case ">" or "<" or "\\geq" or "\\leq":
-        //            return 5;
-
-        //        case "=" or "\\neq":
-        //            return 4;
-
-        //        case "\\wedge":
-        //            return 3;
-
-        //        case "\\vee":
-        //            return 2;
-
-        //        case "\\rightarrow":
-        //            return 1;
-
-        //        default:
-        //            return -1;
-        //    }
-        //}
-
-        //private int OperatorArity(string operatorString)
-        //{
-        //    if (NotOperator(operatorString))
-        //    {
-        //        return -1;
-        //    }
-
-        //    switch (operatorString.Trim())
-        //    {
-        //        case "\\neg":
-        //            return 1;
-
-        //        default:
-        //            return 2;
-        //    }
-        //}
-
+        /// <summary>
+        /// Initialize all the variables, based on the given statespace.
+        /// </summary>
+        /// <param name="stateSpace">The statespace input.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
         private void InitializeVariables(string stateSpace)
         {
             const char delimiterChar = ',';
@@ -842,28 +830,43 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Initialize the given variable.
+        /// </summary>
+        /// <param name="variableDeclaration">The variable declaration string.</param>
+        /// <exception cref="ConvertException">If any convert error occures.</exception>
         private void InitializeVariable(string variableDeclaration)
         {
-            string declarePattern = $"\\declare{LatexParameterRegex("identifier")}{LatexParameterRegex("type")}";
+            string declarePattern = $"\\A\\\\declare{LatexParameterRegex("identifier")}{LatexParameterRegex("type")}";
 
             Match declareMatch = Regex.Match(variableDeclaration, declarePattern);
 
             if (declareMatch.Success)
             {
-                string arrayPattern = $"\\arraytype{LatexParameterRegex("base")}{LatexParameterRegex("length")}";
+                string arrayPattern = $"\\A\\\\arraytype{LatexParameterRegex("base")}{LatexParameterRegex("length")}";
 
                 Match arrayMatch = Regex.Match(declareMatch.Groups["type"].Value, arrayPattern);
 
                 string identifier = declareMatch.Groups["identifier"].Value;
+                string length     = arrayMatch  .Groups["length"].Value;
 
                 Type type = ConvertBaseType(
                     arrayMatch.Success ? arrayMatch.Groups["base"].Value : declareMatch.Groups["type"].Value);
 
+                bool lengthIsVariable = Regex.IsMatch(length, "[a-zA-Z_']");
+
+                if (lengthIsVariable)
+                {
+                    integerTypeVariables.Add(new Variable<IntegerType>(length, NaturalNumber.Instance()));
+                }
+
                 if (type is IntegerType integerType)
                 {
                     Variable<IntegerType> result = arrayMatch.Success ?
-                        new ArrayVariable<IntegerType>(identifier,
-                            ConvertToIntegerTypeTerm(arrayMatch.Groups["length"].Value), integerType.DeepCopy()) :
+                        new ArrayVariable<IntegerType>(
+                            identifier,
+                            lengthIsVariable ? integerTypeVariables.Last() : ConvertToIntegerTypeTerm(length), 
+                            integerType.DeepCopy()) :
                         new Variable<IntegerType>(identifier, integerType.DeepCopy());
 
                     integerTypeVariables.Add(result);
@@ -873,8 +876,10 @@ namespace SymbolicImplicationVerification.Converts
                 if (type is Logical logical)
                 {
                     Variable<Logical> result = arrayMatch.Success ?
-                        new ArrayVariable<Logical>(identifier,
-                            ConvertToIntegerTypeTerm(arrayMatch.Groups["length"].Value), logical.DeepCopy()) :
+                        new ArrayVariable<Logical>(
+                            identifier,
+                            lengthIsVariable ? integerTypeVariables.Last() : ConvertToIntegerTypeTerm(length),
+                            logical.DeepCopy()) :
                         new Variable<Logical>(identifier, logical.DeepCopy());
 
                     logicalVariables.Add(result);
@@ -885,6 +890,14 @@ namespace SymbolicImplicationVerification.Converts
             throw new ConvertException($"Nem konvertálható változóvá a következő bemenet: \"{variableDeclaration}\"");
         }
 
+
+        /// <summary>
+        /// Initialize the given variable, based on the information.
+        /// </summary>
+        /// <param name="identifier">The identifier of the variable.</param>
+        /// <param name="variableType">The type of the variable.</param>
+        /// <param name="integerVariable">The created integer variable.</param>
+        /// <param name="logicalVariable">The created logical variable.</param>
         private void InitializeVariable(string identifier, string variableType, 
             out Variable<IntegerType>? integerVariable, out Variable<Logical>? logicalVariable)
         {
@@ -903,6 +916,12 @@ namespace SymbolicImplicationVerification.Converts
             }
         }
 
+        /// <summary>
+        /// Initialize the given variable, based on the information.
+        /// </summary>
+        /// <param name="type">The type string.</param>
+        /// <returns>The converted type.</returns>
+        /// /// <exception cref="ConvertException">If any convert error occures.</exception>
         private Type ConvertBaseType(string type)
         {
             switch (type.Trim())
@@ -923,7 +942,7 @@ namespace SymbolicImplicationVerification.Converts
                     return ZeroOrOne.Instance();
             }
 
-            string intervalPattern = $"\\interval{LatexParameterRegex("lower")}{LatexParameterRegex("upper")}";
+            string intervalPattern = $"\\A\\\\interval{LatexParameterRegex("lower")}{LatexParameterRegex("upper")}";
 
             Match intervalMatch = Regex.Match(type, intervalPattern);
 
@@ -945,164 +964,28 @@ namespace SymbolicImplicationVerification.Converts
             throw new ConvertException($"Nem konvertálható típussá a következő bemenet: \"{type}\"");
         }
 
-        //private Type ConverType(string type)
-        //{
-        //    type = type.Trim();
-
-        //    switch (type)
-        //    {
-        //        case "\\B":
-        //            return Logical.Instance();
-
-        //        case "\\Z":
-        //            return Integer.Instance();
-
-        //        case "\\N":
-        //            return NaturalNumber.Instance();
-
-        //        case "\\posN":
-        //            return PositiveInteger.Instance();
-
-        //        case "\\zeroone":
-        //            return ZeroOrOne.Instance();
-        //    }
-
-        //    string arrayTypePattern    = $"\\arraytype{LatexParameterRegex("type")}{LatexParameterRegex("length")}";
-        //    string intervalTypePattern = $"\\interval{LatexParameterRegex("lower")}{LatexParameterRegex("upper")}";
-
-        //    Match arrayMatch    = Regex.Match(type, arrayTypePattern);
-        //    Match intervalMatch = Regex.Match(type, intervalTypePattern);
-
-        //    if (!(arrayMatch.Success || intervalMatch.Success))
-        //    {
-        //        throw new Exception();
-        //    }
-
-        //    if (arrayMatch.Success)
-        //    {
-        //        Type arrayType = ConverType(arrayMatch.Groups["type"].Value.Trim());
-
-        //        IntegerTypeTerm length = ConvertToIntegerTypeTerm(arrayMatch.Groups["length"].Value);
-
-
-
-        //    }
-        //}
-
-        //private void InitializeVariable(List<string> parameters)
-        //{
-        //    string identifier = parameters.First();
-
-        //    Type type = ParseType(parameters.Last());
-
-        //    switch (type)
-        //    {
-        //        case IntegerType integerType:
-        //            integerTypeVariables.AddCommandParts(new Variable<IntegerType>(identifier, integerType));
-        //            break;
-
-        //        case Logical logical:
-        //            logicalVariables.AddCommandParts(new Variable<Logical>(identifier, logical));
-        //            break;
-        //    }
-        //}
-
-        //private Type ParseType(string type)
-        //{
-        //    switch (type)
-        //    {
-        //        case "\\Z":
-        //            return Integer.Instance();
-
-        //        case "\\N":
-        //            return NaturalNumber.Instance();
-
-        //        case "\\posN":
-        //            return PositiveInteger.Instance();
-
-        //        case "\\zeroone":
-        //            return ZeroOrOne.Instance();
-
-        //        case "\\B":
-        //            return Logical.Instance();
-        //    }
-        //}
-
-
-        //private string GetCurrentCommandArgument(string command, int start = 0)
-        //{
-        //    int startIndex = command.IndexOf(argumentStart, start);
-        //    int endIndex   = command.LastIndexOf(argumentEnd);
-
-        //    return command.Substring(startIndex, endIndex - startIndex);
-        //}
-
-        //private List<string> GetArguments(string command, int numberOfArguments, int start = 0)
-        //{
-        //    List<string> result = new List<string>(numberOfArguments);
-
-        //    List<int> startIndexes = new List<int>(numberOfArguments);
-        //    List<int> endIndexes   = new List<int>(numberOfArguments);
-
-        //    int openBrackets   = 0;
-        //    int foundArguments = 0;
-
-        //    for (int ind = start; foundArguments != numberOfArguments && ind < command.Length; ++ind)
-        //    {
-        //        char currentChar = command[ind];
-
-        //        if (currentChar == argumentStart)
-        //        {
-        //            if (openBrackets == 0)
-        //            {
-        //                startIndexes.AddCommandParts(ind);
-        //            }
-
-        //            ++openBrackets;
-        //        }
-        //        else if (currentChar == argumentEnd)
-        //        {
-        //            if (openBrackets == 1)
-        //            {
-        //                endIndexes.AddCommandParts(ind);
-
-        //                ++foundArguments;
-        //            }
-
-        //            --openBrackets;
-        //        }
-        //    }
-
-        //    if (foundArguments != numberOfArguments)
-        //    {
-        //        throw new Exception();
-        //    }
-
-        //    for (int i = 0; i < numberOfArguments; ++i)
-        //    {
-        //        int begin  = startIndexes[i];
-        //        int length = endIndexes[i] - begin;
-
-        //        result.AddCommandParts(command.Substring(begin, length));
-        //    }
-
-        //    return result;
-        //}
-
+        /// <summary>
+        /// Creates the latex parameter regex string.
+        /// </summary>
+        /// <returns>The latex parameter regex string.</returns>
         private string LatexParameterRegex()
         {
-            return "\\{{(?>\\{{(?<c>)|[^{{}}]+|\\}}(?<-c>))*(?(c)(?!))\\}}";
+            return "{(?>{(?<c>)|[^{}]+|}(?<-c>))*(?(c)(?!))}";
         }
 
+        /// <summary>
+        /// Creates the latex parameter regex string with the given group name.
+        /// </summary>
+        /// <param name="groupName">The group name of the parameter.</param>
+        /// <returns>The latex parameter regex string.</returns>
         private string LatexParameterRegex(string groupName)
         {
-            return $"\\{{(?<{groupName}>(?>\\{{(?<c>)|[^{{}}]+|\\}}(?<-c>))*(?(c)(?!)))\\}}";
+            return $"{{(?<{groupName}>(?>{{(?<c>)|[^{{}}]+|}}(?<-c>))*(?(c)(?!)))}}";
         }
 
         #endregion
 
         #region Inline methods
-
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private bool NotEmpty(ICollection collection)

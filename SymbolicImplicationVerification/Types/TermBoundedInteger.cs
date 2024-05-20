@@ -5,7 +5,7 @@ using SymbolicImplicationVerification.Terms.Operations;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class TermBoundedInteger : BoundedIntegerType
+    public class TermBoundedInteger : BoundedIntegerType, IValueValidator<int>
     {
         #region Constructors
 
@@ -16,15 +16,18 @@ namespace SymbolicImplicationVerification.Types
             : base(lowerBound, upperBound) { }
 
         public TermBoundedInteger(IntegerTypeTerm lowerBound, int upperBound)
-            : base(lowerBound, new IntegerConstant(upperBound)) { }
+            : base(lowerBound, new IntegerTypeConstant(upperBound)) { }
 
         public TermBoundedInteger(int lowerBound, IntegerTypeTerm upperBound)
-            : base(new IntegerConstant(lowerBound), upperBound) { }
+            : base(new IntegerTypeConstant(lowerBound), upperBound) { }
 
         #endregion
 
         #region Public properties
 
+        /// <summary>
+        /// Determines if the set is empty or not.
+        /// </summary>
         public override bool IsEmpty
         {
             get
@@ -164,15 +167,15 @@ namespace SymbolicImplicationVerification.Types
             }
             else if (other is ZeroOrOne)
             {
-                otherLowerBound = new IntegerConstant(naturalNumberLowerBound);
-                otherUpperBound = new IntegerConstant(positiveIntegerLowerBound);
+                otherLowerBound = new IntegerTypeConstant(naturalNumberLowerBound);
+                otherUpperBound = new IntegerTypeConstant(positiveIntegerLowerBound);
             }
             else
             {
                 int numbersetLowerBound =
                     other is PositiveInteger ? positiveIntegerLowerBound : naturalNumberLowerBound;
 
-                otherLowerBound = new IntegerConstant(numbersetLowerBound);
+                otherLowerBound = new IntegerTypeConstant(numbersetLowerBound);
 
                 return IntersectionBounds(lowerBound.DeepCopy(), upperBound.DeepCopy(), otherLowerBound);
             }
@@ -230,8 +233,8 @@ namespace SymbolicImplicationVerification.Types
             }
             else if (other is ZeroOrOne)
             {
-                otherLowerBound = new IntegerConstant(naturalNumberLowerBound);
-                otherUpperBound = new IntegerConstant(positiveIntegerLowerBound);
+                otherLowerBound = new IntegerTypeConstant(naturalNumberLowerBound);
+                otherUpperBound = new IntegerTypeConstant(positiveIntegerLowerBound);
             }
             else
             {

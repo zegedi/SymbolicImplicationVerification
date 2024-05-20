@@ -1,6 +1,5 @@
 ﻿using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Formulas.Relations;
-using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
@@ -11,8 +10,14 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
     {
         #region Fields
 
+        /// <summary>
+        /// The quantified variable of the formula.
+        /// </summary>
         protected Variable<T> quantifiedVariable;
 
+        /// <summary>
+        /// The statement of the formula.
+        /// </summary>
         protected Formula statement;
 
         #endregion
@@ -31,12 +36,18 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the quantified variable of the formula.
+        /// </summary>
         public Variable<T> QuantifiedVariable
         {
             get { return quantifiedVariable; }
             set { quantifiedVariable = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the statement of the formula.
+        /// </summary>
         public Formula Statement
         {
             get { return statement; }
@@ -57,6 +68,11 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
 
         #region Public methods
 
+        /// <summary>
+        /// Determines whether the two statements equivalent.
+        /// </summary>
+        /// <param name="other">The other quantified formula.</param>
+        /// <returns><see langword="true"/> if the two statements equivalent, otherwise <see langword="false"/>.</returns>
         public bool StatementsEquivalent(QuantifiedFormula<T> other)
         {
             Formula otherStatement = other.statement.DeepCopy();
@@ -70,6 +86,12 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
             return statement.Equivalent(otherStatement);
         }
 
+        /// <summary>
+        /// Calculate the conjuction of the given quantified formula and the statement.
+        /// </summary>
+        /// <param name="quantified">The first operand of the conjunction.</param>
+        /// <param name="statement">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public Formula ConjunctionWith(QuantifiedFormula<IntegerType> quantified, Formula statement)
         {
             IntegerTypeTerm? variableReplaceTerm 
@@ -78,7 +100,7 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
             if (variableReplaceTerm is not null &&
                 quantified.quantifiedVariable.TermType is BoundedIntegerType bounded)
             {
-                IntegerConstant one = new IntegerConstant(1);
+                IntegerTypeConstant one = new IntegerTypeConstant(1);
 
                 Formula decreaseLowerBound = new IntegerTypeEqual(
                     one + variableReplaceTerm.DeepCopy(), bounded.LowerBound.DeepCopy()).Evaluated();

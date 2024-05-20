@@ -23,7 +23,14 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
     {
         #region Fields
 
+        /// <summary>
+        /// The left operand of the binary operation.
+        /// </summary>
         protected OTerm leftOperand;
+
+        /// <summary>
+        /// The right operand of the binary operation.
+        /// </summary>
         protected OTerm rightOperand;
 
         #endregion
@@ -38,23 +45,20 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
 
         #endregion
 
-        #region Implicit conversions
-
-        public static implicit operator TypeBinaryOperationTerm(BinaryOperationTerm<OTerm, OType> operation)
-        {
-            return operation;
-        }
-
-        #endregion
-
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the left operand of the binary operation.
+        /// </summary>
         public OTerm LeftOperand
         {
             get { return leftOperand; }
             set { leftOperand = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the right operand of the binary operation.
+        /// </summary>
         public OTerm RightOperand
         {
             get { return rightOperand; }
@@ -66,28 +70,50 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         #region Public abstract methods
 
         /// <summary>
-        /// Create a deep copy of the current binary operation term.
+        /// Creates a deep copy of the current binary operation term.
         /// </summary>
         /// <returns>The created deep copy of the binary operation term.</returns>
         public override abstract BinaryOperationTerm<OTerm, OType> DeepCopy();
 
+        /// <summary>
+        /// Creates an instance of the current binary operation.
+        /// </summary>
+        /// <param name="leftOperand">The left operand of the binary operation.</param>
+        /// <param name="rightOperand">The right operand of the binary operation.</param>
+        /// <returns>The newly created binary operatin.</returns>
         public abstract BinaryOperationTerm<OTerm, OType> CreateInstance(OTerm leftOperand, OTerm rightOperand);
 
         #endregion
 
         #region Public methods
 
+        /// <summary>
+        /// Detemines wheter the given <see cref="object"/> can be rearranged, to eqault the current binary operation.
+        /// </summary>
+        /// <param name="other">The other <see cref="object"/> to rearrange.</param>
+        /// <returns>The result of the operation.</returns>
         public bool RearrangementEquals(object? other)
         {
             return other is BinaryOperationTerm<OTerm, OType> operation &&
                    Linearized().Equals(operation.Linearized());
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return leftOperand.Hash(level) + "_" + rightOperand.Hash(level);
         }
 
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <param name="collapseGroups">How to collapse the groups.</param>
+        /// <param name="associateGroups">How to associate the groups.</param>
+        /// <returns>The newly created instance of the result.</returns>
         public Term<OType> Evaluated(
             Func<Term<OType>, Term<OType>> collapseGroups,
             Func<Term<OType>, Term<OType>> associateGroups)
@@ -123,6 +149,10 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
         /// <returns>The simplified version of the binary operation.</returns>
         protected abstract Term<OType> Simplified(Term<OType> leftOperand, Term<OType> rightOperand);
 
+        /// <summary>
+        /// Creates a linearized version of the binary operation.
+        /// </summary>
+        /// <returns>The linearized version of the binary operation.</returns>
         protected abstract LinearOperationTerm<OTerm, OType> Linearized();
 
         #endregion
@@ -146,6 +176,13 @@ namespace SymbolicImplicationVerification.Terms.Operations.Binary
             return Simplified(left, right);
         }
 
+        /// <summary>
+        /// Creates a linearized version of the binary operation.
+        /// </summary>
+        /// <param name="preprocessBinaryOperation">How to preprocess the binary operations.</param>
+        /// <param name="linearizeBinaryOperation">How to linearise the binary operations.</param>
+        /// <param name="createLinearOperation">How to create the linear operation.</param>
+        /// <returns>The linearized version of the binary operation.</returns>
         protected LinearOperationTerm<OTerm, OType> Linearized(
             Func<Term<OType>, Term<OType>> preprocessBinaryOperation,
             Func<BinaryOperationTerm<OTerm, OType>, bool> linearizeBinaryOperation,

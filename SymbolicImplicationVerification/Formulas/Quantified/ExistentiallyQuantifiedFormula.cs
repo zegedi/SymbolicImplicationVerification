@@ -30,16 +30,16 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
-            bool variableFromEmpyset = false;
+            bool variableFromEmptyset = false;
 
             if (quantifiedVariable.TermType is BoundedIntegerType bounded)
             {
-                variableFromEmpyset = bounded.IsEmpty && bounded.Evaluated() == bounded;
+                variableFromEmptyset = bounded.IsEmpty && bounded.Evaluated() == bounded;
             }
 
             return string.Format(
-                "\\exists {0} \\in {1} \\,\\colon {2}",
-                quantifiedVariable, variableFromEmpyset ? "\\emptyset" : quantifiedVariable.TermType, statement
+                "\\existentially{{{0}}}{{{1}}}{{{2}}}", quantifiedVariable, 
+                variableFromEmptyset ? "\\emptyset" : quantifiedVariable.TermType, statement
             );
         }
 
@@ -92,6 +92,11 @@ namespace SymbolicImplicationVerification.Formulas.Quantified
                    statement.Equals(other.statement);
         }
 
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public override Formula ConjunctionWith(Formula other)
         {
             if (other is ExistentiallyQuantifiedFormula<T> existentiallyQuantified)

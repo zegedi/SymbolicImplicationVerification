@@ -1,0 +1,52 @@
+﻿\documentclass{article}
+
+\usepackage[magyar]{babel}
+\usepackage[left=10mm, right=10mm, top=30mm, bottom=30mm, paper=a4paper]{geometry}
+\usepackage{calc}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[utf8]{inputenc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Számhalmazok és egyéb értékeket tartalmazó halmazok parancsa. %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\B}{\mathbb{L}}             % A logikai értékek halmaza.
+\newcommand{\Z}{\mathbb{Z}}             % Az egész számok halmaza.
+\newcommand{\N}{\mathbb{N}}             % A természetes számok halmaza.
+\newcommand{\posN}{\mathbb{N}^+}        % A pozitív egész számok halmaza.
+\newcommand{\zeroone}{\{0, 1\}}         % A nulla vagy egy halmaz.
+\newcommand{\interval}[2]{[#1..#2]}     % Egész számok intervalluma.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Logikai állandók, logikai függvények, programok parancsa. %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\true}{\mathrm{igaz}}       % Az igaz állandó.
+\newcommand{\false}{\mathrm{hamis}}     % A hamis állandó.
+\newcommand{\TRUE}{\mathrm{IGAZ}}       % Az IGAZ logikai függvény.
+\newcommand{\FALSE}{\mathrm{HAMIS}}     % A HAMIS logikai függvény.
+\newcommand{\NOTEVAL}{\mathrm{NOTEVAL}} % A NOTEVAL logikai függvény.
+\newcommand{\ABORT}{\mathrm{ABORT}}     % Az ABORT program.
+\newcommand{\SKIP}{\mathrm{SKIP}}       % A SKIP program.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Egyéb parancsok bevezetése. %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\assign}[2]{#1 \coloneq #2} % Az értékadás program.
+\newcommand{\declare}[2]{#1 \colon #2}  % Új változó bevezetése.
+\newcommand{\arrayvar}[2]{#1 [#2]}      % Tömb változó.
+\newcommand{\arraytype}[2]{#1^{#2}}     % Tömb típusdeklaráció.
+\newcommand{\chifunc}[1]{\chi(#1)}      % A chi függvény.
+\newcommand{\betafunc}[1]{\beta(#1)}    % A beta függvény.
+
+\newcommand{\imply}[2]{#1 \Longrightarrow #2}                        % A maga után vonja reláció két formula között.
+\newcommand{\symboldeclare}[2]{#1 = \left( #2 \right)}               % Formula vagy állapottér deklarálása.
+\newcommand{\universally}[3]{\forall #1 \in #2 \,\colon #3}          % Univerzálisan kvantált formula.
+\newcommand{\existentially}[3]{\exists #1 \in #2 \,\colon #3}        % Egzisztenciálisan kvantált formula.
+\newcommand{\summation}[4]{\sum\limits_{#1=#2}^{#3} #4}              % Összegzési kifejezés.
+\newcommand{\weakestprec}[2]{\mathrm{lf}{\left( #1 ;\, #2 \right)}}  % Az adott program legggyengébbb előfeltétele.

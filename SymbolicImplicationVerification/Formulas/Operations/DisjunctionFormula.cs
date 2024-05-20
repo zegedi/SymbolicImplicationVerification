@@ -52,6 +52,10 @@ namespace SymbolicImplicationVerification.Formulas
             (Formula left, Formula right) => ReturnOrDeepCopy(left.Evaluated().DisjunctionWith(right.Evaluated()))
         };
 
+        /// <summary>
+        /// Calcualtes the simplified verions of the formula.
+        /// </summary>
+        /// <returns>The simplified verions of the formula.</returns>
         public Formula Simplified()
         {
             LinkedList<Formula> simplifiedOperands = SimplifiedLinearOperands();
@@ -88,16 +92,28 @@ namespace SymbolicImplicationVerification.Formulas
             return base.GetHashCode();
         }
 
+        /// <summary>
+        /// Gets the linear operands of the given operation.
+        /// </summary>
+        /// <returns>The linear operands of the given operation.</returns>
         public override LinkedList<Formula> LinearOperands()
         {
             return LinearOperands(binary => binary is DisjunctionFormula);
         }
 
+        /// <summary>
+        /// Gets the recursive linear operands of the given operation.
+        /// </summary>
+        /// <returns>The recursive linear operands of the given operation.</returns>
         public override LinkedList<Formula> RecursiveLinearOperands()
         {
             return LinearOperands(binary => binary is DisjunctionFormula, true);
         }
 
+        /// <summary>
+        /// Gets the simplified linear operands of the given operation.
+        /// </summary>
+        /// <returns>The simplified linear operands of the given operation.</returns>
         public override LinkedList<Formula> SimplifiedLinearOperands()
         {
             return SimplifiedLinearOperands<IntegerType>(
@@ -106,6 +122,11 @@ namespace SymbolicImplicationVerification.Formulas
             );
         }
 
+        /// <summary>
+        /// Binarize the given formulas.
+        /// </summary>
+        /// <param name="formulas">The list of formulas.</param>
+        /// <returns>The result of the operation.</returns>
         public override DisjunctionFormula Binarize(LinkedList<Formula> formulas)
         {
             DisjunctionFormula? result = Binarize(

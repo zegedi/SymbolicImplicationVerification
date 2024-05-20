@@ -1,4 +1,5 @@
-﻿using SymbolicImplicationVerification.Formulas;
+﻿using SymbolicImplicationVerification.Converts.Tokens.Operands;
+using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Variables;
@@ -11,10 +12,19 @@ namespace SymbolicImplicationVerification.Implies
     {
         #region Fields
 
+        /// <summary>
+        /// The hypothesis of the imply.
+        /// </summary>
         protected Formula hypothesis;
 
+        /// <summary>
+        /// The consequence of the imply.
+        /// </summary>
         protected Formula consequence;
 
+        /// <summary>
+        /// The list of used formulas.
+        /// </summary>
         protected LinkedList<Formula> usedFormulas;
 
         #endregion
@@ -42,12 +52,18 @@ namespace SymbolicImplicationVerification.Implies
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the hypothesis of the imply.
+        /// </summary>
         public Formula Hypothesis
         {
             get { return hypothesis; }
             set { hypothesis = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the consequence of the imply.
+        /// </summary>
         public Formula Consequence
         {
             get { return consequence; }
@@ -59,24 +75,48 @@ namespace SymbolicImplicationVerification.Implies
         #region Public methods
 
         /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return obj is Imply other &&
+                   hypothesis.Equals(other.hypothesis) &&
+                   consequence.Equals(other.consequence);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
         /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            StringBuilder formatString = new StringBuilder();
+            StringBuilder result = new StringBuilder();
 
             bool noParentheses = hypothesis.HasIdentifier ||
                                  hypothesis is FALSE or TRUE or NotEvaluable or WeakestPrecondition;
 
-            formatString.Append(noParentheses ? "{0} \\Longrightarrow " : "({0}) \\Longrightarrow ");
+            result.AppendFormat(noParentheses ? "\\imply{{{0}}}" : "\\imply{{({0})}}", hypothesis);
 
             noParentheses = consequence.HasIdentifier ||
                             consequence is FALSE or TRUE or NotEvaluable or WeakestPrecondition;
 
-            formatString.Append(noParentheses ? "{1}" : "({1})");
+            result.AppendFormat(noParentheses ? "{{{0}}}" : "{{({0})}}", consequence);
 
-            return string.Format(formatString.ToString(), hypothesis, consequence);
+            return result.ToString();
         }
 
 
@@ -88,24 +128,13 @@ namespace SymbolicImplicationVerification.Implies
         {
             (FALSE or NotEvaluable, _)
                 => new ImplyEvaluationLeaf(this, 
-                   string.Format("Mivel \\( [ {0} ] = \\emptyset \\), ezért \\( {0} \\Longrightarrow {1} \\)", 
-                       hypothesis, consequence),
+                   @$"Mivel a \( {hypothesis} \) igazsághalmaza üres, ezért teljesül az implikáció.",
                    ImplyEvaluationResult.True),
 
             (_, TRUE)
                 => new ImplyEvaluationLeaf(this,
-                   string.Format("Mivel \\( [ {0} ] \\subseteq [ {1} ] \\).", hypothesis, consequence),
+                   @$"Mivel az \( {consequence} \) minden állapotban igaz, ezért \( {hypothesis} \) bekövetkezése mindig maga után vonja \( {consequence} \) bekövetkezését is.",
                    ImplyEvaluationResult.True),
-
-            (_, FALSE or NotEvaluable) 
-                => new ImplyEvaluationLeaf(this,
-                   string.Format("Mivel \\( [ {1} ] = \\emptyset \\), viszont \\( [ {0} ] \\neq \\emptyset \\).", hypothesis, consequence),
-                   ImplyEvaluationResult.False),
-
-            (TRUE, _)
-                => new ImplyEvaluationLeaf(this,
-                   string.Format("Mivel \\( [ {0} ] \\nsubseteq [ {1} ] \\).", hypothesis, consequence),
-                   ImplyEvaluationResult.False),
 
             (_, _) => EvaluationAlgorithm()
         };
@@ -125,22 +154,6 @@ namespace SymbolicImplicationVerification.Implies
             bool hypothesisSimplified  = !hypothesis .Equals(hypothesisEval);
             bool consequenceSimplified = !consequence.Equals(consequenceEval);
 
-            //if (hypothesisSimplified && !hypothesis.HasIdentifier)
-            //{
-            //    nextImply = new Imply(hypothesisEval, consequence);
-            //    message   = "Egyszerűsítsd a baloldali részformulát.";
-
-            //    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-            //}
-
-            //if (consequenceSimplified && !consequence.HasIdentifier)
-            //{
-            //    nextImply = new Imply(hypothesis, consequenceEval);
-            //    message   = "Egyszerűsítsd a jobboldali részformulát.";
-
-            //    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-            //}
-
             if (hypothesisSimplified)
             {
                 if (hypothesis.HasIdentifier)
@@ -148,7 +161,7 @@ namespace SymbolicImplicationVerification.Implies
                     Formula nextHypothesis = hypothesis.DeepCopy();
                     nextHypothesis.Identifier = null;
 
-                    message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", hypothesis, nextHypothesis);
+                    message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", hypothesis, nextHypothesis);
 
                     nextImply = new Imply(nextHypothesis, consequence);
 
@@ -156,7 +169,7 @@ namespace SymbolicImplicationVerification.Implies
                 }
 
                 nextImply = new Imply(hypothesisEval, consequence);
-                message   = "Egyszerűsítsd a baloldali részformulát.";
+                message   = "Egyszerűsítve a hipotézist.";
 
                 return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
             }
@@ -168,7 +181,7 @@ namespace SymbolicImplicationVerification.Implies
                     Formula nextConsequence = consequence.DeepCopy();
                     nextConsequence.Identifier = null;
 
-                    message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", consequence, nextConsequence);
+                    message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", consequence, nextConsequence);
 
                     nextImply = new Imply(hypothesis, nextConsequence);
 
@@ -176,51 +189,40 @@ namespace SymbolicImplicationVerification.Implies
                 }
 
                 nextImply = new Imply(hypothesis, consequenceEval);
-                message   = "Egyszerűsítsd a jobboldali részformulát.";
+                message   = "Egyszerűsítve a következményt.";
 
                 return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
             }
 
-            //if (hypothesisSimplified)
-            //{
-            //    if (hypothesisEval.HasIdentifier)
-            //    {
-            //        Formula nextHypothesis = hypothesisEval.DeepCopy();
-            //        nextHypothesis.Identifier = null;
+            if (consequence is FALSE or NotEvaluable)
+            {
+                return new ImplyEvaluationLeaf(
+                    new Imply(this),
+                    @$"Mivel \( {consequence} \) igazsághalmaza üres, következésképpen \( {hypothesis} \) igazsághalmaza is üres kell, hogy legyen. Ugyanakkor az utóbbi feltevés kielégíthető, ezért az implikáció nem teljesül.",
+                    ImplyEvaluationResult.False
+                );
+            }
 
-            //        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", hypothesisEval, nextHypothesis);
+            if (hypothesis is TRUE)
+            {
+                return new ImplyEvaluationLeaf(
+                    new Imply(this),
+                    @$"Mivel az \( {hypothesis} \) minden állapotban igaz, következésképpen a \( {consequence} \) állításnak is mindig teljesülnie kéne. Ugyanakkor az utóbbi következmény nem áll fenn minden esetben, ezért az implikáció nem teljesül.",
+                    ImplyEvaluationResult.False
+                );
+            }
 
-            //        nextImply = new Imply(nextHypothesis, consequence);
-
-            //        return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-            //    }
-
-            //    nextImply = new Imply(hypothesisEval, consequence);
-            //    message   = "Egyszerűsítsd a baloldali részformulát.";
-
-            //    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-            //}
-
-            //if (!hypothesis.Equals(hypothesisEval) || !consequence.Equals(consequenceEval))
-            //{
-            //    nextImply = new Imply(hypothesisEval, consequenceEval);
-            //    message   = "Egyszerűsítsd a jobb és baloldali részformulákat.";
-
-            //    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-            //}
-
-            // Tovább nem egyszerűsíthető a program.
 
             if (hypothesis.Equivalent(consequence))
             {
-                message = string.Format("Mivel \\( {0} \\) és \\( {1} \\) ekvivalensek.", hypothesis, consequence);
+                message = string.Format("Mivel \\( {0} \\) és \\( {1} \\) ekvivalensek, ezért teljesül az implikáció.", hypothesis, consequence);
 
                 return new ImplyEvaluationLeaf(new Imply(this), message, ImplyEvaluationResult.True);
             }
 
             if (hypothesis.Implies(consequence))
             {
-                message = string.Format("Mivel \\( {0} \\) maga után vonja \\( {1} \\) bekövetkezését.", hypothesis, consequence);
+                message = string.Format("Mivel \\( {0} \\) maga után vonja \\( {1} \\) bekövetkezését, ezért az állítás igaz.", hypothesis, consequence);
 
                 return new ImplyEvaluationLeaf(new Imply(this), message, ImplyEvaluationResult.True);
             }
@@ -231,7 +233,7 @@ namespace SymbolicImplicationVerification.Implies
 
                 if (consequenceOperands.Count != disjunctionCons.LinearOperands().Count)
                 {
-                    message = "Egyszerűsítsd a jobboldali részformulát.";
+                    message = "Egyszerűsítve a következményt.";
 
                     nextImply = new Imply(hypothesis, disjunctionCons.Simplified());
 
@@ -244,7 +246,7 @@ namespace SymbolicImplicationVerification.Implies
                 Formula nextHypothesis = hypothesis.DeepCopy();
                 nextHypothesis.Identifier = null;
 
-                message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", hypothesis, nextHypothesis);
+                message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", hypothesis, nextHypothesis);
 
                 nextImply = new Imply(nextHypothesis, consequence);
 
@@ -259,14 +261,14 @@ namespace SymbolicImplicationVerification.Implies
                 {
                     if (operand.Equivalent(consequence))
                     {
-                        message = string.Format("Mivel \\( {0} \\) és \\( {1} \\) ekvivalensek.", operand, consequence);
+                        message = string.Format("Mivel \\( {0} \\) és \\( {1} \\) ekvivalensek, ezért teljesül az implikáció.", operand, consequence);
 
                         return new ImplyEvaluationLeaf(new Imply(this), message, ImplyEvaluationResult.True);
                     }
 
                     if (operand.Implies(consequence))
                     {
-                        message = string.Format("Mivel \\( {0} \\) maga után vonja \\( {1} \\) bekövetkezését.", operand, consequence);
+                        message = string.Format("Mivel \\( {0} \\) maga után vonja \\( {1} \\) bekövetkezését, ezért az állítás igaz.", operand, consequence);
 
                         return new ImplyEvaluationLeaf(new Imply(this), message, ImplyEvaluationResult.True);
                     }
@@ -288,7 +290,7 @@ namespace SymbolicImplicationVerification.Implies
 
                                 operand.Identifier = null;
 
-                                message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", previous, operand);
+                                message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", previous, operand);
 
                                 nextImply = new Imply(conjunctionHypot.Binarize(hypothesisOperands), consequence);
 
@@ -307,28 +309,6 @@ namespace SymbolicImplicationVerification.Implies
 
                             current = current.Next;
                         }
-
-                        //foreach (Formula rec in operands)
-                        //{
-                        //    if (rec.Equivalent(consequence) || rec.Implies(consequence))
-                        //    {
-                        //        Formula previous = operand.DeepCopy();
-
-                        //        operand.Identifier = null;
-
-                        //        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", previous, operand);
-
-                        //        nextImply = new Imply(conjunctionHypot.Binarize(hypothesisOperands), consequence);
-
-                        //        return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-                        //    }
-
-                        //    if (rec is ConjunctionFormula conj && conj.HasIdentifier)
-                        //    {
-                        //        conj.Identifier = null;
-
-                        //    }
-                        //}
                     }
                 }
             }
@@ -338,7 +318,7 @@ namespace SymbolicImplicationVerification.Implies
                 Formula nextConsequence = consequence.DeepCopy();
                 nextConsequence.Identifier = null;
 
-                message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", consequence, nextConsequence);
+                message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", consequence, nextConsequence);
 
                 nextImply = new Imply(hypothesis, nextConsequence);
 
@@ -349,7 +329,7 @@ namespace SymbolicImplicationVerification.Implies
             {
                 LinkedList<Formula> consequenceOperands = conjunctionConsequence.LinearOperands();
 
-                message = "Mivel a jobb oldal konjunkció, ezért minden állítást igazolni kell.";
+                message = "Mivel a jobb oldal konjunkció, ezért a következmény minden részformulájának következnie kell a feltevésből.";
 
                 return new ImplyEvaluationNode(new Imply(this), message, hypothesis, consequenceOperands);
             }
@@ -360,16 +340,12 @@ namespace SymbolicImplicationVerification.Implies
 
                 if (consequenceOperands.Count != disjunctionConsequence.LinearOperands().Count)
                 {
-                    message = "Egyszerűsítsd a jobboldali részformulát.";
+                    message = "Egyszerűsítve a következményt.";
 
                     nextImply = new Imply(hypothesis, disjunctionConsequence.Simplified());
 
                     return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
                 }
-
-                message = "Mivel a jobb oldal diszjunkció, ezért legalább az egyik állítást igazolni kell.";
-
-                return new ImplyEvaluationNode(new Imply(this), message, hypothesis, consequenceOperands);
             }
 
             // Típusinformáció alapján igazolunk.
@@ -415,14 +391,14 @@ namespace SymbolicImplicationVerification.Implies
                 {
                     if (operand.Equivalent(consequence))
                     {
-                        message = string.Format("Mivel \\( {0} \\) és \\( {1} \\) ekvivalensek.", operand, consequence);
+                        message = string.Format("Mivel \\( {0} \\) és \\( {1} \\) ekvivalensek, ezért teljesül az implikáció.", operand, consequence);
 
                         return new ImplyEvaluationLeaf(new Imply(this), message, ImplyEvaluationResult.True);
                     }
 
                     if (operand.Implies(consequence))
                     {
-                        message = string.Format("Mivel \\( {0} \\) maga után vonja \\( {1} \\) bekövetkezését.", operand, consequence);
+                        message = string.Format("Mivel \\( {0} \\) maga után vonja \\( {1} \\) bekövetkezését, ezért az állítás igaz.", operand, consequence);
 
                         return new ImplyEvaluationLeaf(new Imply(this), message, ImplyEvaluationResult.True);
                     }
@@ -487,44 +463,9 @@ namespace SymbolicImplicationVerification.Implies
                     return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
                 }
 
-                //foreach (Formula operand in hypothesisOperands)
-                //{
-                //    if (operand is Equal<Logical> logicalEqual && !usedFormulas.Contains(logicalEqual))
-                //    {
-                //        Formula? substituted = logicalEqual.SubstituteVariable(consequence);
-
-                //        if (substituted is not null)
-                //        {
-                //            message = string.Format("Helyettesítsünk: \\( {0} \\).", logicalEqual);
-
-                //            usedFormulas.AddLast(logicalEqual);
-
-                //            nextImply = new Imply(hypothesis, substituted, usedFormulas);
-
-                //            return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-                //        }
-                //    }
-
-                //    if (operand is Equal<IntegerType> integerTypeEqual && !usedFormulas.Contains(integerTypeEqual))
-                //    {
-                //        Formula? substituted = integerTypeEqual.SubstituteVariable(consequence);
-
-                //        if (substituted is not null)
-                //        {
-                //            message = string.Format("Helyettesítsünk: \\( {0} \\).", integerTypeEqual);
-
-                //            usedFormulas.AddLast(integerTypeEqual);
-
-                //            nextImply = new Imply(hypothesis, substituted, usedFormulas);
-
-                //            return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
-                //        }
-                //    }
-                //}
-
                 if (hypothesisOperands.Count != conjunctionHypothesis.SimplifiedLinearOperands().Count)
                 {
-                    message = "Egyszerűsítsd a bal oldali részformulát.";
+                    message = "Egyszerűsítve a hipotézist.";
 
                     nextImply = new Imply(conjunctionHypothesis.Simplified(), consequence);
 
@@ -539,7 +480,7 @@ namespace SymbolicImplicationVerification.Implies
 
                         operand.Identifier = null;
 
-                        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", previous, operand);
+                        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", previous, operand);
 
                         nextImply = new Imply(conjunctionHypothesis.Binarize(hypothesisOperands), consequence);
 
@@ -554,7 +495,7 @@ namespace SymbolicImplicationVerification.Implies
 
                 if (hypothesisOperands.Count != disjunctionHypothesis.SimplifiedLinearOperands().Count)
                 {
-                    message = "Egyszerűsítsd a bal oldali részformulát.";
+                    message = "Egyszerűsítve a hipotézist.";
 
                     nextImply = new Imply(disjunctionHypothesis.Simplified(), consequence);
 
@@ -569,7 +510,7 @@ namespace SymbolicImplicationVerification.Implies
 
                         operand.Identifier = null;
 
-                        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\)", previous, operand);
+                        message = string.Format("Helyettesítünk: \\( {0} = ({1}) \\).", previous, operand);
 
                         nextImply = new Imply(disjunctionHypothesis.Binarize(hypothesisOperands), consequence);
 
@@ -578,39 +519,39 @@ namespace SymbolicImplicationVerification.Implies
                 }
             }
 
-            return new ImplyEvaluationLeaf(new Imply(this), "Nem sikerült.", ImplyEvaluationResult.Unverifiable);
-        }
-
-        public void Test()
-        {
-            ImplyEvaluation eval = Evaluated();
-
-            string path = @"F:\ELTE\Programtervező informatika - BSc\6-félév\Szakdolgozat\SymbolicImplicationVerification\evalTest.txt";
-
-            using (StreamWriter sw = new StreamWriter(path, true))
+            if (hypothesis is Equal<Logical> logicalEqual2 && !usedFormulas.Contains(logicalEqual2))
             {
-                sw.WriteLine();
-                WriteOut(sw, eval);
-            }
-        }
+                Formula? substituted = logicalEqual2.SubstituteVariable(consequence);
 
-        private void WriteOut(StreamWriter sw, ImplyEvaluation eval)
-        {
-            sw.WriteLine(string.Format("\\[ {0} \\]", eval.Imply.ToString()));
-            sw.WriteLine(string.Format("Message: {0}", eval.Message));
-
-            if (eval is ImplyEvaluationNode node)
-            {
-                foreach (ImplyEvaluation child in node.Evaluations)
+                if (substituted is not null)
                 {
-                    WriteOut(sw, child);
+                    usedFormulas.AddLast(logicalEqual2);
+
+                    nextImply = new Imply(logicalEqual2, substituted, usedFormulas);
+
+                    message = string.Format("Helyettesítünk: \\( {0} \\).", logicalEqual2);
+
+                    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
                 }
             }
 
-            if (eval is ImplyEvaluationLeaf leaf)
+            if (hypothesis is IntegerTypeEqual integerTypeEqual2 && !usedFormulas.Contains(integerTypeEqual2))
             {
-                sw.WriteLine(string.Format("EvaluationResult: {0}", leaf.Result.ToString()));
+                Formula? substituted = integerTypeEqual2.SubstituteVariable(consequence);
+                
+                if (substituted is not null)
+                {
+                    usedFormulas.AddLast(integerTypeEqual2);
+
+                    nextImply = new Imply(integerTypeEqual2, substituted, usedFormulas);
+
+                    message = string.Format("Helyettesítünk: \\( {0} \\).", integerTypeEqual2);
+
+                    return new ImplyEvaluationNode(new Imply(this), message, nextImply.Evaluated());
+                }
             }
+
+            return new ImplyEvaluationLeaf(new Imply(this), "Sajnos nem tudjuk igazolni vagy cáfolni a kívánt állítást.", ImplyEvaluationResult.Unverifiable);
         }
 
         #endregion

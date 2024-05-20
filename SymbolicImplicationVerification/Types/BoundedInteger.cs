@@ -18,7 +18,14 @@ namespace SymbolicImplicationVerification.Types
     {
         #region Fields
 
+        /// <summary>
+        /// The lower bound of the interval.
+        /// </summary>
         protected LTerm lowerBound;
+
+        /// <summary>
+        /// The upper bound of the interval.
+        /// </summary>
         protected RTerm upperBound;
 
         #endregion
@@ -35,31 +42,30 @@ namespace SymbolicImplicationVerification.Types
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the lower bound of the interval.
+        /// </summary>
         public virtual LTerm LowerBound
         {
             get { return lowerBound; }
             set { lowerBound = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the upper bound of the interval.
+        /// </summary>
         public virtual RTerm UpperBound
         {
             get { return upperBound; }
             set { upperBound = value; }
         }
 
+        /// <summary>
+        /// Determines whether the interval is empty or not.
+        /// </summary>
         public abstract bool IsEmpty
         {
             get;
-        }
-
-        #endregion
-
-        #region Implicit conversions
-
-        public static implicit operator
-            BoundedIntegerType(BoundedInteger<LTerm, LType, RTerm, RType> bounded)
-        {
-            return bounded;
         }
 
         #endregion
@@ -88,7 +94,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>A string that represents the current object.</returns>
         public override string? ToString()
         {
-            return string.Format("[{0}..{1}]", lowerBound, upperBound);
+            return $@"\interval{{{lowerBound}}}{{{upperBound}}}";
         }
 
         /// <summary>

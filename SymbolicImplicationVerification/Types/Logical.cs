@@ -3,7 +3,7 @@ using System;
 
 namespace SymbolicImplicationVerification.Types
 {
-    public class Logical : Type, IValueValidator<bool>, ISingleton<Logical>
+    public class Logical : Type, IValueValidator<bool>
     {
         #region Fields
 
@@ -60,7 +60,7 @@ namespace SymbolicImplicationVerification.Types
         /// <returns>A string that represents the current object.</returns>
         public override string? ToString()
         {
-            return "\\mathbb{L}";
+            return @"\B";
         }
 
         /// <summary>
@@ -155,18 +155,6 @@ namespace SymbolicImplicationVerification.Types
         public bool IsValueValid(bool value)
         {
             return true;
-        }
-
-        /// <summary>
-        /// Creates a program, that represents the type constraint on the given term.
-        /// </summary>
-        /// <param name="term">The term to formulate on.</param>
-        /// <returns>The formulated constraint on the term.</returns>
-        public override Formula TypeConstraintOn(TypeTerm term)
-        {
-            bool isLogicalTerm = term.TermType is Logical;
-
-            return isLogicalTerm ? TRUE.Instance() : FALSE.Instance();
         }
 
         /// <summary>

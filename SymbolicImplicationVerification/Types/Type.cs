@@ -1,6 +1,4 @@
 ﻿global using Type = SymbolicImplicationVerification.Types.Type;
-using SymbolicImplicationVerification.Terms.FunctionValues;
-using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Formulas;
 
 namespace SymbolicImplicationVerification.Types
@@ -28,6 +26,29 @@ namespace SymbolicImplicationVerification.Types
         #endregion
 
         #region Public abstract methods
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>
+        ///   <see langword="true"/> if the specified object is equal to the current object; 
+        ///   otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
 
         /// <summary>
         /// Creates a deep copy of the current type.
@@ -82,13 +103,6 @@ namespace SymbolicImplicationVerification.Types
         ///   </list>
         /// </returns>
         public abstract bool IsValueValid(object? value);
-
-        /// <summary>
-        /// Creates a program, that represents the type constraint on the given term.
-        /// </summary>
-        /// <param name="term">The term to formulate on.</param>
-        /// <returns>The formulated constraint on the term.</returns>
-        public abstract Formula TypeConstraintOn(TypeTerm term);
 
         /// <summary>
         /// Calculates the intersection of the two types.

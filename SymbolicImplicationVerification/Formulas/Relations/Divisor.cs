@@ -88,6 +88,11 @@ namespace SymbolicImplicationVerification.Formulas.Relations
                 left.Equals(right) ? TRUE.Instance() : ReturnOrDeepCopy(new Divisor(left, right))
         };
 
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public override Formula ConjunctionWith(BinaryRelationFormula<IntegerType> other)
         {
             Func<BinaryRelationFormula<IntegerType>, BinaryRelationFormula<IntegerType>, Formula> AnyRearrangementEqualsConjuctionWith

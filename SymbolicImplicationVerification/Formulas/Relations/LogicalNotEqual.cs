@@ -6,7 +6,7 @@ using System.Text;
 
 namespace SymbolicImplicationVerification.Formulas.Relations
 {
-    public class LogicalNotEqual : Equal<Logical>
+    public class LogicalNotEqual : NotEqual<Logical>
     {
         #region Constructors
 
@@ -99,27 +99,6 @@ namespace SymbolicImplicationVerification.Formulas.Relations
 
             (_, _) => leftComponent.Equals(rightComponent) ? FALSE.Instance() :
                       ReturnOrDeepCopy(new LogicalEqual(leftComponent.Evaluated(), rightComponent.Evaluated()))
-
-            //LogicalTerm left =
-            //    leftComponent is FormulaTerm leftFormula ?
-            //    leftFormula.Evaluated() : leftComponent.DeepCopy();
-
-            //LogicalTerm right =
-            //    rightComponent is FormulaTerm rightFormula ?
-            //    rightFormula.Evaluated() : rightComponent.DeepCopy();
-
-            //return (left, right) switch
-            //{
-            //    (FormulaTerm { Formula: NotEvaluable }, _) => NotEvaluable.Instance(),
-            //    (_, FormulaTerm { Formula: NotEvaluable }) => NotEvaluable.Instance(),
-
-            //    (LogicalConstant leftConstant, LogicalConstant rightConstant) =>
-            //    leftConstant.Value != rightConstant.Value ? TRUE.Instance() : FALSE.Instance(),
-
-            //    (_, _) => left.Equals(right) ? FALSE.Instance() :
-            //              left.Equals(leftComponent) && right.Equals(rightComponent) ?
-            //              DeepCopy() : new LogicalEqual(left, right)
-            //};
         };
 
         /// <summary>

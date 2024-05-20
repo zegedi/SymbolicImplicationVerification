@@ -2,7 +2,7 @@
 
 namespace SymbolicImplicationVerification.Programs
 {
-    public class SKIP : Program, ISingleton<SKIP>
+    public class SKIP : Program
     {
         #region Fields
 

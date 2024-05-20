@@ -1,15 +1,6 @@
 ﻿using SymbolicImplicationVerification.Formulas.Operations;
-using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
-using SymbolicImplicationVerification.Terms.Operations.Binary;
-using SymbolicImplicationVerification.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SymbolicImplicationVerification.Formulas
 {
@@ -17,6 +8,9 @@ namespace SymbolicImplicationVerification.Formulas
     {
         #region Fields
 
+        /// <summary>
+        /// The argument of the formula.
+        /// </summary>
         protected LogicalTerm argument;
 
         #endregion
@@ -37,7 +31,10 @@ namespace SymbolicImplicationVerification.Formulas
 
         #region Public properties
 
-        public LogicalTerm Argumentum
+        /// <summary>
+        /// Gets or sets the argument of the formula.
+        /// </summary>
+        public LogicalTerm Argument
         {
             get { return argument; }
             set { argument = value; }
@@ -173,6 +170,11 @@ namespace SymbolicImplicationVerification.Formulas
             return result is not null ? result : string.Empty;
         }
 
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public override Formula ConjunctionWith(Formula other)
         {
             if (argument is FormulaTerm formulaTerm)
@@ -188,6 +190,11 @@ namespace SymbolicImplicationVerification.Formulas
             return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
         }
 
+        /// <summary>
+        /// Calculate the disjunction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the disjunction.</param>
+        /// <returns>The result of the disjunction.</returns>
         public override Formula DisjunctionWith(Formula other)
         {
             if (argument is FormulaTerm formulaTerm)

@@ -9,6 +9,9 @@ namespace SymbolicImplicationVerification.Terms
     {
         #region Fields
 
+        /// <summary>
+        /// The argument of the term.
+        /// </summary>
         private Formula formula;
 
         #endregion
@@ -26,6 +29,9 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the argument of the term.
+        /// </summary>
         public Formula Formula
         {
             get { return formula; }
@@ -45,6 +51,11 @@ namespace SymbolicImplicationVerification.Terms
             return formula.ToString();
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return string.Empty;

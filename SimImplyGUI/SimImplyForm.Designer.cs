@@ -47,23 +47,24 @@
             descriptionTextLabel=new ToolStripStatusLabel();
             latexLabel=new ToolStripStatusLabel();
             latexCodeLabel=new ToolStripStatusLabel();
+            emptyStatusLabel=new ToolStripStatusLabel();
             counterNameLabel=new ToolStripStatusLabel();
             counterLabel=new ToolStripStatusLabel();
             tableLayoutPanel=new TableLayoutPanel();
             saveFileDialog=new SaveFileDialog();
             openFileDialog=new OpenFileDialog();
-            emptyStatusLabel=new ToolStripStatusLabel();
             menuStrip.SuspendLayout();
             statusStrip.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip
             // 
+            menuStrip.Font=new Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point);
             menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, editMenu, resultMenu });
             menuStrip.Location=new Point(0, 0);
             menuStrip.Name="menuStrip";
             menuStrip.Padding=new Padding(7, 2, 0, 2);
-            menuStrip.Size=new Size(934, 24);
+            menuStrip.Size=new Size(934, 28);
             menuStrip.TabIndex=1;
             menuStrip.Text="menuStrip1";
             // 
@@ -71,44 +72,44 @@
             // 
             fileMenu.DropDownItems.AddRange(new ToolStripItem[] { resetMenuItem, toolStripSeparator1, saveMenuItem, loadMenuItem, toolStripSeparator2, exitMenuItem });
             fileMenu.Name="fileMenu";
-            fileMenu.Size=new Size(37, 20);
-            fileMenu.Text="File";
+            fileMenu.Size=new Size(43, 24);
+            fileMenu.Text="Fájl";
             // 
             // resetMenuItem
             // 
             resetMenuItem.Name="resetMenuItem";
-            resetMenuItem.Size=new Size(181, 22);
+            resetMenuItem.Size=new Size(216, 24);
             resetMenuItem.Text="Alaphelyzetbe állítás";
             resetMenuItem.Click+=ResetMenuItem_Click;
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name="toolStripSeparator1";
-            toolStripSeparator1.Size=new Size(178, 6);
+            toolStripSeparator1.Size=new Size(213, 6);
             // 
             // saveMenuItem
             // 
             saveMenuItem.Name="saveMenuItem";
-            saveMenuItem.Size=new Size(181, 22);
+            saveMenuItem.Size=new Size(216, 24);
             saveMenuItem.Text="Adatok mentése";
             saveMenuItem.Click+=SaveMenuItem_Click;
             // 
             // loadMenuItem
             // 
             loadMenuItem.Name="loadMenuItem";
-            loadMenuItem.Size=new Size(181, 22);
+            loadMenuItem.Size=new Size(216, 24);
             loadMenuItem.Text="Adatok betöltése";
-            loadMenuItem.Click+=SaveMenuItem_Click;
+            loadMenuItem.Click+=LoadMenuItem_Click;
             // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name="toolStripSeparator2";
-            toolStripSeparator2.Size=new Size(178, 6);
+            toolStripSeparator2.Size=new Size(213, 6);
             // 
             // exitMenuItem
             // 
             exitMenuItem.Name="exitMenuItem";
-            exitMenuItem.Size=new Size(181, 22);
+            exitMenuItem.Size=new Size(216, 24);
             exitMenuItem.Text="Kilépés";
             exitMenuItem.Click+=ExitMenuItem_Click;
             // 
@@ -116,35 +117,36 @@
             // 
             editMenu.DropDownItems.AddRange(new ToolStripItem[] { stateSpaceMenu, formulaMenu, implyMenu });
             editMenu.Name="editMenu";
-            editMenu.Size=new Size(77, 20);
+            editMenu.Size=new Size(96, 24);
             editMenu.Text="Szerkesztés";
             // 
             // stateSpaceMenu
             // 
             stateSpaceMenu.Name="stateSpaceMenu";
-            stateSpaceMenu.Size=new Size(201, 22);
+            stateSpaceMenu.Size=new Size(239, 24);
             stateSpaceMenu.Text="Állapottér szerkesztése";
             stateSpaceMenu.Click+=StateSpaceMenu_Click;
             // 
             // formulaMenu
             // 
             formulaMenu.Name="formulaMenu";
-            formulaMenu.Size=new Size(201, 22);
+            formulaMenu.Size=new Size(239, 24);
             formulaMenu.Text="Formulák szerkesztése";
             formulaMenu.Click+=FormulaMenu_Click;
             // 
             // implyMenu
             // 
             implyMenu.Name="implyMenu";
-            implyMenu.Size=new Size(201, 22);
+            implyMenu.Size=new Size(239, 24);
             implyMenu.Text="Implikációk szerkesztése";
             implyMenu.Click+=ImplyMenu_Click;
             // 
             // resultMenu
             // 
             resultMenu.Name="resultMenu";
-            resultMenu.Size=new Size(75, 20);
+            resultMenu.Size=new Size(93, 24);
             resultMenu.Text="Kiértékelés";
+            resultMenu.Click+=ResultMenu_Clikc;
             // 
             // statusStrip
             // 
@@ -162,6 +164,7 @@
             descriptionLabel.Name="descriptionLabel";
             descriptionLabel.Size=new Size(109, 25);
             descriptionLabel.Text="Megnevezés:";
+            descriptionLabel.Visible=false;
             // 
             // toolStripStatusLabel1
             // 
@@ -175,6 +178,7 @@
             descriptionTextLabel.Name="descriptionTextLabel";
             descriptionTextLabel.Size=new Size(55, 25);
             descriptionTextLabel.Text="Leírás";
+            descriptionTextLabel.Visible=false;
             // 
             // latexLabel
             // 
@@ -182,6 +186,7 @@
             latexLabel.Name="latexLabel";
             latexLabel.Size=new Size(88, 25);
             latexLabel.Text="Latex kód:";
+            latexLabel.Visible=false;
             // 
             // latexCodeLabel
             // 
@@ -189,6 +194,13 @@
             latexCodeLabel.Name="latexCodeLabel";
             latexCodeLabel.Size=new Size(16, 25);
             latexCodeLabel.Text="-";
+            latexCodeLabel.Visible=false;
+            // 
+            // emptyStatusLabel
+            // 
+            emptyStatusLabel.Name="emptyStatusLabel";
+            emptyStatusLabel.Size=new Size(795, 25);
+            emptyStatusLabel.Spring=true;
             // 
             // counterNameLabel
             // 
@@ -211,23 +223,13 @@
             tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanel.Dock=DockStyle.Fill;
-            tableLayoutPanel.Location=new Point(0, 24);
+            tableLayoutPanel.Location=new Point(0, 28);
             tableLayoutPanel.Name="tableLayoutPanel";
             tableLayoutPanel.RowCount=2;
             tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel.Size=new Size(934, 607);
+            tableLayoutPanel.Size=new Size(934, 603);
             tableLayoutPanel.TabIndex=3;
-            // 
-            // openFileDialog
-            // 
-            openFileDialog.FileName="openFileDialog1";
-            // 
-            // emptyStatusLabel
-            // 
-            emptyStatusLabel.Name="emptyStatusLabel";
-            emptyStatusLabel.Size=new Size(531, 25);
-            emptyStatusLabel.Spring=true;
             // 
             // SimImplyForm
             // 
@@ -242,6 +244,7 @@
             Margin=new Padding(3, 4, 3, 4);
             Name="SimImplyForm";
             Text="Form1";
+            FormClosing+=SimImplyForm_FormClosing;
             menuStrip.ResumeLayout(false);
             menuStrip.PerformLayout();
             statusStrip.ResumeLayout(false);

@@ -7,13 +7,13 @@ namespace SymbolicImplicationVerification.Converts.Tokens.Operands
     {
         #region Public abstract methods
 
-        public abstract void TryGetOperand(out IntegerTypeTerm? result);
+        public abstract bool TryGetOperand(out IntegerTypeTerm? result);
 
-        public abstract void TryGetOperand(out LogicalTerm? result);
+        public abstract bool TryGetOperand(out LogicalTerm? result);
 
-        public abstract void TryGetOperand(out Formula? result);
+        public abstract bool TryGetOperand(out Formula? result);
 
-        public abstract void TryGetOperand(out Program? result);
+        public abstract bool TryGetOperand(out Program? result);
 
         #endregion
     }

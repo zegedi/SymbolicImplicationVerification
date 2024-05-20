@@ -2,7 +2,5 @@
 
 namespace SymbolicImplicationVerification.Converts.Tokens
 {
-    internal abstract class Token
-    {
-    }
+    internal abstract class Token { }
 }

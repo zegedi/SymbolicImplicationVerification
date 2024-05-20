@@ -1,7 +1,5 @@
-﻿using System;
-using SymbolicImplicationVerification.Evaluations;
+﻿using SymbolicImplicationVerification.Evaluations;
 using SymbolicImplicationVerification.Formulas;
-using SymbolicImplicationVerification.Formulas.Quantified;
 using SymbolicImplicationVerification.Formulas.Relations;
 using SymbolicImplicationVerification.Terms.Constants;
 using SymbolicImplicationVerification.Terms.Operations.Binary;
@@ -14,10 +12,19 @@ namespace SymbolicImplicationVerification.Terms
     {
         #region Fields
 
+        /// <summary>
+        /// The argument of the summation.
+        /// </summary>
         protected IntegerTypeTerm argument;
 
+        /// <summary>
+        /// The index variable of the summation.
+        /// </summary>
         protected IntegerTypeVariable indexVariable;
 
+        /// <summary>
+        /// The index bounds of the summation.
+        /// </summary>
         protected BoundedIntegerType indexBounds;
 
         #endregion
@@ -68,18 +75,27 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public properties
 
+        /// <summary>
+        /// Gets os sets the argument of the summation.
+        /// </summary>
         public IntegerTypeTerm Argument
         {
             get { return argument; }
             set { argument = value; }
         }
 
+        /// <summary>
+        /// Gets os sets the index variable of the summation.
+        /// </summary>
         public IntegerTypeVariable IndexVariable
         {
             get { return indexVariable; }
             set { indexVariable = value; }
         }
 
+        /// <summary>
+        /// Gets os sets the index bounds of the summation.
+        /// </summary>
         public BoundedIntegerType IndexBounds
         {
             get { return indexBounds; }
@@ -90,16 +106,24 @@ namespace SymbolicImplicationVerification.Terms
 
         #region Public methods
 
+        /// <summary>
+        /// Create a deep copy of the current term.
+        /// </summary>
+        /// <returns>The created deep copy of the term.</returns>
         public override Summation DeepCopy()
         {
             return new Summation(this);
         }
 
+        /// <summary>
+        /// Evaluate the given term, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
         public override IntegerTypeTerm Evaluated()
         {
             if (indexBounds.IsEmpty)
             {
-                return new IntegerConstant(0);
+                return new IntegerTypeConstant(0);
             }
 
             IntegerTypeTerm argumentEval = argument.Evaluated();
@@ -109,15 +133,23 @@ namespace SymbolicImplicationVerification.Terms
                 argumentEval, termType.DeepCopy());
         }
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             return ToString();
         }
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
-            return string.Format("\\sum_{{{0}={1}}}^{{{2}}} {3}",
-                indexVariable, indexBounds.LowerBound, indexBounds.UpperBound, argument);
+            return @$"\summation{{{indexVariable}}}{{{indexBounds.LowerBound}}}{{{indexBounds.UpperBound}}}{{{argument}}}";
         }
 
         /// <summary>
@@ -158,6 +190,11 @@ namespace SymbolicImplicationVerification.Terms
             return base.GetHashCode();
         }
 
+        /// <summary>
+        /// Calculates the addition with the given term.
+        /// </summary>
+        /// <param name="other">The other component of the addition.</param>
+        /// <returns>The result of the addition.</returns>
         public IntegerTypeTerm AdditionWith(IntegerTypeTerm other)
         {
             IntegerTypeTerm? matchedIndexVariable =
@@ -165,7 +202,7 @@ namespace SymbolicImplicationVerification.Terms
 
             if (matchedIndexVariable is not null)
             {
-                IntegerConstant one = new IntegerConstant(1);
+                IntegerTypeConstant one = new IntegerTypeConstant(1);
 
                 Formula decreaseLowerBound = new IntegerTypeEqual(
                     one + matchedIndexVariable.DeepCopy(), indexBounds.LowerBound.DeepCopy()).CompletelyEvaluated();

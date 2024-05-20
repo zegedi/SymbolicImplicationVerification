@@ -1,8 +1,6 @@
 ﻿using SymbolicImplicationVerification.Formulas;
 using SymbolicImplicationVerification.Formulas.Relations;
-using SymbolicImplicationVerification.Terms;
 using SymbolicImplicationVerification.Terms.Constants;
-using System;
 
 namespace SymbolicImplicationVerification.Types
 {
@@ -57,19 +55,6 @@ namespace SymbolicImplicationVerification.Types
             return value is not null &&
                    value is int intValue &&
                    IsValueValid(intValue);
-        }
-
-        /// <summary>
-        /// Creates a program, that represents the type constraint on the given term.
-        /// </summary>
-        /// <param name="term">The term to formulate on.</param>
-        /// <returns>The formulated constraint on the term.</returns>
-        public override Formula TypeConstraintOn(TypeTerm term)
-        {
-            object objectTerm = term;
-
-            return objectTerm is IntegerTypeTerm integerTypeTerm ?
-                   TypeConstraintOn(integerTypeTerm) : FALSE.Instance();
         }
 
         /// <summary>
@@ -237,7 +222,7 @@ namespace SymbolicImplicationVerification.Types
                (new LessThanOrEqualTo(otherLowerBound,  thisLowerBound)  &
                 new LessThanOrEqualTo( thisLowerBound, otherUpperBound))).CompletelyEvaluated();
 
-            IntegerConstant one = new IntegerConstant(1);
+            IntegerTypeConstant one = new IntegerTypeConstant(1);
 
             Formula unionConnected =
                (new IntegerTypeEqual(one +  thisUpperBound, otherLowerBound) |
@@ -301,7 +286,7 @@ namespace SymbolicImplicationVerification.Types
         public abstract bool IsValueValid(int value);
 
         /// <summary>
-        /// Creates a program, that represents the type constraint on the given term.
+        /// Creates a formula, that represents the type constraint on the given term.
         /// </summary>
         /// <param name="term">The term to formulate the constraint on.</param>
         /// <returns>The formulated constraint on the term.</returns>

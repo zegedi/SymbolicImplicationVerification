@@ -4,6 +4,9 @@
     {
         #region Fields
 
+        /// <summary>
+        /// The result of the evaluation.
+        /// </summary>
         protected ImplyEvaluationResult result;
 
         #endregion
@@ -22,6 +25,9 @@
 
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the result of the evaluation.
+        /// </summary>
         public ImplyEvaluationResult Result
         {
             get { return result; }
@@ -32,6 +38,10 @@
 
         #region Public methods
 
+        /// <summary>
+        /// Determines the result of the evaluation.
+        /// </summary>
+        /// <returns>The result of the evaluation.</returns>
         public override ImplyEvaluationResult EvaluationResult()
         {
             return result;

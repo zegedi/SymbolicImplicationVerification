@@ -1,10 +1,5 @@
-﻿using SymbolicImplicationVerification.Evaluations;
-using SymbolicImplicationVerification.Formulas;
-using SymbolicImplicationVerification.Formulas.Quantified;
+﻿using SymbolicImplicationVerification.Formulas.Quantified;
 using SymbolicImplicationVerification.Formulas.Relations;
-using SymbolicImplicationVerification.Terms;
-using SymbolicImplicationVerification.Terms.Constants;
-using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Terms.Variables;
 using SymbolicImplicationVerification.Types;
 
@@ -35,16 +30,16 @@ namespace SymbolicImplicationVerification.Formulas
         /// <returns>A string of LaTeX code that represents the current object.</returns>
         public override string ToLatex()
         {
-            bool variableFromEmpyset = false;
+            bool variableFromEmptyset = false;
 
             if (quantifiedVariable.TermType is BoundedIntegerType bounded)
             {
-                variableFromEmpyset = bounded.IsEmpty && bounded.Evaluated() == bounded;
+                variableFromEmptyset = bounded.IsEmpty && bounded.Evaluated() == bounded;
             }
 
             return string.Format(
-                "\\forall {0} \\in {1} \\,\\colon {2}",
-                quantifiedVariable, variableFromEmpyset ? "\\emptyset" : quantifiedVariable.TermType, statement
+                "\\universally{{{0}}}{{{1}}}{{{2}}}", quantifiedVariable,
+                variableFromEmptyset ? "\\emptyset" : quantifiedVariable.TermType, statement
             );
         }
 
@@ -97,6 +92,11 @@ namespace SymbolicImplicationVerification.Formulas
                    statement.Equals(other.statement);
         }
 
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public override Formula ConjunctionWith(Formula other)
         {
             if (other is UniversallyQuantifiedFormula<T> universallyQuantified)
@@ -129,39 +129,14 @@ namespace SymbolicImplicationVerification.Formulas
                 return ConjunctionWith(quantified.DeepCopy(), other.DeepCopy());
             }
 
-            //Term<T>? variableReplaceTerm = PatternReplacer<T>.QuantifiedVariableReplaced(this, other);
-
-            //if (variableReplaceTerm is not null && 
-            //    variableReplaceTerm is IntegerTypeTerm replace &&
-            //    quantifiedVariable.TermType is BoundedIntegerType bounded)
-            //{
-            //    IntegerConstant one = new IntegerConstant(1);
-
-            //    Formula decreaseLowerBound = 
-            //        new IntegerTypeEqual(one + replace.DeepCopy(), bounded.LowerBound.DeepCopy()).Evaluated();
-
-            //    Formula increaseUpperBound =
-            //        new IntegerTypeEqual(replace.DeepCopy(), one + bounded.UpperBound.DeepCopy()).Evaluated();
-
-            //    if (decreaseLowerBound is TRUE || increaseUpperBound is TRUE)
-            //    {
-            //        bool decrease = decreaseLowerBound is TRUE;
-
-            //        TermBoundedInteger newBounds = new TermBoundedInteger(
-            //            decrease ? replace.DeepCopy() : bounded.LowerBound.DeepCopy(),
-            //            decrease ? bounded.UpperBound.DeepCopy() : replace.DeepCopy()
-            //        );
-
-            //        return new UniversallyQuantifiedFormula<IntegerType>(
-            //            new Variable<IntegerType>(quantifiedVariable.Identifier, newBounds),
-            //            statement.DeepCopy()
-            //        );
-            //    }
-            //}
-
             return new ConjunctionFormula(DeepCopy(), other.DeepCopy());
         }
 
+        /// <summary>
+        /// Calculate the disjunction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the disjunction.</param>
+        /// <returns>The result of the disjunction.</returns>
         public virtual Formula DisjunctionWith(BinaryRelationFormula<T> other)
         {
             return new DisjunctionFormula(DeepCopy(), other.DeepCopy());

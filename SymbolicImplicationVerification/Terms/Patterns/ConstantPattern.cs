@@ -3,7 +3,7 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Patterns
 {
-    public abstract class ConstantPattern<V, T> : Pattern<T> where T : Type
+    public abstract class ConstantPattern<T> : Pattern<T> where T : Type
     {
         #region Constructors
 
@@ -17,18 +17,22 @@ namespace SymbolicImplicationVerification.Terms.Patterns
         /// Create a deep copy of the current constant pattern.
         /// </summary>
         /// <returns>The created deep copy of the constant pattern.</returns>
-        public override abstract ConstantPattern<V, T> DeepCopy();
+        public override abstract ConstantPattern<T> DeepCopy();
 
         /// <summary>
         /// Evaluated the given pattern, without modifying the original.
         /// </summary>
         /// <returns>The newly created instance of the result.</returns>
-        public override abstract ConstantPattern<V, T> Evaluated();
+        public override abstract ConstantPattern<T> Evaluated();
 
         #endregion
 
         #region Public methods
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
         public override string ToString()
         {
             return "const" + Convert.ToString(Identifier);

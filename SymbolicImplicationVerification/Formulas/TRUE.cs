@@ -103,11 +103,21 @@ namespace SymbolicImplicationVerification.Formulas
             return TRUE.Instance();
         }
 
+        /// <summary>
+        /// Calculate the conjuction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the conjunction.</param>
+        /// <returns>The result of the conjunction.</returns>
         public override Formula ConjunctionWith(Formula other)
         {
             return other is NotEvaluable ? NotEvaluable.Instance() : other.DeepCopy();
         }
 
+        /// <summary>
+        /// Calculate the disjunction of the current formula with the parameter.
+        /// </summary>
+        /// <param name="other">The other operand of the disjunction.</param>
+        /// <returns>The result of the disjunction.</returns>
         public override Formula DisjunctionWith(Formula other)
         {
             return other is NotEvaluable ? NotEvaluable.Instance() : TRUE.Instance();

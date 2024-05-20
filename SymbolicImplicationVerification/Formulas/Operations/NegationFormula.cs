@@ -29,7 +29,7 @@ namespace SymbolicImplicationVerification.Formulas.Operations
         {
             bool noParenthesis =
                 operand is LogicalTermFormula logicalTerm &&
-                logicalTerm.Argumentum is Variable<Logical> or LogicalConstant;
+                logicalTerm.Argument is Variable<Logical> or LogicalConstant;
 
             return string.Format(noParenthesis ? "\\neg {0}" : "\\neg ({0})", operand);
         }

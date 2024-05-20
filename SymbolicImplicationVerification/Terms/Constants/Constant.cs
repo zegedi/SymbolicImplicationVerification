@@ -5,12 +5,15 @@ using SymbolicImplicationVerification.Types;
 
 namespace SymbolicImplicationVerification.Terms.Constants
 {
-    public class Constant<V, T> : Term<T> //, IMatch 
+    public abstract class Constant<V, T> : Term<T> //, IMatch 
         where V : notnull
         where T : Type
     {
         #region Fields
 
+        /// <summary>
+        /// The value of the constant.
+        /// </summary>
         protected V value;
 
         #endregion
@@ -34,17 +37,11 @@ namespace SymbolicImplicationVerification.Terms.Constants
 
         #endregion
 
-        #region Implicit conversions
-
-        public static implicit operator TypeConstant(Constant<V, T> constant)
-        {
-            return new TypeConstant(constant.value, constant.termType.DeepCopy());
-        }
-
-        #endregion
-
         #region Public properties
 
+        /// <summary>
+        /// Gets or sets the value of the constant.
+        /// </summary>
         public V Value
         {
             get { return value; }
@@ -59,15 +56,17 @@ namespace SymbolicImplicationVerification.Terms.Constants
         /// Create a deep copy of the current constant.
         /// </summary>
         /// <returns>The created deep copy of the constant.</returns>
-        public override Constant<V, T> DeepCopy()
-        {
-            return new Constant<V, T>(value, (T)termType.DeepCopy());
-        }
+        public override abstract Constant<V, T> DeepCopy();
 
         #endregion
 
         #region Public methods
 
+        /// <summary>
+        /// Gives information about the current term.
+        /// </summary>
+        /// <param name="level">The level of hashing.</param>
+        /// <returns>The <see cref="string"/> that contains the information.</returns>
         public override string Hash(HashLevel level)
         {
             switch (level)
@@ -76,7 +75,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
                     return string.Empty;
 
                 default:
-                    return Convert.ToString(value)!;
+                    return Convert.ToString(value) ?? string.Empty;
             }
         }
 

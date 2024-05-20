@@ -1,19 +1,20 @@
 ﻿using SymbolicImplicationVerification.Terms.Operations;
 using SymbolicImplicationVerification.Terms.Operations.Binary;
 using SymbolicImplicationVerification.Types;
-using System.Numerics;
 
 namespace SymbolicImplicationVerification.Terms.Constants
 {
-    public abstract class IntegerTypeConstant : Constant<int, IntegerType>
+    public class IntegerTypeConstant : Constant<int, IntegerType>
     {
         #region Constructors
 
-        protected IntegerTypeConstant(int value, IntegerType type)
+        public IntegerTypeConstant(int value) : this(value, Integer.Instance()) { }
+
+        public IntegerTypeConstant(int value, IntegerType type)
             : base(value, type) { }
 
-        protected IntegerTypeConstant(int value, IntegerType termType, bool valueOutOfRange)
-            : base(value, termType, valueOutOfRange) { }
+        public IntegerTypeConstant(IntegerTypeConstant constant) 
+            : this(constant.value, constant.termType.DeepCopy()) { }
 
         #endregion
 
@@ -21,7 +22,7 @@ namespace SymbolicImplicationVerification.Terms.Constants
 
         public static implicit operator IntegerTypeConstant(int value)
         {
-            return new IntegerConstant(value);
+            return new IntegerTypeConstant(value);
         }
 
         #endregion
@@ -96,22 +97,6 @@ namespace SymbolicImplicationVerification.Terms.Constants
 
         #endregion
 
-        #region Public abstract methods
-
-        /// <summary>
-        /// Create a deep copy of the current constant.
-        /// </summary>
-        /// <returns>The created deep copy of the constant.</returns>
-        public override abstract IntegerTypeConstant DeepCopy();
-
-        /// <summary>
-        /// Evaluated the given constant, without modifying the original.
-        /// </summary>
-        /// <returns>The newly created instance of the result.</returns>
-        public override abstract IntegerTypeConstant Evaluated();
-
-        #endregion
-
         #region Public methods
 
         /// <summary>
@@ -136,24 +121,23 @@ namespace SymbolicImplicationVerification.Terms.Constants
             return base.GetHashCode();
         }
 
-        /*
         /// <summary>
-        /// Determines wheter the given <see cref="object"/> matches the pattern.
+        /// Create a deep copy of the current constant.
         /// </summary>
-        /// <param name="obj">The <see cref="object"/> to match against the pattern.</param>
-        /// <returns>
-        ///   <list type="bullet">
-        ///     <item><see langword="true"/> - if the <see cref="object"/> matches the pattern.</item>
-        ///     <item><see langword="false"/> - otherwise.</item>
-        ///   </list>
-        /// </returns>
-        public override bool Matches(object? obj)
+        /// <returns>The created deep copy of the constant.</returns>
+        public override IntegerTypeConstant DeepCopy()
         {
-            return obj is not null &&
-                   obj is IntegerTypeConstant constant &&
-                   value == constant.value;
+            return new IntegerTypeConstant(this);
         }
-        */
+
+        /// <summary>
+        /// Evaluated the given constant, without modifying the original.
+        /// </summary>
+        /// <returns>The newly created instance of the result.</returns>
+        public override IntegerTypeConstant Evaluated()
+        {
+            return new IntegerTypeConstant(this);
+        }
 
         #endregion
     }
