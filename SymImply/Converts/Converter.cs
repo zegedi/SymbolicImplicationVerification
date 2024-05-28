@@ -269,14 +269,15 @@ namespace SymImply.Converts
                 bool parameterizedCommandBegin = Regex.IsMatch(symbol, parameterizedCommandBeginPattern);
                 bool parameterizedCommandEnd   = Regex.IsMatch(symbol, parameterizedCommandEndingPattern);
 
-                bool notValidSymbol = parameterizedCommandBegin ^ parameterizedCommandEnd;
+                int openBracketCount  = symbol.Count(character => character == '{');
+                int closeBracketCount = symbol.Count(character => character == '}');
+
+                bool notValidSymbol = parameterizedCommandBegin ^ parameterizedCommandEnd || 
+                                      openBracketCount != closeBracketCount;
 
                 if (notValidSymbol || buildSymbols)
                 {
                     commandBuilder.AppendFormat(buildSymbols ? " {0}" : "{0}", symbol);
-
-                    int  openBracketCount = symbol.Count(character => character == '{');
-                    int closeBracketCount = symbol.Count(character => character == '}');
 
                     openSymbolsCount += openBracketCount - closeBracketCount;
 

@@ -1,4 +1,5 @@
-﻿using SymImply.Formulas.Quantified;
+﻿using SymImply.Evaluations;
+using SymImply.Formulas.Quantified;
 using SymImply.Formulas.Relations;
 using SymImply.Terms.Variables;
 using SymImply.Types;
@@ -49,6 +50,11 @@ namespace SymImply.Formulas
         /// <returns>The newly created instance of the result.</returns>
         public override Formula Evaluated()
         {
+            if (statement is FALSE or TRUE or NotEvaluable)
+            {
+                return statement.DeepCopy();
+            }
+
             UniversallyQuantifiedFormula<T> result = DeepCopy();
 
             if (result.quantifiedVariable.TermType is TermBoundedInteger boundedInteger)
@@ -64,16 +70,24 @@ namespace SymImply.Formulas
                 }
             }
 
-            return (quantifiedVariable.TermType, statement) switch
+            if (quantifiedVariable  is IntegerTypeVariable quantified &&
+                quantified.TermType is BoundedIntegerType  bounded)
             {
-                (BoundedIntegerType { IsEmpty: true }, _) => TRUE.Instance(),
+                if (bounded.IsEmpty)
+                {
+                    return TRUE.Instance();
+                }
 
-                (_, FALSE       ) => FALSE.Instance(),
-                (_, TRUE        ) => TRUE .Instance(),
-                (_, NotEvaluable) => NotEvaluable.Instance(),
-                (_, _           ) => ReturnOrDeepCopy(
-                    new UniversallyQuantifiedFormula<T>(quantifiedVariable.DeepCopy(), statement.Evaluated()))
-            };
+                if (bounded.LowerBound.Equals(bounded.UpperBound))
+                {
+                    return PatternReplacer<IntegerType>.VariableReplaced(
+                        statement, quantified.DeepCopy(), bounded.LowerBound);
+                }
+            }
+
+            return ReturnOrDeepCopy(
+                new UniversallyQuantifiedFormula<T>(quantifiedVariable.DeepCopy(), statement.Evaluated())
+            );
         }
 
         /// <summary>

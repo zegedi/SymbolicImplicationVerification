@@ -128,5 +128,11 @@ namespace SymImply.Formulas.Quantified
         }
 
         #endregion
+
+        #region Protected methods
+
+
+
+        #endregion
     }
 }
